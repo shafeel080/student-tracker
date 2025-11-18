@@ -53,6 +53,12 @@ export default function Dashboard() {
     enabled: !!currentUser
   });
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!currentUser
+  });
+
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -86,13 +92,6 @@ export default function Dashboard() {
   const totalNetDeposit = filteredStudents.reduce((sum, s) => sum + (s.net_deposit || 0), 0);
   const myCommissions = commissions.filter(c => c.mentor_id === currentUser.id);
   const totalCommission = myCommissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
-
-  // Funding transactions for mentors
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: !!currentUser
-  });
   
   const myFundingTransactions = filterFundingTransactionsByRole(currentUser, fundingTransactions, students, allUsers);
   const pendingFundingRequests = myFundingTransactions.filter(t => t.status === 'PENDING').length;

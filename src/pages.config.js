@@ -5,6 +5,8 @@ import StudentDetail from './pages/StudentDetail';
 import MT5Accounts from './pages/MT5Accounts';
 import MyFundingRequests from './pages/MyFundingRequests';
 import FundingRequests from './pages/FundingRequests';
+import MyTargets from './pages/MyTargets';
+import TargetsManagement from './pages/TargetsManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +18,8 @@ export const PAGES = {
     "MT5Accounts": MT5Accounts,
     "MyFundingRequests": MyFundingRequests,
     "FundingRequests": FundingRequests,
+    "MyTargets": MyTargets,
+    "TargetsManagement": TargetsManagement,
 }
 
 export const pagesConfig = {

@@ -9,6 +9,7 @@ import {
   Award, 
   Target, 
   Ticket,
+  DollarSign,
   Menu,
   X,
   LogOut
@@ -39,6 +40,8 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, roles: ['all'] },
     { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['all'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['all'] },
+    { name: 'MyFundingRequests', href: createPageUrl('MyFundingRequests'), icon: DollarSign, roles: ['senior_mentor', 'junior_mentor'] },
+    { name: 'FundingRequests', href: createPageUrl('FundingRequests'), icon: DollarSign, roles: ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'] },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: TrendingUp, roles: ['all'] },
     { name: 'Commissions', href: createPageUrl('Commissions'), icon: Award, roles: ['super_admin', 'broker_admin', 'academic_head', 'senior_mentor', 'junior_mentor'] },
     { name: 'Targets', href: createPageUrl('Targets'), icon: Target, roles: ['super_admin', 'academic_head', 'senior_mentor', 'junior_mentor'] },

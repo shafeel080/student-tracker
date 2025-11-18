@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import StatsCard from "../components/dashboard/StatsCard";
-import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award } from "lucide-react";
+import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TransactionTable from "../components/transactions/TransactionTable";
 import { canViewAllStudents, isMentorRole, canApproveTransactions } from "../components/utils/DataMasking";
+import { 
+  filterFundingTransactionsByRole, 
+  canProcessFundingTransaction 
+} from "../components/utils/FundingAccessControl";
+import { calculateQuarterlyNetDepositAndCommission } from "../components/utils/CommissionUtils";
 
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -39,6 +44,12 @@ export default function Dashboard() {
   const { data: targets = [] } = useQuery({
     queryKey: ['targets'],
     queryFn: () => base44.entities.Target.list(),
+    enabled: !!currentUser
+  });
+
+  const { data: fundingTransactions = [] } = useQuery({
+    queryKey: ['funding-transactions'],
+    queryFn: () => base44.entities.FundingTransaction.list('-requested_at', 50),
     enabled: !!currentUser
   });
 
@@ -76,6 +87,21 @@ export default function Dashboard() {
   const myCommissions = commissions.filter(c => c.mentor_id === currentUser.id);
   const totalCommission = myCommissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
 
+  // Funding transactions for mentors
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!currentUser
+  });
+  
+  const myFundingTransactions = filterFundingTransactionsByRole(currentUser, fundingTransactions, students, allUsers);
+  const pendingFundingRequests = myFundingTransactions.filter(t => t.status === 'PENDING').length;
+  
+  // Calculate commission for mentors
+  const quarterCommission = isMentorRole(currentUser.role) 
+    ? calculateQuarterlyNetDepositAndCommission(myFundingTransactions, currentUser)
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -100,27 +126,44 @@ export default function Dashboard() {
             icon={Users}
             color="blue"
           />
-          <StatsCard
-            title="Net Deposits"
-            value={`$${totalNetDeposit.toFixed(2)}`}
-            icon={DollarSign}
-            color="emerald"
-          />
-          {isMentorRole(currentUser.role) && (
-            <StatsCard
-              title="My Commissions"
-              value={`$${totalCommission.toFixed(2)}`}
-              icon={Award}
-              color="purple"
-            />
-          )}
-          {canApproveTransactions(currentUser.role) && (
-            <StatsCard
-              title="Pending Approvals"
-              value={pendingTransactions.length}
-              icon={AlertCircle}
-              color="amber"
-            />
+          {isMentorRole(currentUser.role) ? (
+            <>
+              <StatsCard
+                title="Quarter Net Deposit"
+                value={`$${quarterCommission?.netDepositUsd?.toFixed(2) || '0.00'}`}
+                icon={DollarSign}
+                color="emerald"
+              />
+              <StatsCard
+                title="Quarter Commission"
+                value={`$${quarterCommission?.grossCommissionUsd?.toFixed(2) || '0.00'}`}
+                icon={Award}
+                color="purple"
+              />
+              <StatsCard
+                title="Pending Requests"
+                value={pendingFundingRequests}
+                icon={Wallet}
+                color="amber"
+              />
+            </>
+          ) : (
+            <>
+              <StatsCard
+                title="Net Deposits"
+                value={`$${totalNetDeposit.toFixed(2)}`}
+                icon={DollarSign}
+                color="emerald"
+              />
+              {canProcessFundingTransaction(currentUser.role) && (
+                <StatsCard
+                  title="Pending Funding Requests"
+                  value={fundingTransactions.filter(t => t.status === 'PENDING').length}
+                  icon={Wallet}
+                  color="amber"
+                />
+              )}
+            </>
           )}
         </div>
 

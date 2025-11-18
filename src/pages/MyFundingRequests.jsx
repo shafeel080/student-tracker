@@ -80,7 +80,7 @@ export default function MyFundingRequests() {
   const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
   const quarterLabel = getCurrentQuarterLabel();
 
-  const canCreate = canCreateFundingTransaction(currentUser.role);
+  const canCreate = canCreateFundingTransaction(currentUser.app_role);
 
   const getStatusColor = (status) => {
     switch (status) {

@@ -1,17 +1,17 @@
 // Utility functions for target access control
 
 export const canCreateTarget = (role) => {
-  return ['super_admin', 'academic_head'].includes(role);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role);
 };
 
 export const canEditTarget = (record, currentUser) => {
   if (!currentUser) return false;
-  return currentUser.role === 'super_admin';
+  return ['super_admin', 'admin'].includes(currentUser.role);
 };
 
 export const canDeleteTarget = (currentUser) => {
   if (!currentUser) return false;
-  return currentUser.role === 'super_admin';
+  return ['super_admin', 'admin'].includes(currentUser.role);
 };
 
 export const filterTargetsByRole = (currentUser, allTargets) => {
@@ -19,8 +19,8 @@ export const filterTargetsByRole = (currentUser, allTargets) => {
   
   const { role, id } = currentUser;
   
-  // Super Admin, Broker Admin, Academic Head/Admin see all
-  if (['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role)) {
+  // Super Admin, Admin, Broker Admin, Academic Head/Admin see all
+  if (['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role)) {
     return allTargets;
   }
   

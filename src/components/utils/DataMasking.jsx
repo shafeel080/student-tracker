@@ -27,8 +27,8 @@ export const shouldMaskData = (userRole) => {
 };
 
 export const canEditData = (userRole) => {
-  // Only Super Admin can edit existing data
-  return userRole === 'super_admin';
+  // Only Super Admin and Admin can edit existing data
+  return ['super_admin', 'admin'].includes(userRole);
 };
 
 export const canApproveTransactions = (userRole) => {
@@ -36,7 +36,7 @@ export const canApproveTransactions = (userRole) => {
 };
 
 export const canManageTargets = (userRole) => {
-  return ['super_admin', 'academic_head'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(userRole);
 };
 
 export const canManageTickets = (userRole) => {

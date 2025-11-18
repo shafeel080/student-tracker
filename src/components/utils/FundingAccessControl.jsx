@@ -5,11 +5,11 @@ export const canCreateFundingTransaction = (role) => {
 };
 
 export const canProcessFundingTransaction = (role) => {
-  return ['broker_admin', 'super_admin'].includes(role);
+  return ['broker_admin', 'super_admin', 'admin'].includes(role);
 };
 
 export const canViewAllFundingTransactions = (role) => {
-  return ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role);
 };
 
 export const filterFundingTransactionsByRole = (currentUser, allTransactions, allStudents, allUsers = []) => {
@@ -17,8 +17,8 @@ export const filterFundingTransactionsByRole = (currentUser, allTransactions, al
   
   const { role, id } = currentUser;
   
-  // Super Admin and Broker Admin see all
-  if (['super_admin', 'broker_admin'].includes(role)) {
+  // Super Admin, Admin and Broker Admin see all
+  if (['super_admin', 'admin', 'broker_admin'].includes(role)) {
     return allTransactions;
   }
   
@@ -52,7 +52,7 @@ export const filterFundingTransactionsByRole = (currentUser, allTransactions, al
 
 export const canEditFundingCoreFields = (record, currentUser) => {
   if (!currentUser) return false;
-  return currentUser.role === 'super_admin';
+  return ['super_admin', 'admin'].includes(currentUser.role);
 };
 
 export const canUpdateProcessingFields = (record, currentUser) => {
@@ -60,8 +60,8 @@ export const canUpdateProcessingFields = (record, currentUser) => {
   
   const { role } = currentUser;
   
-  // Super Admin can always update
-  if (role === 'super_admin') return true;
+  // Super Admin and Admin can always update
+  if (['super_admin', 'admin'].includes(role)) return true;
   
   // Broker Admin can update while PENDING
   if (role === 'broker_admin' && record.status === 'PENDING') return true;
@@ -74,8 +74,8 @@ export const canChangeFundingStatus = (record, currentUser) => {
   
   const { role } = currentUser;
   
-  // Super Admin can always change status
-  if (role === 'super_admin') return true;
+  // Super Admin and Admin can always change status
+  if (['super_admin', 'admin'].includes(role)) return true;
   
   // Broker Admin can change status from PENDING to APPROVED/REJECTED
   if (role === 'broker_admin' && record.status === 'PENDING') return true;

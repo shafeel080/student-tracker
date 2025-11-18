@@ -67,15 +67,15 @@ export const calculateReleaseDate = (endDate) => {
 };
 
 export const canEditLedger = (currentUser) => {
-  return currentUser?.role === 'super_admin';
+  return ['super_admin', 'admin'].includes(currentUser?.role);
 };
 
 export const canCloseLedger = (currentUser) => {
-  return ['super_admin', 'broker_admin'].includes(currentUser?.role);
+  return ['super_admin', 'admin', 'broker_admin'].includes(currentUser?.role);
 };
 
 export const canMarkReleased = (currentUser) => {
-  return ['super_admin', 'broker_admin'].includes(currentUser?.role);
+  return ['super_admin', 'admin', 'broker_admin'].includes(currentUser?.role);
 };
 
 export const filterLedgersByRole = (currentUser, allLedgers) => {
@@ -84,7 +84,7 @@ export const filterLedgersByRole = (currentUser, allLedgers) => {
   const { role, id } = currentUser;
   
   // Admins see all
-  if (['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role)) {
+  if (['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role)) {
     return allLedgers;
   }
   

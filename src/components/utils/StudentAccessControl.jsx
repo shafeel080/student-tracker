@@ -1,24 +1,24 @@
 // Utility functions for student access control based on user role
 
 export const canCreateStudent = (userRole) => {
-  return ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(userRole);
 };
 
 export const canEditStudent = (userRole) => {
-  return userRole === 'super_admin';
+  return ['super_admin', 'admin'].includes(userRole);
 };
 
 export const canCreateMT5Account = (userRole) => {
-  return ['super_admin', 'broker_admin'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin'].includes(userRole);
 };
 
 export const canEditMT5Account = (userRole) => {
-  return userRole === 'super_admin';
+  return ['super_admin', 'admin'].includes(userRole);
 };
 
 export const shouldMaskStudentData = (userRole) => {
-  // Only Super Admin and Broker Admin see unmasked data
-  return !['super_admin', 'broker_admin'].includes(userRole);
+  // Only Super Admin, Admin and Broker Admin see unmasked data
+  return !['super_admin', 'admin', 'broker_admin'].includes(userRole);
 };
 
 export const maskEmail = (email) => {
@@ -49,8 +49,8 @@ export const filterStudentsByRole = (students, currentUser, allUsers = []) => {
   
   const { role, id } = currentUser;
   
-  // Super Admin and Broker Admin see all students
-  if (['super_admin', 'broker_admin'].includes(role)) {
+  // Super Admin, Admin and Broker Admin see all students
+  if (['super_admin', 'admin', 'broker_admin'].includes(role)) {
     return students;
   }
   

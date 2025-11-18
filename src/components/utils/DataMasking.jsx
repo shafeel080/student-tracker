@@ -22,8 +22,8 @@ export const maskPhone = (phone) => {
 };
 
 export const shouldMaskData = (userRole) => {
-  // Only Super Admin and Broker Admin see unmasked data
-  return !['super_admin', 'broker_admin'].includes(userRole);
+  // Only Super Admin, Admin and Broker Admin see unmasked data
+  return !['super_admin', 'admin', 'broker_admin'].includes(userRole);
 };
 
 export const canEditData = (userRole) => {
@@ -32,7 +32,7 @@ export const canEditData = (userRole) => {
 };
 
 export const canApproveTransactions = (userRole) => {
-  return ['super_admin', 'broker_admin'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin'].includes(userRole);
 };
 
 export const canManageTargets = (userRole) => {
@@ -40,11 +40,11 @@ export const canManageTargets = (userRole) => {
 };
 
 export const canManageTickets = (userRole) => {
-  return ['super_admin', 'academic_admin'].includes(userRole);
+  return ['super_admin', 'admin', 'academic_admin'].includes(userRole);
 };
 
 export const canViewAllStudents = (userRole) => {
-  return ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(userRole);
 };
 
 export const isMentorRole = (userRole) => {

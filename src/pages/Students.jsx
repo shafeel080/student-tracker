@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import StudentTable from "../components/students/StudentTable";
-import { Plus, Search } from "lucide-react";
-import { canViewAllStudents, isMentorRole, canEditData } from "../components/utils/DataMasking";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import StudentForm from "../components/students/StudentForm";
+import { Plus, Search, Eye } from "lucide-react";
+import { 
+  canCreateStudent, 
+  filterStudentsByRole, 
+  applyStudentMasking,
+  generateStudentCode
+} from "../components/utils/StudentAccessControl";
+import { createPageUrl } from "../utils";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function Students() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    mentor_id: '',
-    mt5_id: '',
-    user_id: '',
-    status: 'active',
-    join_date: new Date().toISOString().split('T')[0]
-  });
 
   const queryClient = useQueryClient();
 
@@ -34,9 +30,6 @@ export default function Students() {
     const fetchUser = async () => {
       const user = await base44.auth.me();
       setCurrentUser(user);
-      if (isMentorRole(user.role)) {
-        setFormData(prev => ({ ...prev, mentor_id: user.id }));
-      }
     };
     fetchUser();
   }, []);
@@ -47,91 +40,56 @@ export default function Students() {
     enabled: !!currentUser
   });
 
-  const { data: mentors = [] } = useQuery({
-    queryKey: ['mentors'],
-    queryFn: async () => {
-      const users = await base44.entities.User.list();
-      return users.filter(u => u.role === 'senior_mentor' || u.role === 'junior_mentor');
-    },
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
     enabled: !!currentUser
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Student.create(data),
+    mutationFn: async (data) => {
+      const studentCode = await generateStudentCode(base44);
+      return base44.entities.Student.create({
+        ...data,
+        student_code: studentCode
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['students']);
       setShowAddDialog(false);
-      toast.success('Student added successfully');
-      resetForm();
+      toast.success('Student created successfully');
     }
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Student.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['students']);
-      setShowEditDialog(false);
-      toast.success('Student updated successfully');
-      setSelectedStudent(null);
-    }
-  });
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      mentor_id: currentUser && isMentorRole(currentUser.role) ? currentUser.id : '',
-      mt5_id: '',
-      user_id: '',
-      status: 'active',
-      join_date: new Date().toISOString().split('T')[0]
-    });
-  };
-
-  const handleSubmit = () => {
-    const mentor = mentors.find(m => m.id === formData.mentor_id);
-    const dataToSave = {
-      ...formData,
-      mentor_name: mentor?.full_name || ''
-    };
-    createMutation.mutate(dataToSave);
-  };
-
-  const handleEdit = (student) => {
-    if (!canEditData(currentUser?.role)) {
-      toast.error('You do not have permission to edit students');
-      return;
-    }
-    setSelectedStudent(student);
-    setFormData(student);
-    setShowEditDialog(true);
-  };
-
-  const handleUpdate = () => {
-    const mentor = mentors.find(m => m.id === formData.mentor_id);
-    const dataToUpdate = {
-      ...formData,
-      mentor_name: mentor?.full_name || ''
-    };
-    updateMutation.mutate({ id: selectedStudent.id, data: dataToUpdate });
+  const handleSubmit = (formData) => {
+    createMutation.mutate(formData);
   };
 
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
-  // Filter students based on role and search
-  let filteredStudents = canViewAllStudents(currentUser.role)
-    ? students
-    : isMentorRole(currentUser.role)
-    ? students.filter(s => s.mentor_id === currentUser.id)
-    : [];
-
+  // Filter students based on role
+  let filteredStudents = filterStudentsByRole(students, currentUser, users);
+  
+  // Apply search filter
   if (searchTerm) {
     filteredStudents = filteredStudents.filter(s =>
-      s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }
+  
+  // Apply masking to displayed students
+  const displayStudents = filteredStudents.map(s => applyStudentMasking(s, currentUser.role));
+  
+  const canCreate = canCreateStudent(currentUser.role);
+  
+  const getStatusColor = (status) => {
+    return status === 'ACTIVE' 
+      ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+      : 'bg-gray-100 text-gray-800 border-gray-200';
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
@@ -139,10 +97,12 @@ export default function Students() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Students</h1>
-          <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Student
-          </Button>
+          {canCreate && (
+            <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Student
+            </Button>
+          )}
         </div>
 
         {/* Search */}
@@ -157,161 +117,74 @@ export default function Students() {
         </div>
 
         {/* Table */}
-        <StudentTable
-          students={filteredStudents}
-          currentUser={currentUser}
-          onView={(student) => setSelectedStudent(student)}
-          onEdit={handleEdit}
-        />
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="font-semibold">Student Code</TableHead>
+                <TableHead className="font-semibold">Full Name</TableHead>
+                <TableHead className="font-semibold">Email</TableHead>
+                <TableHead className="font-semibold">Phone</TableHead>
+                <TableHead className="font-semibold">Country</TableHead>
+                <TableHead className="font-semibold">Primary Mentor</TableHead>
+                <TableHead className="font-semibold">Senior Mentor</TableHead>
+                <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="font-semibold">Created</TableHead>
+                <TableHead className="font-semibold text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {displayStudents.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                    No students found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                displayStudents.map((student) => (
+                  <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
+                    <TableCell className="font-mono text-sm font-medium text-blue-600">
+                      {student.student_code}
+                    </TableCell>
+                    <TableCell className="font-medium">{student.full_name}</TableCell>
+                    <TableCell className="text-sm">{student.email}</TableCell>
+                    <TableCell className="text-sm font-mono">{student.phone}</TableCell>
+                    <TableCell className="text-sm">{student.country || '-'}</TableCell>
+                    <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
+                    <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getStatusColor(student.status)}>
+                        {student.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
         {/* Add Dialog */}
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Student</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Name *</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Email *</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Mentor *</Label>
-                <Select
-                  value={formData.mentor_id}
-                  onValueChange={(value) => setFormData({ ...formData, mentor_id: value })}
-                  disabled={isMentorRole(currentUser?.role)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select mentor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mentors.map((mentor) => (
-                      <SelectItem key={mentor.id} value={mentor.id}>
-                        {mentor.full_name} ({mentor.role})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>MT5 ID</Label>
-                <Input
-                  value={formData.mt5_id}
-                  onChange={(e) => setFormData({ ...formData, mt5_id: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>User ID</Label>
-                <Input
-                  value={formData.user_id}
-                  onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Join Date</Label>
-                <Input
-                  type="date"
-                  value={formData.join_date}
-                  onChange={(e) => setFormData({ ...formData, join_date: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
-              <Button onClick={handleSubmit} disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Adding...' : 'Add Student'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Dialog (Super Admin only) */}
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Edit Student</DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
-              <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? 'Updating...' : 'Update Student'}
-              </Button>
-            </DialogFooter>
+            <StudentForm
+              onSubmit={handleSubmit}
+              onCancel={() => setShowAddDialog(false)}
+              isSubmitting={createMutation.isPending}
+            />
           </DialogContent>
         </Dialog>
       </div>

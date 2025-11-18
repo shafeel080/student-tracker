@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export default function StudentForm({ student, onSubmit, onCancel, isSubmitting }) {
+export default function StudentForm({ student, onSubmit, onCancel, isSubmitting, users: propUsers }) {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -20,10 +20,13 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting 
     notes: ''
   });
 
-  const { data: users = [] } = useQuery({
+  const { data: fetchedUsers = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list()
+    queryFn: () => base44.entities.User.list(),
+    enabled: !propUsers
   });
+
+  const users = propUsers || fetchedUsers;
 
   useEffect(() => {
     if (student) {
@@ -31,8 +34,8 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting 
     }
   }, [student]);
 
-  const juniorMentors = users.filter(u => u.role === 'junior_mentor');
-  const seniorMentors = users.filter(u => u.role === 'senior_mentor');
+  const juniorMentors = users.filter(u => u.app_role === 'junior_mentor');
+  const seniorMentors = users.filter(u => u.app_role === 'senior_mentor');
 
   const handleSubmit = (e) => {
     e.preventDefault();

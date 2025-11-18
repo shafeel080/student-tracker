@@ -184,6 +184,7 @@ export default function Students() {
               onSubmit={handleSubmit}
               onCancel={() => setShowAddDialog(false)}
               isSubmitting={createMutation.isPending}
+              users={users}
             />
           </DialogContent>
         </Dialog>

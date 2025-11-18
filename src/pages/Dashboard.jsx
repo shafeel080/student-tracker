@@ -71,11 +71,11 @@ export default function Dashboard() {
   }
 
   // Filter data based on user role
-  const filteredStudents = canViewAllStudents(currentUser.role)
+  const filteredStudents = canViewAllStudents(currentUser.app_role)
     ? students
-    : isMentorRole(currentUser.role)
+    : isMentorRole(currentUser.app_role)
     ? students.filter(s => {
-        if (currentUser.role === 'senior_mentor') {
+        if (currentUser.app_role === 'senior_mentor') {
           // Senior mentors see their students + junior mentors' students
           return s.mentor_id === currentUser.id || 
                  students.some(js => js.mentor_id === currentUser.id);
@@ -84,7 +84,7 @@ export default function Dashboard() {
       })
     : [];
 
-  const filteredTransactions = isMentorRole(currentUser.role)
+  const filteredTransactions = isMentorRole(currentUser.app_role)
     ? transactions.filter(t => t.mentor_id === currentUser.id)
     : transactions;
 
@@ -95,9 +95,9 @@ export default function Dashboard() {
   
   const myFundingTransactions = filterFundingTransactionsByRole(currentUser, fundingTransactions, students, allUsers);
   const pendingFundingRequests = myFundingTransactions.filter(t => t.status === 'PENDING').length;
-  
+
   // Calculate commission for mentors
-  const quarterCommission = isMentorRole(currentUser.role) 
+  const quarterCommission = isMentorRole(currentUser.app_role) 
     ? calculateQuarterlyNetDepositAndCommission(myFundingTransactions, currentUser)
     : null;
 
@@ -111,7 +111,7 @@ export default function Dashboard() {
             <p className="text-gray-600 mt-1">
               Welcome back, <span className="font-semibold">{currentUser.full_name}</span>
               <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                {currentUser.role?.replace(/_/g, ' ')}
+                {currentUser.app_role?.replace(/_/g, ' ')}
               </span>
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function Dashboard() {
             icon={Users}
             color="blue"
           />
-          {isMentorRole(currentUser.role) ? (
+          {isMentorRole(currentUser.app_role) ? (
             <>
               <StatsCard
                 title="Quarter Net Deposit"
@@ -154,7 +154,7 @@ export default function Dashboard() {
                 icon={DollarSign}
                 color="emerald"
               />
-              {canProcessFundingTransaction(currentUser.role) && (
+              {canProcessFundingTransaction(currentUser.app_role) && (
                 <StatsCard
                   title="Pending Funding Requests"
                   value={fundingTransactions.filter(t => t.status === 'PENDING').length}

@@ -47,7 +47,7 @@ export const maskPhone = (phone) => {
 export const filterStudentsByRole = (students, currentUser, allUsers = []) => {
   if (!currentUser) return [];
   
-  const { role, id } = currentUser;
+  const { app_role: role, id } = currentUser;
   
   // Super Admin, Admin and Broker Admin see all students
   if (['super_admin', 'admin', 'broker_admin'].includes(role)) {
@@ -68,7 +68,7 @@ export const filterStudentsByRole = (students, currentUser, allUsers = []) => {
   if (role === 'senior_mentor') {
     // Get all junior mentors assigned to this senior mentor
     const myJuniorMentors = allUsers.filter(u => 
-      u.role === 'junior_mentor' && u.senior_mentor_id === id
+      u.app_role === 'junior_mentor' && u.senior_mentor_id === id
     );
     const juniorMentorIds = myJuniorMentors.map(jm => jm.id);
     

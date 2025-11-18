@@ -67,7 +67,7 @@ export default function Students() {
 
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
-  // Filter students based on role
+  // Filter students based on app_role
   let filteredStudents = filterStudentsByRole(students, currentUser, users);
   
   // Apply search filter
@@ -81,9 +81,9 @@ export default function Students() {
   }
   
   // Apply masking to displayed students
-  const displayStudents = filteredStudents.map(s => applyStudentMasking(s, currentUser.role));
-  
-  const canCreate = canCreateStudent(currentUser.role);
+  const displayStudents = filteredStudents.map(s => applyStudentMasking(s, currentUser.app_role));
+
+  const canCreate = canCreateStudent(currentUser.app_role);
   
   const getStatusColor = (status) => {
     return status === 'ACTIVE' 

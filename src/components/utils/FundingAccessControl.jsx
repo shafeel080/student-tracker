@@ -15,7 +15,7 @@ export const canViewAllFundingTransactions = (role) => {
 export const filterFundingTransactionsByRole = (currentUser, allTransactions, allStudents, allUsers = []) => {
   if (!currentUser || !allTransactions) return [];
   
-  const { role, id } = currentUser;
+  const { app_role: role, id } = currentUser;
   
   // Super Admin, Admin and Broker Admin see all
   if (['super_admin', 'admin', 'broker_admin'].includes(role)) {
@@ -36,7 +36,7 @@ export const filterFundingTransactionsByRole = (currentUser, allTransactions, al
   if (role === 'senior_mentor') {
     // Get all junior mentors assigned to this senior mentor
     const myJuniorMentors = allUsers.filter(u => 
-      u.role === 'junior_mentor' && u.senior_mentor_id === id
+      u.app_role === 'junior_mentor' && u.senior_mentor_id === id
     );
     const juniorMentorIds = myJuniorMentors.map(jm => jm.id);
     
@@ -52,13 +52,13 @@ export const filterFundingTransactionsByRole = (currentUser, allTransactions, al
 
 export const canEditFundingCoreFields = (record, currentUser) => {
   if (!currentUser) return false;
-  return ['super_admin', 'admin'].includes(currentUser.role);
+  return ['super_admin', 'admin'].includes(currentUser.app_role);
 };
 
 export const canUpdateProcessingFields = (record, currentUser) => {
   if (!currentUser || !record) return false;
   
-  const { role } = currentUser;
+  const { app_role: role } = currentUser;
   
   // Super Admin and Admin can always update
   if (['super_admin', 'admin'].includes(role)) return true;
@@ -72,7 +72,7 @@ export const canUpdateProcessingFields = (record, currentUser) => {
 export const canChangeFundingStatus = (record, currentUser) => {
   if (!currentUser || !record) return false;
   
-  const { role } = currentUser;
+  const { app_role: role } = currentUser;
   
   // Super Admin and Admin can always change status
   if (['super_admin', 'admin'].includes(role)) return true;

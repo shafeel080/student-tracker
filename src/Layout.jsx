@@ -53,7 +53,7 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const filteredNavigation = navigation.filter(item => 
-    item.roles.includes('all') || item.roles.includes(currentUser?.role)
+    item.roles.includes('all') || item.roles.includes(currentUser?.app_role)
   );
 
   if (!currentUser) {
@@ -97,7 +97,7 @@ export default function Layout({ children, currentPageName }) {
               <p className="text-xs text-gray-600 mt-1">{currentUser.email}</p>
               <div className="mt-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {currentUser.role?.replace(/_/g, ' ')}
+                  {currentUser.app_role?.replace(/_/g, ' ')}
                 </span>
               </div>
             </div>

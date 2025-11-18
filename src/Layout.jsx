@@ -38,6 +38,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navigation = [
     { name: 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, roles: ['all'] },
+    { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head', 'academic_admin'] },
     { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['all'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['all'] },
     { name: 'MyFundingRequests', href: createPageUrl('MyFundingRequests'), icon: DollarSign, roles: ['senior_mentor', 'junior_mentor'] },

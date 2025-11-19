@@ -74,19 +74,15 @@ export default function MyFundingRequests() {
     );
   }
 
-  // Get junior mentors reporting to this senior mentor
-  const juniorMentors = users.filter(u => 
-    u.app_role === 'junior_mentor' && u.senior_mentor_id === currentUser.id
-  );
-  const juniorMentorIds = juniorMentors.map(m => m.id);
+  // Filter MY transactions - transactions where I am the primary mentor
+  const myTransactions = transactions.filter(t => t.primary_mentor_id === currentUser.id);
+  const myStudents = students.filter(s => s.primary_mentor_id === currentUser.id);
 
-  // Filter MY transactions and students
-  const myTransactions = filterFundingTransactionsByRole(currentUser, transactions, students, users);
-  const myStudents = filterStudentsByRole(students, currentUser, users);
-
-  // Filter TEAM transactions (for senior mentors only)
+  // Filter TEAM transactions - transactions where I am senior mentor but NOT primary mentor
   const teamTransactions = transactions.filter(t => 
-    currentUser.app_role === 'senior_mentor' && juniorMentorIds.includes(t.primary_mentor_id)
+    currentUser.app_role === 'senior_mentor' && 
+    t.senior_mentor_id === currentUser.id &&
+    t.primary_mentor_id !== currentUser.id
   );
 
   // Calculate MY commission

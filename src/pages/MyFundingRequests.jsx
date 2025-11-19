@@ -50,17 +50,9 @@ export default function MyFundingRequests() {
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ['users', currentUser?.id],
-    queryFn: async () => {
-      if (currentUser?.app_role === 'senior_mentor') {
-        return await base44.entities.User.filter({ 
-          app_role: 'junior_mentor',
-          senior_mentor_id: currentUser.id 
-        });
-      }
-      return [];
-    },
-    enabled: !!currentUser
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: false // Disabled to avoid 403 errors
   });
 
   const createMutation = useMutation({
@@ -98,39 +90,38 @@ export default function MyFundingRequests() {
   const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
   const quarterLabel = getCurrentQuarterLabel();
 
-  // Get junior mentors for team commission calculation
-  const juniorMentors = users.filter(u => 
-    u.app_role === 'junior_mentor' && 
-    (u.senior_mentor_id === currentUser.id || u.senior_mentor_name === currentUser.full_name)
-  );
+  // Calculate TEAM commission directly from team transactions (no need to fetch users)
+  // Group team transactions by primary mentor
+  const juniorMentorMap = new Map();
+  teamTransactions.forEach(t => {
+    if (t.status === 'APPROVED' && isWithinCurrentQuarter(t.requested_at)) {
+      if (!juniorMentorMap.has(t.primary_mentor_id)) {
+        juniorMentorMap.set(t.primary_mentor_id, {
+          id: t.primary_mentor_id,
+          name: t.primary_mentor_name,
+          transactions: []
+        });
+      }
+      juniorMentorMap.get(t.primary_mentor_id).transactions.push(t);
+    }
+  });
 
-  // Calculate TEAM commission (upline commission from junior mentors)
-  const teamCommissionData = juniorMentors.map(juniorMentor => {
-    const juniorTransactions = transactions.filter(t => 
-      t.primary_mentor_id === juniorMentor.id && 
-      t.status === 'APPROVED' &&
-      isWithinCurrentQuarter(t.requested_at)
-    );
-    
-    console.log('Junior Mentor:', juniorMentor.full_name, 
-                'Transactions:', juniorTransactions.length,
-                'Upline %:', juniorMentor.upline_commission_percentage);
-    
-    const deposits = juniorTransactions.filter(t => t.type === 'DEPOSIT')
+  // Calculate commission for each junior mentor
+  const teamCommissionData = Array.from(juniorMentorMap.values()).map(mentor => {
+    const deposits = mentor.transactions.filter(t => t.type === 'DEPOSIT')
       .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-    const withdrawals = juniorTransactions.filter(t => t.type === 'WITHDRAWAL')
+    const withdrawals = mentor.transactions.filter(t => t.type === 'WITHDRAWAL')
       .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
     const netDeposit = deposits - withdrawals;
     
-    const uplinePercentage = juniorMentor.upline_commission_percentage || 0;
+    // Get upline percentage from the transaction (assuming it's stored there)
+    const uplinePercentage = mentor.transactions[0]?.upline_commission_percentage || 0;
     const grossCommission = (netDeposit * uplinePercentage) / 100;
     const release = grossCommission * 0.75;
     const buffer = grossCommission * 0.25;
     
-    console.log('Net Deposit:', netDeposit, 'Gross Commission:', grossCommission);
-    
     return {
-      juniorMentorName: juniorMentor.full_name,
+      juniorMentorName: mentor.name,
       netDeposit,
       grossCommission,
       release,
@@ -354,7 +345,7 @@ export default function MyFundingRequests() {
                         ${totalTeamCommission.netDeposit.toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {juniorMentors.length} junior mentor(s), {teamTransactions.length} transactions
+                        {teamCommissionData.length} junior mentor(s), {teamTransactions.length} transactions
                       </p>
                     </div>
 

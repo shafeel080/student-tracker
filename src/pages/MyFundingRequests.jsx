@@ -104,6 +104,10 @@ export default function MyFundingRequests() {
       isWithinCurrentQuarter(t.requested_at)
     );
     
+    console.log('Junior Mentor:', juniorMentor.full_name, 
+                'Transactions:', juniorTransactions.length,
+                'Upline %:', juniorMentor.upline_commission_percentage);
+    
     const deposits = juniorTransactions.filter(t => t.type === 'DEPOSIT')
       .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
     const withdrawals = juniorTransactions.filter(t => t.type === 'WITHDRAWAL')
@@ -114,6 +118,8 @@ export default function MyFundingRequests() {
     const grossCommission = (netDeposit * uplinePercentage) / 100;
     const release = grossCommission * 0.75;
     const buffer = grossCommission * 0.25;
+    
+    console.log('Net Deposit:', netDeposit, 'Gross Commission:', grossCommission);
     
     return {
       juniorMentorName: juniorMentor.full_name,

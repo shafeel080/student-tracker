@@ -77,12 +77,11 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone *</Label>
+          <Label htmlFor="phone">Phone</Label>
           <Input
             id="phone"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            required
           />
         </div>
         
@@ -96,11 +95,10 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="primary_mentor">Primary Mentor (Junior) *</Label>
+          <Label htmlFor="primary_mentor">Primary Mentor (Junior)</Label>
           <Select
             value={formData.primary_mentor_id}
             onValueChange={(value) => setFormData({ ...formData, primary_mentor_id: value })}
-            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Junior Mentor" />

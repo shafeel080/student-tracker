@@ -90,7 +90,10 @@ export default function MyFundingRequests() {
   const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
   const quarterLabel = getCurrentQuarterLabel();
 
-  // Calculate TEAM commission directly from team transactions (no need to fetch users)
+  // Calculate TEAM commission directly from team transactions
+  // Get senior mentor's upline percentage
+  const seniorMentorUplinePercentage = currentUser.upline_commission_percentage || 0;
+
   // Group team transactions by primary mentor
   const juniorMentorMap = new Map();
   teamTransactions.forEach(t => {
@@ -113,13 +116,12 @@ export default function MyFundingRequests() {
     const withdrawals = mentor.transactions.filter(t => t.type === 'WITHDRAWAL')
       .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
     const netDeposit = deposits - withdrawals;
-    
-    // Get upline percentage from the transaction (assuming it's stored there)
-    const uplinePercentage = mentor.transactions[0]?.upline_commission_percentage || 0;
-    const grossCommission = (netDeposit * uplinePercentage) / 100;
+
+    // Use senior mentor's upline percentage for calculations
+    const grossCommission = (netDeposit * seniorMentorUplinePercentage) / 100;
     const release = grossCommission * 0.75;
     const buffer = grossCommission * 0.25;
-    
+
     return {
       juniorMentorName: mentor.name,
       netDeposit,

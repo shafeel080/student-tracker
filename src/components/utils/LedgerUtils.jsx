@@ -75,7 +75,7 @@ export const canCloseLedger = (currentUser) => {
 };
 
 export const canMarkReleased = (currentUser) => {
-  return ['super_admin', 'admin', 'broker_admin'].includes(currentUser?.app_role);
+  return ['super_admin', 'admin', 'broker_admin', 'finance_admin'].includes(currentUser?.app_role);
 };
 
 export const filterLedgersByRole = (currentUser, allLedgers) => {

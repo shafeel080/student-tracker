@@ -15,7 +15,8 @@ import {
 } from "../components/utils/FundingAccessControl";
 import { 
   calculateQuarterlyNetDepositAndCommission,
-  getCurrentQuarterLabel 
+  getCurrentQuarterLabel,
+  isWithinCurrentQuarter
 } from "../components/utils/CommissionUtils";
 import { filterStudentsByRole } from "../components/utils/StudentAccessControl";
 import { toast } from "sonner";
@@ -97,7 +98,9 @@ export default function MyFundingRequests() {
   // Calculate TEAM commission (upline commission from junior mentors)
   const teamCommissionData = juniorMentors.map(juniorMentor => {
     const juniorTransactions = transactions.filter(t => 
-      t.primary_mentor_id === juniorMentor.id && t.status === 'APPROVED'
+      t.primary_mentor_id === juniorMentor.id && 
+      t.status === 'APPROVED' &&
+      isWithinCurrentQuarter(t.requested_at)
     );
     
     const deposits = juniorTransactions.filter(t => t.type === 'DEPOSIT')

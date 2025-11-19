@@ -90,12 +90,22 @@ export default function Dashboard() {
     : transactions;
 
   const pendingTransactions = filteredTransactions.filter(t => t.status === 'pending');
-  const totalNetDeposit = filteredStudents.reduce((sum, s) => sum + (s.net_deposit || 0), 0);
-  const myCommissions = commissions.filter(c => c.mentor_id === currentUser.id);
-  const totalCommission = myCommissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
   
   const myFundingTransactions = filterFundingTransactionsByRole(currentUser, fundingTransactions, students, allUsers);
   const pendingFundingRequests = myFundingTransactions.filter(t => t.status === 'PENDING').length;
+
+  // Calculate net deposit from approved funding transactions
+  const approvedFundingTransactions = myFundingTransactions.filter(t => t.status === 'APPROVED');
+  const totalDeposits = approvedFundingTransactions
+    .filter(t => t.type === 'DEPOSIT')
+    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+  const totalWithdrawals = approvedFundingTransactions
+    .filter(t => t.type === 'WITHDRAWAL')
+    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+  const totalNetDeposit = totalDeposits - totalWithdrawals;
+
+  const myCommissions = commissions.filter(c => c.mentor_id === currentUser.id);
+  const totalCommission = myCommissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
 
   // Calculate commission for mentors
   const quarterCommission = isMentorRole(currentUser.app_role) 

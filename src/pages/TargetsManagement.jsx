@@ -104,11 +104,11 @@ export default function TargetsManagement() {
   });
 
   // Get mentors for filters and form
-  const mentors = users.filter(u => ['junior_mentor', 'senior_mentor'].includes(u.role));
+  const mentors = users.filter(u => ['junior_mentor', 'senior_mentor'].includes(u.app_role));
   const uniqueMentorIds = [...new Set(targets.map(t => t.mentor_id))];
   const mentorsWithTargets = users.filter(u => uniqueMentorIds.includes(u.id));
 
-  const canCreate = canCreateTarget(currentUser.role);
+  const canCreate = canCreateTarget(currentUser.app_role);
   const canDelete = canDeleteTarget(currentUser);
 
   const handleSubmit = (formData) => {

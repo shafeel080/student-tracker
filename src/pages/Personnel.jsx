@@ -221,6 +221,7 @@ export default function Personnel() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Commission Rate</TableHead>
+                <TableHead>Upline %</TableHead>
                 <TableHead>Senior Mentor</TableHead>
                 <TableHead>Joined</TableHead>
                 {canEditPersonnel(currentUser.app_role) && <TableHead>Actions</TableHead>}
@@ -229,7 +230,7 @@ export default function Personnel() {
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -246,6 +247,11 @@ export default function Personnel() {
                     <TableCell>
                       {['junior_mentor', 'senior_mentor'].includes(user.app_role) 
                         ? `${user.commission_rate || 4}%` 
+                        : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {user.app_role === 'junior_mentor' 
+                        ? `${user.upline_commission_percentage || 0}%` 
                         : '-'}
                     </TableCell>
                     <TableCell>

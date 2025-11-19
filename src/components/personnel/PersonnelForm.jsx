@@ -23,7 +23,8 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
     app_role: 'junior_mentor',
     senior_mentor_id: '',
     senior_mentor_name: '',
-    commission_rate: 4
+    commission_rate: 4,
+    upline_commission_percentage: 0
   });
 
   useEffect(() => {
@@ -34,7 +35,8 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
         app_role: user.app_role || 'junior_mentor',
         senior_mentor_id: user.senior_mentor_id || '',
         senior_mentor_name: user.senior_mentor_name || '',
-        commission_rate: user.commission_rate || 4
+        commission_rate: user.commission_rate || 4,
+        upline_commission_percentage: user.upline_commission_percentage || 0
       });
     }
   }, [user]);
@@ -142,6 +144,23 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
                 placeholder="e.g., 4 for 4%"
               />
               <p className="text-xs text-gray-500 mt-1">Percentage of net deposit as commission</p>
+            </div>
+          )}
+
+          {formData.app_role === 'junior_mentor' && (
+            <div>
+              <Label htmlFor="upline_commission">Upline Senior Mentor Commission (%)</Label>
+              <Input
+                id="upline_commission"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={formData.upline_commission_percentage}
+                onChange={(e) => setFormData({ ...formData, upline_commission_percentage: parseFloat(e.target.value) || 0 })}
+                placeholder="e.g., 1 for 1%"
+              />
+              <p className="text-xs text-gray-500 mt-1">Percentage given to senior mentor from this junior's net deposits</p>
             </div>
           )}
 

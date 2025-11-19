@@ -46,7 +46,7 @@ export default function Transactions() {
 
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date'),
+    queryFn: () => base44.entities.FundingTransaction.list('-requested_at'),
     enabled: !!currentUser
   });
 
@@ -57,7 +57,7 @@ export default function Transactions() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Transaction.create(data),
+    mutationFn: (data) => base44.entities.FundingTransaction.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['transactions']);
       setShowAddDialog(false);
@@ -68,29 +68,13 @@ export default function Transactions() {
 
   const approveMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      await base44.entities.Transaction.update(id, {
+      await base44.entities.FundingTransaction.update(id, {
         ...data,
-        status: 'approved',
-        approved_by: currentUser.id,
-        approved_date: new Date().toISOString()
+        status: 'APPROVED',
+        approved_by_id: currentUser.id,
+        approved_by_name: currentUser.full_name,
+        approved_at: new Date().toISOString()
       });
-      
-      // Update student's deposit/withdrawal totals
-      const transaction = transactions.find(t => t.id === id);
-      if (transaction) {
-        const student = students.find(s => s.id === transaction.student_id);
-        if (student) {
-          const updates = {};
-          if (transaction.type === 'deposit') {
-            updates.total_deposits = (student.total_deposits || 0) + transaction.amount;
-          } else {
-            updates.total_withdrawals = (student.total_withdrawals || 0) + transaction.amount;
-          }
-          updates.net_deposit = (student.total_deposits || 0) + (updates.total_deposits || 0) 
-                              - (student.total_withdrawals || 0) - (updates.total_withdrawals || 0);
-          await base44.entities.Student.update(student.id, updates);
-        }
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['transactions']);
@@ -101,11 +85,12 @@ export default function Transactions() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }) => base44.entities.Transaction.update(id, {
-      status: 'rejected',
-      approved_by: currentUser.id,
-      approved_date: new Date().toISOString(),
-      rejection_reason: reason
+    mutationFn: ({ id, reason }) => base44.entities.FundingTransaction.update(id, {
+      status: 'REJECTED',
+      approved_by_id: currentUser.id,
+      approved_by_name: currentUser.full_name,
+      approved_at: new Date().toISOString(),
+      notes: reason
     }),
     onSuccess: () => {
       queryClient.invalidateQueries(['transactions']);
@@ -126,12 +111,21 @@ export default function Transactions() {
   const handleSubmit = () => {
     const student = students.find(s => s.id === formData.student_id);
     const dataToSave = {
-      ...formData,
-      student_name: student?.name || '',
-      mentor_id: currentUser.id,
-      mentor_name: currentUser.full_name,
-      request_date: new Date().toISOString(),
-      status: 'pending'
+      type: formData.type.toUpperCase(),
+      student_id: formData.student_id,
+      student_name: student?.full_name || '',
+      student_code: student?.student_code || '',
+      primary_mentor_id: student?.primary_mentor_id || currentUser.id,
+      primary_mentor_name: student?.primary_mentor_name || currentUser.full_name,
+      senior_mentor_id: student?.senior_mentor_id,
+      senior_mentor_name: student?.senior_mentor_name,
+      amount_usd: formData.amount,
+      payment_method: '',
+      screenshot_url: formData.screenshot_url,
+      status: 'PENDING',
+      requested_by_id: currentUser.id,
+      requested_by_name: currentUser.full_name,
+      requested_at: new Date().toISOString()
     };
     createMutation.mutate(dataToSave);
   };
@@ -183,11 +177,11 @@ export default function Transactions() {
   const myStudentIds = myStudents.map(s => s.id);
   
   let filteredTransactions = isMentorRole(currentUser.app_role)
-    ? transactions.filter(t => t.mentor_id === currentUser.id)
+    ? transactions.filter(t => t.primary_mentor_id === currentUser.id)
     : transactions;
 
   if (filterStatus !== 'all') {
-    filteredTransactions = filteredTransactions.filter(t => t.status === filterStatus);
+    filteredTransactions = filteredTransactions.filter(t => t.status?.toUpperCase() === filterStatus.toUpperCase());
   }
 
   return (

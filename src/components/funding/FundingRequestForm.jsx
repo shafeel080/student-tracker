@@ -55,6 +55,12 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
     
     // Use current user's upline commission percentage (they are the primary mentor)
     const uplinePercentage = currentUser.upline_commission_percentage || 0;
+    console.log('Upline percentage for transaction:', {
+      currentUserName: currentUser.full_name,
+      currentUserId: currentUser.id,
+      uplinePercentage: uplinePercentage,
+      currentUserFullObject: currentUser
+    });
     
     const dataToSubmit = {
       ...formData,

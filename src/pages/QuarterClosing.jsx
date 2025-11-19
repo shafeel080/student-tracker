@@ -74,7 +74,7 @@ export default function QuarterClosing() {
   const quarterLabel = getQuarterLabel(selectedYear, selectedQuarter);
 
   // Get all mentors
-  const mentors = users.filter(u => ['junior_mentor', 'senior_mentor'].includes(u.role));
+  const mentors = users.filter(u => ['junior_mentor', 'senior_mentor'].includes(u.app_role));
 
   // Calculate mentor data
   const mentorData = mentors.map(mentor => {

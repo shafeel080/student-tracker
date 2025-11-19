@@ -83,14 +83,14 @@ export default function Layout({ children, currentPageName }) {
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-white border-r border-gray-200">
         <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-6 mb-8">
-            <div className="flex items-center space-x-3">
+            <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center">
                 <Award className="h-6 w-6 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Commission Portal</h1>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className="px-4 mb-4">
@@ -145,12 +145,12 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile header */}
       <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
+          <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
               <Award className="h-5 w-5 text-white" />
             </div>
             <h1 className="text-lg font-bold text-gray-900">Commission Portal</h1>
-          </div>
+          </Link>
           <Button
             variant="ghost"
             size="icon"

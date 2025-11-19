@@ -44,13 +44,26 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const selectedStudent = students.find(s => s.id === formData.student_id);
     if (!selectedStudent) {
       toast.error('Please select a student');
       return;
+    }
+    
+    // Fetch the primary mentor's upline commission percentage
+    let uplinePercentage = 0;
+    if (selectedStudent.primary_mentor_id) {
+      try {
+        const primaryMentor = await base44.entities.User.filter({ id: selectedStudent.primary_mentor_id });
+        if (primaryMentor && primaryMentor.length > 0) {
+          uplinePercentage = primaryMentor[0].upline_commission_percentage || 0;
+        }
+      } catch (error) {
+        console.log('Could not fetch primary mentor upline percentage:', error);
+      }
     }
     
     const dataToSubmit = {
@@ -63,6 +76,7 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       primary_mentor_name: selectedStudent.primary_mentor_name,
       senior_mentor_id: selectedStudent.senior_mentor_id,
       senior_mentor_name: selectedStudent.senior_mentor_name,
+      upline_commission_percentage: uplinePercentage,
       requested_by_id: currentUser.id,
       requested_by_name: currentUser.full_name,
       requested_at: new Date().toISOString()

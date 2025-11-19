@@ -92,7 +92,8 @@ export default function MyFundingRequests() {
 
   // Get junior mentors for team commission calculation
   const juniorMentors = users.filter(u => 
-    u.app_role === 'junior_mentor' && u.senior_mentor_id === currentUser.id
+    u.app_role === 'junior_mentor' && 
+    (u.senior_mentor_id === currentUser.id || u.senior_mentor_name === currentUser.full_name)
   );
 
   // Calculate TEAM commission (upline commission from junior mentors)
@@ -337,6 +338,9 @@ export default function MyFundingRequests() {
                       </div>
                       <p className="text-2xl font-bold text-gray-900">
                         ${totalTeamCommission.netDeposit.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {juniorMentors.length} junior mentor(s), {teamTransactions.length} transactions
                       </p>
                     </div>
 

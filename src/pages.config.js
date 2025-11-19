@@ -12,6 +12,7 @@ import MyCommissionHistory from './pages/MyCommissionHistory';
 import CommissionReports from './pages/CommissionReports';
 import Personnel from './pages/Personnel';
 import Commissions from './pages/Commissions';
+import MentorPerformance from './pages/MentorPerformance';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "CommissionReports": CommissionReports,
     "Personnel": Personnel,
     "Commissions": Commissions,
+    "MentorPerformance": MentorPerformance,
 }
 
 export const pagesConfig = {

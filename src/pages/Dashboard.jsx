@@ -78,15 +78,15 @@ export default function Dashboard() {
     ? students.filter(s => {
         if (currentUser.app_role === 'senior_mentor') {
           // Senior mentors see their students + junior mentors' students
-          return s.mentor_id === currentUser.id || 
-                 students.some(js => js.mentor_id === currentUser.id);
+          return s.senior_mentor_id === currentUser.id || 
+                 s.primary_mentor_id === currentUser.id;
         }
-        return s.mentor_id === currentUser.id;
+        return s.primary_mentor_id === currentUser.id;
       })
     : [];
 
   const filteredTransactions = isMentorRole(currentUser.app_role)
-    ? transactions.filter(t => t.mentor_id === currentUser.id)
+    ? transactions.filter(t => t.primary_mentor_id === currentUser.id)
     : transactions;
 
   const pendingTransactions = filteredTransactions.filter(t => t.status === 'pending');

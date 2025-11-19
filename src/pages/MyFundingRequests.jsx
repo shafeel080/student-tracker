@@ -50,8 +50,16 @@ export default function MyFundingRequests() {
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryKey: ['users', currentUser?.id],
+    queryFn: async () => {
+      if (currentUser?.app_role === 'senior_mentor') {
+        return await base44.entities.User.filter({ 
+          app_role: 'junior_mentor',
+          senior_mentor_id: currentUser.id 
+        });
+      }
+      return [];
+    },
     enabled: !!currentUser
   });
 

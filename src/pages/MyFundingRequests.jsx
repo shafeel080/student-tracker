@@ -23,6 +23,7 @@ import { format } from "date-fns";
 export default function MyFundingRequests() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState('my');
 
   const queryClient = useQueryClient();
 

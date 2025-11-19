@@ -69,18 +69,14 @@ export default function Students() {
 
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
-  // Get junior mentors reporting to this senior mentor
-  const juniorMentors = users.filter(u => 
-    u.app_role === 'junior_mentor' && u.senior_mentor_id === currentUser.id
-  );
-  const juniorMentorIds = juniorMentors.map(m => m.id);
-
   // Filter MY students - students where I am the primary mentor
   const myStudents = students.filter(s => s.primary_mentor_id === currentUser.id);
   
-  // Filter TEAM students - students where primary mentor is one of my junior mentors
+  // Filter TEAM students - students where I am the senior mentor but NOT the primary mentor
   const teamStudents = students.filter(s => 
-    currentUser.app_role === 'senior_mentor' && juniorMentorIds.includes(s.primary_mentor_id)
+    currentUser.app_role === 'senior_mentor' && 
+    s.senior_mentor_id === currentUser.id &&
+    s.primary_mentor_id !== currentUser.id
   );
 
   // Apply search filter to active tab's students

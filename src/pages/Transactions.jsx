@@ -179,7 +179,7 @@ export default function Transactions() {
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
   // Filter transactions
-  const myStudents = students.filter(s => s.mentor_id === currentUser.id);
+  const myStudents = students.filter(s => s.primary_mentor_id === currentUser.id);
   const myStudentIds = myStudents.map(s => s.id);
   
   let filteredTransactions = isMentorRole(currentUser.app_role)

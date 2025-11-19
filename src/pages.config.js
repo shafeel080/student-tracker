@@ -13,6 +13,8 @@ import CommissionReports from './pages/CommissionReports';
 import Personnel from './pages/Personnel';
 import Commissions from './pages/Commissions';
 import MentorPerformance from './pages/MentorPerformance';
+import Leaderboard from './pages/Leaderboard';
+import GamificationSettings from './pages/GamificationSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +34,8 @@ export const PAGES = {
     "Personnel": Personnel,
     "Commissions": Commissions,
     "MentorPerformance": MentorPerformance,
+    "Leaderboard": Leaderboard,
+    "GamificationSettings": GamificationSettings,
 }
 
 export const pagesConfig = {

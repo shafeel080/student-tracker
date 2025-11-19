@@ -220,6 +220,7 @@ export default function Personnel() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Commission Rate</TableHead>
                 <TableHead>Senior Mentor</TableHead>
                 <TableHead>Joined</TableHead>
                 {canEditPersonnel(currentUser.app_role) && <TableHead>Actions</TableHead>}
@@ -228,7 +229,7 @@ export default function Personnel() {
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -241,6 +242,11 @@ export default function Personnel() {
                       <Badge className={getRoleBadgeColor(user.app_role)}>
                         {user.app_role?.replace(/_/g, ' ')}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {['junior_mentor', 'senior_mentor'].includes(user.app_role) 
+                        ? `${user.commission_rate || 4}%` 
+                        : '-'}
                     </TableCell>
                     <TableCell>
                       {user.senior_mentor_name || '-'}

@@ -21,7 +21,7 @@ export default function MyCommissionHistory() {
 
   const { data: ledgers = [] } = useQuery({
     queryKey: ['commission-ledgers'],
-    queryFn: () => base44.entities.CommissionLedger.list('-year', '-quarter_number'),
+    queryFn: () => base44.entities.CommissionLedger.list('-created_date'),
     enabled: !!currentUser
   });
 

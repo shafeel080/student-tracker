@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import StudentForm from "../components/students/StudentForm";
-import { Plus, Search, Eye } from "lucide-react";
+import { Plus, Search, Eye, Users, UserCheck } from "lucide-react";
 import { 
   canCreateStudent, 
   filterStudentsByRole, 
@@ -23,6 +24,7 @@ export default function Students() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('my');
 
   const queryClient = useQueryClient();
 
@@ -67,12 +69,26 @@ export default function Students() {
 
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
-  // Filter students based on app_role
-  let filteredStudents = filterStudentsByRole(students, currentUser, users);
+  // Get junior mentors reporting to this senior mentor
+  const juniorMentors = users.filter(u => 
+    u.app_role === 'junior_mentor' && u.senior_mentor_id === currentUser.id
+  );
+  const juniorMentorIds = juniorMentors.map(m => m.id);
+
+  // Filter MY students
+  const myStudents = filterStudentsByRole(students, currentUser, users);
   
-  // Apply search filter
+  // Filter TEAM students (for senior mentors only)
+  const teamStudents = students.filter(s => 
+    currentUser.app_role === 'senior_mentor' && juniorMentorIds.includes(s.primary_mentor_id)
+  );
+
+  // Apply search filter to active tab's students
+  const activeStudents = activeTab === 'my' ? myStudents : teamStudents;
+  let filteredStudents = activeStudents;
+  
   if (searchTerm) {
-    filteredStudents = filteredStudents.filter(s =>
+    filteredStudents = activeStudents.filter(s =>
       s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,6 +100,7 @@ export default function Students() {
   const displayStudents = filteredStudents.map(s => applyStudentMasking(s, currentUser.app_role));
 
   const canCreate = canCreateStudent(currentUser.app_role);
+  const isSeniorMentor = currentUser.app_role === 'senior_mentor';
   
   const getStatusColor = (status) => {
     return status === 'ACTIVE' 
@@ -97,7 +114,7 @@ export default function Students() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Students</h1>
-          {canCreate && (
+          {canCreate && activeTab === 'my' && (
             <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
               Add Student
@@ -116,63 +133,149 @@ export default function Students() {
           />
         </div>
 
-        {/* Table */}
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="font-semibold">Student Code</TableHead>
-                <TableHead className="font-semibold">Full Name</TableHead>
-                <TableHead className="font-semibold">Email</TableHead>
-                <TableHead className="font-semibold">Phone</TableHead>
-                <TableHead className="font-semibold">Country</TableHead>
-                <TableHead className="font-semibold">Primary Mentor</TableHead>
-                <TableHead className="font-semibold">Senior Mentor</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold">Created</TableHead>
-                <TableHead className="font-semibold text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayStudents.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-                    No students found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                displayStudents.map((student) => (
-                  <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
-                    <TableCell className="font-mono text-sm font-medium text-blue-600">
-                      {student.student_code}
-                    </TableCell>
-                    <TableCell className="font-medium">{student.full_name}</TableCell>
-                    <TableCell className="text-sm">{student.email}</TableCell>
-                    <TableCell className="text-sm font-mono">{student.phone}</TableCell>
-                    <TableCell className="text-sm">{student.country || '-'}</TableCell>
-                    <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
-                    <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getStatusColor(student.status)}>
-                        {student.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </TableCell>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: isSeniorMentor ? '1fr 1fr' : '1fr' }}>
+            <TabsTrigger value="my">My Students</TabsTrigger>
+            {isSeniorMentor && (
+              <TabsTrigger value="team">Team Students</TabsTrigger>
+            )}
+          </TabsList>
+
+          {/* My Students Tab */}
+          <TabsContent value="my">
+            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-200">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-blue-600" />
+                  My Students ({displayStudents.length})
+                </h3>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="font-semibold">Student Code</TableHead>
+                    <TableHead className="font-semibold">Full Name</TableHead>
+                    <TableHead className="font-semibold">Email</TableHead>
+                    <TableHead className="font-semibold">Phone</TableHead>
+                    <TableHead className="font-semibold">Country</TableHead>
+                    <TableHead className="font-semibold">Primary Mentor</TableHead>
+                    <TableHead className="font-semibold">Senior Mentor</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="font-semibold">Created</TableHead>
+                    <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                </TableHeader>
+                <TableBody>
+                  {displayStudents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                        No students found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    displayStudents.map((student) => (
+                      <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
+                        <TableCell className="font-mono text-sm font-medium text-blue-600">
+                          {student.student_code}
+                        </TableCell>
+                        <TableCell className="font-medium">{student.full_name}</TableCell>
+                        <TableCell className="text-sm">{student.email}</TableCell>
+                        <TableCell className="text-sm font-mono">{student.phone}</TableCell>
+                        <TableCell className="text-sm">{student.country || '-'}</TableCell>
+                        <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
+                        <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getStatusColor(student.status)}>
+                            {student.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          {/* Team Students Tab */}
+          {isSeniorMentor && (
+            <TabsContent value="team">
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                <div className="p-4 bg-purple-50 border-b border-purple-200">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-600" />
+                    Team Students ({displayStudents.length})
+                  </h3>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">Student Code</TableHead>
+                      <TableHead className="font-semibold">Full Name</TableHead>
+                      <TableHead className="font-semibold">Email</TableHead>
+                      <TableHead className="font-semibold">Phone</TableHead>
+                      <TableHead className="font-semibold">Country</TableHead>
+                      <TableHead className="font-semibold">Primary Mentor</TableHead>
+                      <TableHead className="font-semibold">Senior Mentor</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Created</TableHead>
+                      <TableHead className="font-semibold text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayStudents.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                          No team students found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      displayStudents.map((student) => (
+                        <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="font-mono text-sm font-medium text-blue-600">
+                            {student.student_code}
+                          </TableCell>
+                          <TableCell className="font-medium">{student.full_name}</TableCell>
+                          <TableCell className="text-sm">{student.email}</TableCell>
+                          <TableCell className="text-sm font-mono">{student.phone}</TableCell>
+                          <TableCell className="text-sm">{student.country || '-'}</TableCell>
+                          <TableCell className="text-sm text-purple-600 font-medium">{student.primary_mentor_name}</TableCell>
+                          <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getStatusColor(student.status)}>
+                              {student.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
 
         {/* Add Dialog */}
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>

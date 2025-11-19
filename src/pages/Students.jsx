@@ -75,13 +75,15 @@ export default function Students() {
   );
   const juniorMentorIds = juniorMentors.map(m => m.id);
 
-  // Filter MY students
-  const myStudents = filterStudentsByRole(students, currentUser, users);
-  
-  // Filter TEAM students (for senior mentors only)
+  // Filter TEAM students first (for senior mentors only)
   const teamStudents = students.filter(s => 
     currentUser.app_role === 'senior_mentor' && juniorMentorIds.includes(s.primary_mentor_id)
   );
+  const teamStudentIds = teamStudents.map(s => s.id);
+
+  // Filter MY students (excluding team students)
+  const allMyStudents = filterStudentsByRole(students, currentUser, users);
+  const myStudents = allMyStudents.filter(s => !teamStudentIds.includes(s.id));
 
   // Apply search filter to active tab's students
   const activeStudents = activeTab === 'my' ? myStudents : teamStudents;

@@ -53,16 +53,16 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       return;
     }
     
-    // Fetch the primary mentor's upline commission percentage
+    // Fetch the senior mentor's upline commission percentage
     let uplinePercentage = 0;
-    if (selectedStudent.primary_mentor_id) {
+    if (selectedStudent.senior_mentor_id) {
       try {
-        const primaryMentor = await base44.entities.User.filter({ id: selectedStudent.primary_mentor_id });
-        if (primaryMentor && primaryMentor.length > 0) {
-          uplinePercentage = primaryMentor[0].upline_commission_percentage || 0;
+        const seniorMentor = await base44.entities.User.filter({ id: selectedStudent.senior_mentor_id });
+        if (seniorMentor && seniorMentor.length > 0) {
+          uplinePercentage = seniorMentor[0].upline_commission_percentage || 0;
         }
       } catch (error) {
-        console.log('Could not fetch primary mentor upline percentage:', error);
+        console.log('Could not fetch senior mentor upline percentage:', error);
       }
     }
     

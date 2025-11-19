@@ -182,7 +182,7 @@ export default function Transactions() {
   const myStudents = students.filter(s => s.mentor_id === currentUser.id);
   const myStudentIds = myStudents.map(s => s.id);
   
-  let filteredTransactions = isMentorRole(currentUser.role)
+  let filteredTransactions = isMentorRole(currentUser.app_role)
     ? transactions.filter(t => t.mentor_id === currentUser.id)
     : transactions;
 
@@ -196,7 +196,7 @@ export default function Transactions() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-          {isMentorRole(currentUser.role) && (
+          {isMentorRole(currentUser.app_role) && (
             <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
               New Request

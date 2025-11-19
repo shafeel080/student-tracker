@@ -89,6 +89,11 @@ export default function MyFundingRequests() {
   const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
   const quarterLabel = getCurrentQuarterLabel();
 
+  // Get junior mentors for team commission calculation
+  const juniorMentors = users.filter(u => 
+    u.app_role === 'junior_mentor' && u.senior_mentor_id === currentUser.id
+  );
+
   // Calculate TEAM commission (upline commission from junior mentors)
   const teamCommissionData = juniorMentors.map(juniorMentor => {
     const juniorTransactions = transactions.filter(t => 

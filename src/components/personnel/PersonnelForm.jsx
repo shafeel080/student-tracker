@@ -22,7 +22,8 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
     email: '',
     app_role: 'junior_mentor',
     senior_mentor_id: '',
-    senior_mentor_name: ''
+    senior_mentor_name: '',
+    commission_rate: 4
   });
 
   useEffect(() => {
@@ -32,7 +33,8 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
         email: user.email || '',
         app_role: user.app_role || 'junior_mentor',
         senior_mentor_id: user.senior_mentor_id || '',
-        senior_mentor_name: user.senior_mentor_name || ''
+        senior_mentor_name: user.senior_mentor_name || '',
+        commission_rate: user.commission_rate || 4
       });
     }
   }, [user]);
@@ -123,6 +125,23 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {(formData.app_role === 'junior_mentor' || formData.app_role === 'senior_mentor') && (
+            <div>
+              <Label htmlFor="commission_rate">Commission Rate (%)</Label>
+              <Input
+                id="commission_rate"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={formData.commission_rate}
+                onChange={(e) => setFormData({ ...formData, commission_rate: parseFloat(e.target.value) || 0 })}
+                placeholder="e.g., 4 for 4%"
+              />
+              <p className="text-xs text-gray-500 mt-1">Percentage of net deposit as commission</p>
             </div>
           )}
 

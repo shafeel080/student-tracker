@@ -36,17 +36,34 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
 
   const juniorMentors = users.filter(u => u.app_role === 'junior_mentor');
   const seniorMentors = users.filter(u => u.app_role === 'senior_mentor');
+  const allMentors = [...juniorMentors, ...seniorMentors];
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
-    const seniorMentor = users.find(u => u.id === formData.senior_mentor_id);
+    
+    // Auto-populate senior_mentor_id if primary mentor is junior
+    let finalSeniorMentorId = formData.senior_mentor_id;
+    let finalSeniorMentorName = '';
+    
+    if (primaryMentor?.app_role === 'junior_mentor' && primaryMentor.senior_mentor_id) {
+      finalSeniorMentorId = primaryMentor.senior_mentor_id;
+      finalSeniorMentorName = primaryMentor.senior_mentor_name || '';
+    } else if (primaryMentor?.app_role === 'senior_mentor') {
+      // If primary is senior, clear senior mentor field
+      finalSeniorMentorId = '';
+      finalSeniorMentorName = '';
+    } else if (formData.senior_mentor_id) {
+      const seniorMentor = users.find(u => u.id === formData.senior_mentor_id);
+      finalSeniorMentorName = seniorMentor?.full_name || '';
+    }
     
     const dataToSubmit = {
       ...formData,
       primary_mentor_name: primaryMentor?.full_name || '',
-      senior_mentor_name: seniorMentor?.full_name || ''
+      senior_mentor_id: finalSeniorMentorId,
+      senior_mentor_name: finalSeniorMentorName
     };
     
     onSubmit(dataToSubmit);
@@ -95,18 +112,18 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="primary_mentor">Primary Mentor (Junior)</Label>
+          <Label htmlFor="primary_mentor">Primary Mentor</Label>
           <Select
             value={formData.primary_mentor_id}
             onValueChange={(value) => setFormData({ ...formData, primary_mentor_id: value })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select Junior Mentor" />
+              <SelectValue placeholder="Select Mentor" />
             </SelectTrigger>
             <SelectContent>
-              {juniorMentors.map((mentor) => (
+              {allMentors.map((mentor) => (
                 <SelectItem key={mentor.id} value={mentor.id}>
-                  {mentor.full_name}
+                  {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : 'Senior'})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -114,23 +131,22 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="senior_mentor">Senior Mentor</Label>
-          <Select
-            value={formData.senior_mentor_id}
-            onValueChange={(value) => setFormData({ ...formData, senior_mentor_id: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Senior Mentor (Optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>None</SelectItem>
-              {seniorMentors.map((mentor) => (
-                <SelectItem key={mentor.id} value={mentor.id}>
-                  {mentor.full_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="senior_mentor">Senior Mentor (Auto-assigned)</Label>
+          <Input
+            value={
+              (() => {
+                const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
+                if (primaryMentor?.app_role === 'junior_mentor' && primaryMentor.senior_mentor_name) {
+                  return primaryMentor.senior_mentor_name;
+                } else if (primaryMentor?.app_role === 'senior_mentor') {
+                  return 'None (Primary is Senior)';
+                }
+                return 'None';
+              })()
+            }
+            disabled
+            className="bg-gray-50"
+          />
         </div>
         
         <div className="space-y-2">

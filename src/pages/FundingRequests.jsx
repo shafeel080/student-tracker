@@ -2,29 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Award, Wallet, Eye, Users } from "lucide-react";
-import FundingRequestForm from "../components/funding/FundingRequestForm";
+import { Search, TrendingUp, TrendingDown, Eye, Edit } from "lucide-react";
+import ProcessFundingDialog from "../components/funding/ProcessFundingDialog";
 import { 
-  canCreateFundingTransaction,
+  canProcessFundingTransaction,
   filterFundingTransactionsByRole 
 } from "../components/utils/FundingAccessControl";
-import { 
-  calculateQuarterlyNetDepositAndCommission,
-  getCurrentQuarterLabel 
-} from "../components/utils/CommissionUtils";
-import { filterStudentsByRole } from "../components/utils/StudentAccessControl";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 export default function FundingRequests() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState('my-requests');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [filterMentor, setFilterMentor] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [showProcessDialog, setShowProcessDialog] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -54,12 +54,13 @@ export default function FundingRequests() {
     enabled: !!currentUser
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.FundingTransaction.create(data),
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.FundingTransaction.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['funding-transactions']);
-      setShowAddDialog(false);
-      toast.success('Funding request submitted successfully');
+      setShowProcessDialog(false);
+      setSelectedTransaction(null);
+      toast.success('Transaction processed successfully');
     }
   });
 
@@ -74,52 +75,51 @@ export default function FundingRequests() {
     );
   }
 
-  // Filter transactions and students for this mentor
-  const myTransactions = filterFundingTransactionsByRole(currentUser, transactions, students, users);
-  const myStudents = filterStudentsByRole(students, currentUser, users);
+  // Filter transactions
+  let filteredTransactions = filterFundingTransactionsByRole(currentUser, transactions, students, users);
 
-  // Calculate personal quarterly commission
-  const personalCommission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
-  
-  // Calculate team commission (for senior mentors only)
-  let teamCommission = { netDepositUsd: 0, grossCommissionUsd: 0, release75Usd: 0, buffer25Usd: 0 };
-  let teamTransactions = [];
-  
-  if (currentUser.app_role === 'senior_mentor') {
-    // Find junior mentors reporting to this senior mentor
-    const juniorMentors = users.filter(u => 
-      u.app_role === 'junior_mentor' && u.senior_mentor_id === currentUser.id
+  // Apply filters
+  if (filterStatus !== 'all') {
+    filteredTransactions = filteredTransactions.filter(t => t.status === filterStatus);
+  }
+  if (filterType !== 'all') {
+    filteredTransactions = filteredTransactions.filter(t => t.type === filterType);
+  }
+  if (filterMentor !== 'all') {
+    filteredTransactions = filteredTransactions.filter(t => t.primary_mentor_name === filterMentor);
+  }
+  if (searchTerm) {
+    filteredTransactions = filteredTransactions.filter(t =>
+      t.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.mt5_login?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
-    // Get transactions from junior mentors' students
-    teamTransactions = transactions.filter(t => 
-      t.status === 'APPROVED' && 
-      juniorMentors.some(jm => jm.id === t.primary_mentor_id)
-    );
-    
-    // Calculate team net deposit
-    const deposits = teamTransactions.filter(t => t.type === 'DEPOSIT').reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-    const withdrawals = teamTransactions.filter(t => t.type === 'WITHDRAWAL').reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-    const teamNetDeposit = deposits - withdrawals;
-    
-    // Calculate upline commission based on junior mentors' upline_commission_percentage
-    // For simplicity, we'll use an average or first junior mentor's rate
-    const avgUplineRate = juniorMentors.length > 0 
-      ? juniorMentors.reduce((sum, jm) => sum + (jm.upline_commission_percentage || 0), 0) / juniorMentors.length 
-      : 0;
-    
-    const grossTeamCommission = teamNetDeposit * (avgUplineRate / 100);
-    
-    teamCommission = {
-      netDepositUsd: teamNetDeposit,
-      grossCommissionUsd: grossTeamCommission,
-      release75Usd: grossTeamCommission * 0.75,
-      buffer25Usd: grossTeamCommission * 0.25
-    };
   }
 
-  const quarterLabel = getCurrentQuarterLabel();
-  const canCreate = canCreateFundingTransaction(currentUser.app_role);
+  // Get unique mentors for filter
+  const uniqueMentors = [...new Set(transactions.map(t => t.primary_mentor_name))].filter(Boolean);
+
+  const canProcess = canProcessFundingTransaction(currentUser.role);
+
+  const handleProcess = (transaction) => {
+    setSelectedTransaction(transaction);
+    setShowProcessDialog(true);
+  };
+
+  const handleProcessSubmit = (formData) => {
+    const updatedData = {
+      ...formData,
+      approved_by_id: currentUser.id,
+      approved_by_name: currentUser.full_name,
+      approved_at: new Date().toISOString()
+    };
+    
+    updateMutation.mutate({
+      id: selectedTransaction.id,
+      data: updatedData
+    });
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -136,140 +136,13 @@ export default function FundingRequests() {
       : 'bg-purple-100 text-purple-800 border-purple-200';
   };
 
-  const TransactionTable = ({ transactions }) => (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50">
-            <TableHead className="font-semibold">Requested</TableHead>
-            <TableHead className="font-semibold">Type</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
-            <TableHead className="font-semibold">Student</TableHead>
-            <TableHead className="font-semibold">Code</TableHead>
-            <TableHead className="font-semibold">MT5 Login</TableHead>
-            <TableHead className="font-semibold">Amount</TableHead>
-            <TableHead className="font-semibold">Payment Method</TableHead>
-            <TableHead className="font-semibold">Screenshot</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {transactions.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                No funding requests yet
-              </TableCell>
-            </TableRow>
-          ) : (
-            transactions.map((transaction) => (
-              <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
-                <TableCell className="text-sm">
-                  {transaction.requested_at
-                    ? format(new Date(transaction.requested_at), 'MMM d, yyyy HH:mm')
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {transaction.type === 'DEPOSIT' ? (
-                      <TrendingUp className="h-4 w-4 text-blue-600" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-purple-600" />
-                    )}
-                    <Badge variant="outline" className={getTypeColor(transaction.type)}>
-                      {transaction.type}
-                    </Badge>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getStatusColor(transaction.status)}>
-                    {transaction.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-medium">{transaction.student_name}</TableCell>
-                <TableCell className="font-mono text-sm text-blue-600">
-                  {transaction.student_code}
-                </TableCell>
-                <TableCell className="font-mono text-sm">
-                  {transaction.mt5_login || '-'}
-                </TableCell>
-                <TableCell className="font-semibold text-gray-900">
-                  ${transaction.amount_usd?.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-sm">{transaction.payment_method}</TableCell>
-                <TableCell>
-                  {transaction.screenshot_url ? (
-                    <a
-                      href={transaction.screenshot_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </a>
-                  ) : (
-                    '-'
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
-
-  const CommissionSummary = ({ commission, title }) => (
-    <Card className="border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-      <CardHeader className="border-b border-blue-100">
-        <CardTitle className="text-xl font-semibold flex items-center gap-2">
-          <Award className="h-5 w-5 text-blue-600" />
-          {title} - {quarterLabel}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Net Deposit</p>
-              <DollarSign className="h-5 w-5 text-blue-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              ${commission.netDepositUsd.toFixed(2)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 border border-emerald-100">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Gross Commission</p>
-              <Award className="h-5 w-5 text-emerald-600" />
-            </div>
-            <p className="text-2xl font-bold text-emerald-600">
-              ${commission.grossCommissionUsd.toFixed(2)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 border border-green-100">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Release (75%)</p>
-              <Wallet className="h-5 w-5 text-green-600" />
-            </div>
-            <p className="text-2xl font-bold text-green-600">
-              ${commission.release75Usd.toFixed(2)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 border border-amber-100">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Buffer (25%)</p>
-              <Wallet className="h-5 w-5 text-amber-600" />
-            </div>
-            <p className="text-2xl font-bold text-amber-600">
-              ${commission.buffer25Usd.toFixed(2)}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  // Calculate summary stats
+  const pendingCount = filteredTransactions.filter(t => t.status === 'PENDING').length;
+  const approvedCount = filteredTransactions.filter(t => t.status === 'APPROVED').length;
+  const rejectedCount = filteredTransactions.filter(t => t.status === 'REJECTED').length;
+  const totalPendingAmount = filteredTransactions
+    .filter(t => t.status === 'PENDING')
+    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
@@ -277,73 +150,227 @@ export default function FundingRequests() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Funding Requests</h1>
-            <p className="text-gray-600 mt-1">Manage your deposit and withdrawal requests</p>
+            <h1 className="text-3xl font-bold text-gray-900">Funding Requests Management</h1>
+            <p className="text-gray-600 mt-1">Review and process deposit and withdrawal requests</p>
           </div>
-          {canCreate && (
-            <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              New Request
-            </Button>
-          )}
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="my-requests">My Requests</TabsTrigger>
-            {currentUser.app_role === 'senior_mentor' && (
-              <TabsTrigger value="team-requests">Team Requests</TabsTrigger>
-            )}
-          </TabsList>
+        {/* Stats Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600">Pending Requests</p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">{pendingCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-emerald-200 bg-emerald-50">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600">Approved</p>
+              <p className="text-2xl font-bold text-emerald-600 mt-1">{approvedCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600">Rejected</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">{rejectedCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600">Pending Amount</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">${totalPendingAmount.toFixed(2)}</p>
+            </CardContent>
+          </Card>
+        </div>
 
-          <TabsContent value="my-requests" className="space-y-6">
-            <CommissionSummary commission={personalCommission} title="My Commission Summary" />
-            
-            <Card className="border-gray-200">
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold">My Request History</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <TransactionTable transactions={myTransactions} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {/* Filters */}
+        <Card className="border-gray-200">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search by student, code, MT5 login, or transaction ID..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
 
-          {currentUser.app_role === 'senior_mentor' && (
-            <TabsContent value="team-requests" className="space-y-6">
-              <CommissionSummary commission={teamCommission} title="Team Commission Summary (Upline)" />
-              
-              <Card className="border-gray-200">
-                <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Team Request History
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <TransactionTable transactions={teamTransactions} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-        </Tabs>
+              {/* Status Filter */}
+              <Tabs value={filterStatus} onValueChange={setFilterStatus}>
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="PENDING">Pending</TabsTrigger>
+                  <TabsTrigger value="APPROVED">Approved</TabsTrigger>
+                  <TabsTrigger value="REJECTED">Rejected</TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-        {/* Add Request Dialog */}
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>New Funding Request</DialogTitle>
-            </DialogHeader>
-            <FundingRequestForm
-              students={myStudents}
-              currentUser={currentUser}
-              onSubmit={(data) => createMutation.mutate(data)}
-              onCancel={() => setShowAddDialog(false)}
-              isSubmitting={createMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
+              {/* Type Filter */}
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                  <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Mentor Filter */}
+              <Select value={filterMentor} onValueChange={setFilterMentor}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Mentor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Mentors</SelectItem>
+                  {uniqueMentors.map((mentor) => (
+                    <SelectItem key={mentor} value={mentor}>
+                      {mentor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Transactions Table */}
+        <Card className="border-gray-200">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="text-lg font-semibold">Funding Requests</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="font-semibold">Requested</TableHead>
+                    <TableHead className="font-semibold">Type</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="font-semibold">Student</TableHead>
+                    <TableHead className="font-semibold">Code</TableHead>
+                    <TableHead className="font-semibold">Primary Mentor</TableHead>
+                    <TableHead className="font-semibold">MT5 Login</TableHead>
+                    <TableHead className="font-semibold">Amount</TableHead>
+                    <TableHead className="font-semibold">Payment</TableHead>
+                    <TableHead className="font-semibold">User ID</TableHead>
+                    <TableHead className="font-semibold">Txn ID</TableHead>
+                    <TableHead className="font-semibold">Approved By</TableHead>
+                    <TableHead className="font-semibold text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={13} className="text-center py-8 text-gray-500">
+                        No funding requests found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredTransactions.map((transaction) => (
+                      <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
+                        <TableCell className="text-sm">
+                          {transaction.requested_at
+                            ? format(new Date(transaction.requested_at), 'MMM d, HH:mm')
+                            : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {transaction.type === 'DEPOSIT' ? (
+                              <TrendingUp className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <TrendingDown className="h-4 w-4 text-purple-600" />
+                            )}
+                            <Badge variant="outline" className={getTypeColor(transaction.type)}>
+                              {transaction.type}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getStatusColor(transaction.status)}>
+                            {transaction.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{transaction.student_name}</TableCell>
+                        <TableCell className="font-mono text-sm text-blue-600">
+                          {transaction.student_code}
+                        </TableCell>
+                        <TableCell className="text-sm">{transaction.primary_mentor_name}</TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {transaction.mt5_login || '-'}
+                        </TableCell>
+                        <TableCell className="font-semibold text-gray-900">
+                          ${transaction.amount_usd?.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-sm">{transaction.payment_method}</TableCell>
+                        <TableCell className="text-sm">{transaction.user_id || '-'}</TableCell>
+                        <TableCell className="text-sm font-mono">
+                          {transaction.transaction_id || '-'}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {transaction.approved_by_name ? (
+                            <div>
+                              <p className="font-medium">{transaction.approved_by_name}</p>
+                              {transaction.approved_at && (
+                                <p className="text-xs text-gray-500">
+                                  {format(new Date(transaction.approved_at), 'MMM d, HH:mm')}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {transaction.screenshot_url && (
+                              <a
+                                href={transaction.screenshot_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </a>
+                            )}
+                            {canProcess && transaction.status === 'PENDING' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleProcess(transaction)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Process Dialog */}
+        <ProcessFundingDialog
+          transaction={selectedTransaction}
+          open={showProcessDialog}
+          onClose={() => {
+            setShowProcessDialog(false);
+            setSelectedTransaction(null);
+          }}
+          onProcess={handleProcessSubmit}
+        />
       </div>
     </div>
   );

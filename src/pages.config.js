@@ -11,6 +11,7 @@ import QuarterClosing from './pages/QuarterClosing';
 import MyCommissionHistory from './pages/MyCommissionHistory';
 import CommissionReports from './pages/CommissionReports';
 import Personnel from './pages/Personnel';
+import Commissions from './pages/Commissions';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "MyCommissionHistory": MyCommissionHistory,
     "CommissionReports": CommissionReports,
     "Personnel": Personnel,
+    "Commissions": Commissions,
 }
 
 export const pagesConfig = {

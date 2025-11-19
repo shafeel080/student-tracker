@@ -74,7 +74,7 @@ export default function TargetForm({ mentors, onSubmit, onCancel, isSubmitting }
             <SelectContent>
               {mentors.map((mentor) => (
                 <SelectItem key={mentor.id} value={mentor.id}>
-                  {mentor.full_name} ({mentor.role === 'junior_mentor' ? 'Junior' : 'Senior'})
+                  {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : 'Senior'})
                 </SelectItem>
               ))}
             </SelectContent>

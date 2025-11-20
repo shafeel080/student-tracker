@@ -1,7 +1,7 @@
 // Utility functions for funding transaction access control
 
 export const canCreateFundingTransaction = (role) => {
-  return ['junior_mentor', 'senior_mentor'].includes(role);
+  return ['junior_mentor', 'senior_mentor', 'broker_admin', 'super_admin', 'admin'].includes(role);
 };
 
 export const canProcessFundingTransaction = (role) => {

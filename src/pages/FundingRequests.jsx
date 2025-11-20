@@ -8,10 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, TrendingUp, TrendingDown, Eye, Edit } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload } from "lucide-react";
 import ProcessFundingDialog from "../components/funding/ProcessFundingDialog";
+import AddTransactionDialog from "../components/funding/AddTransactionDialog";
+import BulkImportDialog from "../components/funding/BulkImportDialog";
 import { 
   canProcessFundingTransaction,
+  canCreateFundingTransaction,
   filterFundingTransactionsByRole 
 } from "../components/utils/FundingAccessControl";
 import { toast } from "sonner";
@@ -25,6 +28,8 @@ export default function FundingRequests() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showProcessDialog, setShowProcessDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -61,6 +66,40 @@ export default function FundingRequests() {
       setShowProcessDialog(false);
       setSelectedTransaction(null);
       toast.success('Transaction processed successfully');
+    }
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data) => {
+      const user = await base44.auth.me();
+      return base44.entities.FundingTransaction.create({
+        ...data,
+        requested_by_id: user.id,
+        requested_by_name: user.full_name,
+        requested_at: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['funding-transactions']);
+      setShowAddDialog(false);
+      toast.success('Transaction created successfully');
+    }
+  });
+
+  const bulkCreateMutation = useMutation({
+    mutationFn: async (transactions) => {
+      const user = await base44.auth.me();
+      const transactionsWithMeta = transactions.map(t => ({
+        ...t,
+        requested_by_id: user.id,
+        requested_by_name: user.full_name,
+        requested_at: new Date().toISOString()
+      }));
+      return base44.entities.FundingTransaction.bulkCreate(transactionsWithMeta);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['funding-transactions']);
+      setShowBulkImportDialog(false);
     }
   });
 
@@ -101,6 +140,8 @@ export default function FundingRequests() {
   const uniqueMentors = [...new Set(transactions.map(t => t.primary_mentor_name))].filter(Boolean);
 
   const canProcess = canProcessFundingTransaction(currentUser.app_role);
+  const canCreate = canCreateFundingTransaction(currentUser.app_role);
+  const isBackendAdmin = ['broker_admin', 'super_admin', 'admin'].includes(currentUser.app_role);
 
   const handleProcess = (transaction) => {
     setSelectedTransaction(transaction);
@@ -153,6 +194,18 @@ export default function FundingRequests() {
             <h1 className="text-3xl font-bold text-gray-900">Funding Requests Management</h1>
             <p className="text-gray-600 mt-1">Review and process deposit and withdrawal requests</p>
           </div>
+          {isBackendAdmin && (
+            <div className="flex gap-2">
+              <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
+              <Button onClick={() => setShowBulkImportDialog(true)} variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Bulk Import
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Stats Summary */}
@@ -374,6 +427,24 @@ export default function FundingRequests() {
             setSelectedTransaction(null);
           }}
           onProcess={handleProcessSubmit}
+        />
+
+        {/* Add Transaction Dialog */}
+        <AddTransactionDialog
+          open={showAddDialog}
+          onClose={() => setShowAddDialog(false)}
+          onSubmit={(data) => createMutation.mutate(data)}
+          students={students}
+          isSubmitting={createMutation.isPending}
+        />
+
+        {/* Bulk Import Dialog */}
+        <BulkImportDialog
+          open={showBulkImportDialog}
+          onClose={() => setShowBulkImportDialog(false)}
+          onImport={(transactions) => bulkCreateMutation.mutate(transactions)}
+          students={students}
+          users={users}
         />
       </div>
     </div>

@@ -108,59 +108,65 @@ export default function MyFundingRequests() {
   const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
   const quarterLabel = getCurrentQuarterLabel();
 
-  // Calculate TEAM commission directly from team transactions
-  // Group team transactions by primary mentor
-  const juniorMentorMap = new Map();
-  teamTransactions.forEach(t => {
-    if (t.status === 'APPROVED' && isWithinCurrentQuarter(t.requested_at)) {
-      if (!juniorMentorMap.has(t.primary_mentor_id)) {
-        juniorMentorMap.set(t.primary_mentor_id, {
-          id: t.primary_mentor_id,
-          name: t.primary_mentor_name,
-          transactions: [],
-          uplinePercentage: t.upline_commission_percentage || 0
-        });
-      }
-      juniorMentorMap.get(t.primary_mentor_id).transactions.push(t);
-    }
-  });
+  // Calculate TEAM commission - each transaction uses its own stored percentage
+  const approvedTeamTransactions = teamTransactions.filter(t => 
+    t.status === 'APPROVED' && isWithinCurrentQuarter(t.requested_at)
+  );
 
-  // Calculate commission for each junior mentor
-  const teamCommissionData = Array.from(juniorMentorMap.values()).map(mentor => {
-    const deposits = mentor.transactions.filter(t => t.type === 'DEPOSIT')
-      .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-    const withdrawals = mentor.transactions.filter(t => t.type === 'WITHDRAWAL')
-      .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-    const netDeposit = deposits - withdrawals;
+  // Calculate commission per transaction
+  const teamCommissionData = approvedTeamTransactions.map(t => {
+    const amount = t.amount_usd || 0;
+    const uplinePercentage = parseFloat(t.upline_commission_percentage) || 0;
 
-    // Use upline percentage stored in transaction
-    const grossCommission = (netDeposit * mentor.uplinePercentage) / 100;
-    const release = grossCommission * 0.75;
-    const buffer = grossCommission * 0.25;
+    // Calculate commission for this specific transaction
+    let netDepositImpact = t.type === 'DEPOSIT' ? amount : -amount;
+    let grossCommission = (netDepositImpact * uplinePercentage) / 100;
 
-    console.log('Team mentor calc:', {
-      mentorName: mentor.name,
-      netDeposit,
-      uplinePercentage: mentor.uplinePercentage,
-      grossCommission,
-      release,
-      buffer
+    console.log('Team transaction calc:', {
+      transactionId: t.id,
+      mentorName: t.primary_mentor_name,
+      type: t.type,
+      amount,
+      uplinePercentage,
+      netDepositImpact,
+      grossCommission
     });
 
     return {
-      juniorMentorName: mentor.name,
-      netDeposit,
-      grossCommission,
-      release,
-      buffer
+      juniorMentorName: t.primary_mentor_name,
+      netDeposit: netDepositImpact,
+      grossCommission: grossCommission,
+      release: grossCommission * 0.75,
+      buffer: grossCommission * 0.25
     };
   });
 
+  // Group by mentor for display
+  const mentorSummaryMap = new Map();
+  teamCommissionData.forEach(data => {
+    if (!mentorSummaryMap.has(data.juniorMentorName)) {
+      mentorSummaryMap.set(data.juniorMentorName, {
+        juniorMentorName: data.juniorMentorName,
+        netDeposit: 0,
+        grossCommission: 0,
+        release: 0,
+        buffer: 0
+      });
+    }
+    const summary = mentorSummaryMap.get(data.juniorMentorName);
+    summary.netDeposit += data.netDeposit;
+    summary.grossCommission += data.grossCommission;
+    summary.release += data.release;
+    summary.buffer += data.buffer;
+  });
+
+  const teamCommissionDataGrouped = Array.from(mentorSummaryMap.values());
+
   const totalTeamCommission = {
-    netDeposit: teamCommissionData.reduce((sum, data) => sum + data.netDeposit, 0),
-    grossCommission: teamCommissionData.reduce((sum, data) => sum + data.grossCommission, 0),
-    release: teamCommissionData.reduce((sum, data) => sum + data.release, 0),
-    buffer: teamCommissionData.reduce((sum, data) => sum + data.buffer, 0)
+    netDeposit: teamCommissionDataGrouped.reduce((sum, data) => sum + data.netDeposit, 0),
+    grossCommission: teamCommissionDataGrouped.reduce((sum, data) => sum + data.grossCommission, 0),
+    release: teamCommissionDataGrouped.reduce((sum, data) => sum + data.release, 0),
+    buffer: teamCommissionDataGrouped.reduce((sum, data) => sum + data.buffer, 0)
   };
 
   const canCreate = canCreateFundingTransaction(currentUser.app_role);
@@ -390,7 +396,7 @@ export default function MyFundingRequests() {
                         ${totalTeamCommission.netDeposit.toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {teamCommissionData.length} junior mentor(s), {teamTransactions.length} transactions
+                        {teamCommissionDataGrouped.length} junior mentor(s), {approvedTeamTransactions.length} transactions
                       </p>
                     </div>
 

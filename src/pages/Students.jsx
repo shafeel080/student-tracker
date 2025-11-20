@@ -44,8 +44,16 @@ export default function Students() {
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: !!currentUser
+    queryFn: async () => {
+      try {
+        return await base44.entities.User.list();
+      } catch (error) {
+        console.warn('Unable to fetch users, using limited data:', error);
+        return [];
+      }
+    },
+    enabled: !!currentUser,
+    retry: false
   });
 
   const createMutation = useMutation({

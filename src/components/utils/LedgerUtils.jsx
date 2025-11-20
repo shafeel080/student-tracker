@@ -48,14 +48,16 @@ export const calculateQuarterNetDeposit = (mentorId, startDate, endDate, transac
 };
 
 export const calculateQuarterCommission = (netDeposit, bufferCarriedIn = 0) => {
-  const gross = (netDeposit + bufferCarriedIn) * 0.04;
-  const release75 = gross * 0.75;
-  const buffer25 = gross * 0.25;
+  const grossFromNetDeposit = netDeposit * 0.04;
+  const totalGrossForCalculation = grossFromNetDeposit + bufferCarriedIn;
+  
+  const commission_release_usd = totalGrossForCalculation * 0.75;
+  const commission_buffer_usd = totalGrossForCalculation * 0.25;
   
   return {
-    gross_commission_usd: gross,
-    commission_release_usd: release75,
-    commission_buffer_usd: buffer25
+    gross_commission_usd: grossFromNetDeposit,
+    commission_release_usd,
+    commission_buffer_usd
   };
 };
 

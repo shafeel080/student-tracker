@@ -56,7 +56,25 @@ export default function MyFundingRequests() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.FundingTransaction.create(data),
+    mutationFn: async (data) => {
+      // Refetch current user to ensure we have the latest upline_commission_percentage
+      const freshUser = await base44.auth.me();
+      const uplinePercentage = parseFloat(freshUser.upline_commission_percentage) || 0;
+
+      // Update the data with fresh percentage
+      const updatedData = {
+        ...data,
+        upline_commission_percentage: uplinePercentage
+      };
+
+      console.log('Creating transaction with fresh user data:', {
+        userName: freshUser.full_name,
+        uplinePercentage: uplinePercentage,
+        rawValue: freshUser.upline_commission_percentage
+      });
+
+      return base44.entities.FundingTransaction.create(updatedData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['funding-transactions']);
       setShowAddDialog(false);

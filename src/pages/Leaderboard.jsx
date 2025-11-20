@@ -42,7 +42,7 @@ export default function Leaderboard() {
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ['users'],
+    queryKey: ['users-leaderboard'],
     queryFn: () => base44.entities.User.list(),
     enabled: !!currentUser
   });

@@ -427,18 +427,30 @@ export default function MyFundingRequests() {
                           <TableHead className="font-semibold">Junior Mentor</TableHead>
                           <TableHead className="font-semibold">MT5 Login</TableHead>
                           <TableHead className="font-semibold">Amount</TableHead>
+                          <TableHead className="font-semibold">Upline Commission</TableHead>
                           <TableHead className="font-semibold">Payment Method</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {teamTransactions.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                            <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                               No team funding requests yet
                             </TableCell>
                           </TableRow>
                         ) : (
-                          teamTransactions.map((transaction) => (
+                          teamTransactions.map((transaction) => {
+                            const txAmount = transaction.amount_usd || 0;
+                            const uplinePercentage = (transaction.upline_commission_percentage || 0) / 100;
+                            let uplineCommission = 0;
+
+                            if (transaction.status === 'APPROVED') {
+                              uplineCommission = transaction.type === 'DEPOSIT' 
+                                ? txAmount * uplinePercentage 
+                                : -txAmount * uplinePercentage;
+                            }
+
+                            return (
                             <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
                               <TableCell className="text-sm">
                                 {transaction.requested_at
@@ -475,10 +487,16 @@ export default function MyFundingRequests() {
                               <TableCell className="font-semibold text-gray-900">
                                 ${transaction.amount_usd?.toFixed(2)}
                               </TableCell>
+                              <TableCell className={`font-semibold ${uplineCommission >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {transaction.status === 'APPROVED' 
+                                  ? `$${uplineCommission.toFixed(2)} (${transaction.upline_commission_percentage || 0}%)` 
+                                  : '-'}
+                              </TableCell>
                               <TableCell className="text-sm">{transaction.payment_method}</TableCell>
-                            </TableRow>
-                          ))
-                        )}
+                              </TableRow>
+                              );
+                              })
+                              )}
                       </TableBody>
                     </Table>
                   </div>

@@ -84,7 +84,8 @@ Provide analysis in this JSON format:
 
       setInsights(response);
     } catch (error) {
-      toast.error('Failed to generate AI insights');
+      console.error('AI Insights Error:', error);
+      toast.error(`Failed to generate AI insights: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }

@@ -94,15 +94,18 @@ export const filterLedgersByRole = (ledgers, currentUser) => {
     return ledgers;
   }
   
-  // Broker admin sees ledgers pending their approval or beyond
+  // Broker admin sees all ledgers (they need to approve first)
   if (role === 'broker_admin') {
     return ledgers;
   }
   
-  // Academic head sees ledgers pending their approval or beyond
+  // Academic head sees ledgers that passed broker approval
   if (role === 'academic_head') {
     return ledgers.filter(l => 
-      l.overall_status !== 'pending_broker_approval'
+      l.overall_status === 'pending_academic_approval' ||
+      l.overall_status === 'pending_finance_approval' ||
+      l.overall_status === 'released' ||
+      l.overall_status === 'rejected'
     );
   }
   

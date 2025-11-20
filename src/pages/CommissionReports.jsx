@@ -41,11 +41,20 @@ export default function CommissionReports() {
     fetchUser();
   }, []);
 
-  const { data: ledgers = [] } = useQuery({
+  const { data: rawLedgers = [] } = useQuery({
     queryKey: ['commission-ledgers'],
     queryFn: () => base44.entities.CommissionLedger.list('-year', '-quarter_number'),
     enabled: !!currentUser
   });
+
+  // Ensure all ledgers have overall_status field (default to pending_broker_approval for old records)
+  const ledgers = rawLedgers.map(ledger => ({
+    ...ledger,
+    overall_status: ledger.overall_status || 'pending_broker_approval',
+    broker_admin_approval_status: ledger.broker_admin_approval_status || 'pending',
+    academic_head_approval_status: ledger.academic_head_approval_status || 'pending',
+    finance_admin_approval_status: ledger.finance_admin_approval_status || 'pending'
+  }));
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],

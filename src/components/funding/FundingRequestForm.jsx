@@ -54,11 +54,14 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
     }
     
     // Use current user's upline commission percentage (they are the primary mentor)
-    const uplinePercentage = currentUser.upline_commission_percentage || 0;
+    // Make sure to parse it as a number
+    const uplinePercentage = parseFloat(currentUser.upline_commission_percentage) || 0;
     console.log('Upline percentage for transaction:', {
       currentUserName: currentUser.full_name,
       currentUserId: currentUser.id,
       uplinePercentage: uplinePercentage,
+      rawValue: currentUser.upline_commission_percentage,
+      typeOf: typeof currentUser.upline_commission_percentage,
       currentUserFullObject: currentUser
     });
     
@@ -77,6 +80,11 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       requested_by_name: currentUser.full_name,
       requested_at: new Date().toISOString()
     };
+    
+    console.log('Final data to submit:', {
+      upline_commission_percentage: dataToSubmit.upline_commission_percentage,
+      typeOf: typeof dataToSubmit.upline_commission_percentage
+    });
     
     onSubmit(dataToSubmit);
   };

@@ -12,7 +12,8 @@ import {
   DollarSign,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -38,6 +39,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navigation = [
     { name: 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, roles: ['all'] },
+    { name: 'AI Insights', href: createPageUrl('AIInsightsPage'), icon: Sparkles, roles: ['all'] },
     { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Award, roles: ['all'] },
     { name: 'MentorPerformance', href: createPageUrl('MentorPerformance'), icon: Award, roles: ['all'] },
     { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head', 'academic_admin'] },

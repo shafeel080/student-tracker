@@ -22,8 +22,16 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
 
   const { data: fetchedUsers = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: !propUsers
+    queryFn: async () => {
+      try {
+        return await base44.entities.User.list();
+      } catch (error) {
+        console.warn('Unable to fetch users:', error);
+        return [];
+      }
+    },
+    enabled: !propUsers,
+    retry: false
   });
 
   const users = propUsers || fetchedUsers;

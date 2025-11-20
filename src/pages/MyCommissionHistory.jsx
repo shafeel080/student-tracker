@@ -40,11 +40,11 @@ export default function MyCommissionHistory() {
 
   // Calculate totals
   const totalReleased = myLedgers
-    .filter(l => l.is_released)
+    .filter(l => l.overall_status === 'released')
     .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0);
 
   const totalPending = myLedgers
-    .filter(l => !l.is_released)
+    .filter(l => l.overall_status !== 'released' && l.overall_status !== 'rejected')
     .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0);
 
   const totalBuffer = myLedgers.reduce((sum, l) => sum + (l.commission_buffer_usd || 0), 0);
@@ -160,9 +160,13 @@ export default function MyCommissionHistory() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {ledger.is_released ? (
+                          {ledger.overall_status === 'released' ? (
                             <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200">
                               RELEASED
+                            </Badge>
+                          ) : ledger.overall_status === 'rejected' ? (
+                            <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
+                              REJECTED
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">

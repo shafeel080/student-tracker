@@ -23,13 +23,6 @@ export default function Leaderboard() {
     fetchUser();
   }, []);
 
-  // Auto-recalculate leaderboard when data is loaded
-  useEffect(() => {
-    if (currentUser && users.length > 0 && transactions.length >= 0 && settings.length >= 0 && mentorPoints) {
-      recalculateAllPoints();
-    }
-  }, [currentUser, users.length, transactions.length, settings.length]);
-
   const { data: mentorPoints = [] } = useQuery({
     queryKey: ['mentor-points'],
     queryFn: () => base44.entities.MentorPoints.list('-total_points'),
@@ -172,11 +165,8 @@ export default function Leaderboard() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isRecalculating ? 'animate-spin' : ''}`} />
-              {isRecalculating ? 'Recalculating...' : 'Refresh Now'}
+              {isRecalculating ? 'Recalculating...' : 'Recalculate All'}
             </Button>
-          )}
-          {isRecalculating && (
-            <p className="text-sm text-gray-600">Auto-updating leaderboard...</p>
           )}
         </div>
 

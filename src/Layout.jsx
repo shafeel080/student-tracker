@@ -40,6 +40,8 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, roles: ['all'] },
     { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Award, roles: ['all'] },
     { name: 'MentorPerformance', href: createPageUrl('MentorPerformance'), icon: Award, roles: ['all'] },
+    { name: 'AI Assistant', href: createPageUrl('AIAssistant'), icon: Award, roles: ['all'] },
+    { name: 'Performance Feedback', href: createPageUrl('PerformanceFeedback'), icon: Award, roles: ['all'] },
     { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head', 'academic_admin'] },
     { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['all'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['all'] },

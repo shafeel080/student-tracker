@@ -23,13 +23,6 @@ export default function Leaderboard() {
     fetchUser();
   }, []);
 
-  // Auto-recalculate once if leaderboard is empty
-  useEffect(() => {
-    if (currentUser && users.length > 0 && mentorPoints.length === 0 && !isRecalculating) {
-      recalculateAllPoints();
-    }
-  }, [currentUser, users.length, mentorPoints.length]);
-
   const { data: mentorPoints = [] } = useQuery({
     queryKey: ['mentor-points'],
     queryFn: () => base44.entities.MentorPoints.list('-total_points'),

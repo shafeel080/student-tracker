@@ -41,10 +41,11 @@ export default function CommissionReports() {
     fetchUser();
   }, []);
 
-  const { data: rawLedgers = [] } = useQuery({
+  const { data: rawLedgers = [], isLoading: ledgersLoading } = useQuery({
     queryKey: ['commission-ledgers'],
     queryFn: () => base44.entities.CommissionLedger.list('-year', '-quarter_number'),
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    refetchOnMount: 'always'
   });
 
   // Ensure all ledgers have overall_status field (default to pending_broker_approval for old records)
@@ -104,8 +105,8 @@ export default function CommissionReports() {
         });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['commission-ledgers']);
+    onSuccess: async () => {
+      await queryClient.refetchQueries(['commission-ledgers']);
       toast.success('Commission approval processed successfully');
       setShowApprovalDialog(false);
       setSelectedLedger(null);
@@ -115,7 +116,7 @@ export default function CommissionReports() {
     }
   });
 
-  if (!currentUser) {
+  if (!currentUser || ledgersLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">

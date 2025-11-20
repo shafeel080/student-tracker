@@ -73,6 +73,11 @@ export default function QuarterClosing() {
   const { start_date, end_date } = getQuarterDates(quarterDate);
   const quarterLabel = getQuarterLabel(selectedYear, selectedQuarter);
 
+  // Check if quarter has ended
+  const quarterEndDate = new Date(end_date);
+  const currentDate = new Date();
+  const isQuarterEnded = currentDate > quarterEndDate;
+
   // Get all mentors
   const mentors = users.filter(u => ['junior_mentor', 'senior_mentor'].includes(u.app_role));
 
@@ -202,10 +207,19 @@ export default function QuarterClosing() {
                 </div>
               </div>
 
-              <Button onClick={handleBulkGenerate} className="bg-blue-600 hover:bg-blue-700">
+              <Button 
+                onClick={handleBulkGenerate} 
+                disabled={!isQuarterEnded}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
                 Generate All Ledgers
               </Button>
             </div>
+            {!isQuarterEnded && (
+              <p className="text-sm text-amber-600 mt-2">
+                ⚠️ Ledgers can only be generated after the quarter has ended (after {new Date(end_date).toLocaleDateString()})
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -266,8 +280,8 @@ export default function QuarterClosing() {
                           <Button
                             size="sm"
                             onClick={() => handleGenerateLedger(data)}
-                            disabled={closeLedgerMutation.isPending}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            disabled={!isQuarterEnded || closeLedgerMutation.isPending}
+                            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                           >
                             Generate Ledger
                           </Button>

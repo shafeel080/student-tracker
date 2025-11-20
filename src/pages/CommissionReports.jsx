@@ -336,13 +336,15 @@ export default function CommissionReports() {
                     <TableHead className="font-semibold">Buffer In</TableHead>
                     <TableHead className="font-semibold">Buffer Out</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
-                    <TableHead className="font-semibold text-right">Actions</TableHead>
+                    {!['junior_mentor', 'senior_mentor'].includes(currentUser.app_role) && (
+                      <TableHead className="font-semibold text-right">Actions</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredLedgers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={['junior_mentor', 'senior_mentor'].includes(currentUser.app_role) ? 9 : 10} className="text-center py-8 text-gray-500">
                         No commission ledgers found
                       </TableCell>
                     </TableRow>
@@ -375,32 +377,34 @@ export default function CommissionReports() {
                               </div>
                             )}
                           </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedLedger(ledger);
-                                  setShowHistoryDialog(true);
-                                }}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                              {canAct && (
+                          {!['junior_mentor', 'senior_mentor'].includes(currentUser.app_role) && (
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
                                 <Button
                                   size="sm"
-                                  onClick={() => handleApprove(ledger)}
-                                  disabled={approvalMutation.isPending}
-                                  className="bg-emerald-600 hover:bg-emerald-700"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedLedger(ledger);
+                                    setShowHistoryDialog(true);
+                                  }}
                                 >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Process
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
                                 </Button>
-                              )}
-                            </div>
-                          </TableCell>
+                                {canAct && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleApprove(ledger)}
+                                    disabled={approvalMutation.isPending}
+                                    className="bg-emerald-600 hover:bg-emerald-700"
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Process
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          )}
                         </TableRow>
                       );
                     })

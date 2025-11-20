@@ -67,11 +67,15 @@ export default function MyFundingRequests() {
         upline_commission_percentage: uplinePercentage
       };
 
-      console.log('Creating transaction with fresh user data:', {
-        userName: freshUser.full_name,
-        uplinePercentage: uplinePercentage,
-        rawValue: freshUser.upline_commission_percentage
-      });
+      console.log('=== CREATING TRANSACTION ===');
+      console.log('Logged in user:', freshUser.full_name, '(', freshUser.email, ')');
+      console.log('User ID:', freshUser.id);
+      console.log('User role:', freshUser.app_role);
+      console.log('Raw upline_commission_percentage from DB:', freshUser.upline_commission_percentage);
+      console.log('Parsed uplinePercentage:', uplinePercentage);
+      console.log('Full freshUser object:', freshUser);
+      console.log('Data being submitted:', updatedData);
+      console.log('============================');
 
       return base44.entities.FundingTransaction.create(updatedData);
     },

@@ -68,18 +68,74 @@ Provide analysis in this JSON format:
 }`;
       }
 
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        response_json_schema: {
+      let schema = {};
+      
+      if (type === "mentor_performance") {
+        schema = {
           type: "object",
           properties: {
             summary: { type: "string" },
-            insights: { type: "array" },
-            at_risk_students: { type: "array" },
-            trends: { type: "array" },
+            insights: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  type: { type: "string" },
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  recommendation: { type: "string" }
+                }
+              }
+            }
+          },
+          required: ["summary", "insights"]
+        };
+      } else if (type === "student_risk") {
+        schema = {
+          type: "object",
+          properties: {
+            summary: { type: "string" },
+            at_risk_students: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  student_name: { type: "string" },
+                  risk_level: { type: "string" },
+                  reasons: { type: "array", items: { type: "string" } },
+                  recommendations: { type: "array", items: { type: "string" } }
+                }
+              }
+            }
+          },
+          required: ["summary", "at_risk_students"]
+        };
+      } else if (type === "commission_trends") {
+        schema = {
+          type: "object",
+          properties: {
+            summary: { type: "string" },
+            trends: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  metric: { type: "string" },
+                  trend: { type: "string" },
+                  change_percentage: { type: "number" },
+                  insight: { type: "string" }
+                }
+              }
+            },
             predictions: { type: "string" }
-          }
-        }
+          },
+          required: ["summary", "trends"]
+        };
+      }
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
+        response_json_schema: schema
       });
 
       setInsights(response);

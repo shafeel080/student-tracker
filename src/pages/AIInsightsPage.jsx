@@ -57,7 +57,7 @@ export default function AIInsightsPage() {
   // Prepare data for different insights
   const mentors = users.filter(u => ['junior_mentor', 'senior_mentor'].includes(u.app_role));
   
-  const mentorPerformanceData = mentors.map(mentor => {
+  const mentorPerformanceData = mentors.slice(0, 10).map(mentor => {
     const mentorTransactions = transactions.filter(t => 
       t.primary_mentor_id === mentor.id && t.status === 'APPROVED'
     );
@@ -79,13 +79,13 @@ export default function AIInsightsPage() {
       mentor_name: mentor.full_name,
       mentor_role: mentor.app_role,
       total_students: mentorStudents.length,
-      net_deposit: netDeposit,
-      total_commission: totalCommission,
-      avg_deposit_per_student: mentorStudents.length > 0 ? netDeposit / mentorStudents.length : 0
+      net_deposit: Math.round(netDeposit),
+      total_commission: Math.round(totalCommission),
+      avg_deposit_per_student: mentorStudents.length > 0 ? Math.round(netDeposit / mentorStudents.length) : 0
     };
   });
 
-  const studentRiskData = students.map(student => {
+  const studentRiskData = students.slice(0, 20).map(student => {
     const studentTransactions = transactions.filter(t => 
       t.student_id === student.id && t.status === 'APPROVED'
     );
@@ -96,34 +96,38 @@ export default function AIInsightsPage() {
     
     const lastTransaction = studentTransactions[0];
     const daysSinceLastTransaction = lastTransaction 
-      ? Math.floor((new Date() - new Date(lastTransaction.created_date)) / (1000 * 60 * 60 * 24))
+      ? Math.floor((new Date() - new Date(lastTransaction.requested_at || lastTransaction.created_date)) / (1000 * 60 * 60 * 24))
       : 999;
     
     return {
       student_name: student.full_name,
       student_code: student.student_code,
-      total_deposits: totalDeposits,
+      total_deposits: Math.round(totalDeposits),
       transaction_count: studentTransactions.length,
       days_since_last_transaction: daysSinceLastTransaction,
       status: student.status
     };
   });
 
+  const totalNetDeposits = transactions
+    .filter(t => t.status === 'APPROVED' && t.type === 'DEPOSIT')
+    .reduce((sum, t) => sum + (t.amount_usd || 0), 0) -
+    transactions
+    .filter(t => t.status === 'APPROVED' && t.type === 'WITHDRAWAL')
+    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+
   const commissionTrendsData = {
     total_approved_transactions: transactions.filter(t => t.status === 'APPROVED').length,
     total_pending_transactions: transactions.filter(t => t.status === 'PENDING').length,
-    total_net_deposits: transactions
-      .filter(t => t.status === 'APPROVED' && t.type === 'DEPOSIT')
-      .reduce((sum, t) => sum + (t.amount_usd || 0), 0) -
-      transactions
-      .filter(t => t.status === 'APPROVED' && t.type === 'WITHDRAWAL')
-      .reduce((sum, t) => sum + (t.amount_usd || 0), 0),
-    total_commissions_released: ledgers
+    total_net_deposits: Math.round(totalNetDeposits),
+    total_commissions_released: Math.round(ledgers
       .filter(l => l.is_released)
-      .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0),
-    total_commissions_pending: ledgers
+      .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0)),
+    total_commissions_pending: Math.round(ledgers
       .filter(l => !l.is_released)
-      .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0)
+      .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0)),
+    total_mentors: mentors.length,
+    total_students: students.length
   };
 
   return (

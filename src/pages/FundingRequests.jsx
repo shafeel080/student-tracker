@@ -254,6 +254,7 @@ export default function FundingRequests() {
                     <TableHead className="font-semibold">Type</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="font-semibold">Student</TableHead>
+                    <TableHead className="font-semibold">Email</TableHead>
                     <TableHead className="font-semibold">Code</TableHead>
                     <TableHead className="font-semibold">Primary Mentor</TableHead>
                     <TableHead className="font-semibold">MT5 Login</TableHead>
@@ -268,7 +269,7 @@ export default function FundingRequests() {
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={13} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={14} className="text-center py-8 text-gray-500">
                         No funding requests found
                       </TableCell>
                     </TableRow>
@@ -298,6 +299,9 @@ export default function FundingRequests() {
                           </Badge>
                         </TableCell>
                         <TableCell className="font-medium">{transaction.student_name}</TableCell>
+                        <TableCell className="text-sm">
+                          {students.find(s => s.id === transaction.student_id)?.email || '-'}
+                        </TableCell>
                         <TableCell className="font-mono text-sm text-blue-600">
                           {transaction.student_code}
                         </TableCell>

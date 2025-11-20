@@ -100,7 +100,7 @@ export default function FundingRequests() {
   // Get unique mentors for filter
   const uniqueMentors = [...new Set(transactions.map(t => t.primary_mentor_name))].filter(Boolean);
 
-  const canProcess = canProcessFundingTransaction(currentUser.role);
+  const canProcess = canProcessFundingTransaction(currentUser.app_role);
 
   const handleProcess = (transaction) => {
     setSelectedTransaction(transaction);

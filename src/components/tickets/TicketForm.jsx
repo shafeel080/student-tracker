@@ -52,15 +52,23 @@ export default function TicketForm({ ticket, onSubmit, onCancel, isSubmitting, s
 
     setAiAnalyzing(true);
     try {
-      const prompt = `Analyze this support ticket and suggest the best category and priority:
+      const availableUsers = users.filter(u => 
+        ['super_admin', 'academic_admin'].includes(u.app_role)
+      );
+
+      const prompt = `Analyze this support ticket and suggest the best category, priority, and who should handle it:
 
 Title: ${formData.title}
 Description: ${formData.description}
+
+Available support staff:
+${availableUsers.map(u => `- ${u.full_name} (${u.app_role})`).join('\n')}
 
 Return JSON with:
 {
   "category": "technical|financial|account|general",
   "priority": "low|medium|high|urgent",
+  "suggested_assignee_name": "Name from available staff or null",
   "reasoning": "Brief explanation"
 }`;
 
@@ -71,17 +79,25 @@ Return JSON with:
           properties: {
             category: { type: "string" },
             priority: { type: "string" },
+            suggested_assignee_name: { type: "string" },
             reasoning: { type: "string" }
           }
         }
       });
 
+      const suggestedUser = availableUsers.find(u => u.full_name === response.suggested_assignee_name);
+
       setFormData({
         ...formData,
         category: response.category,
-        priority: response.priority
+        priority: response.priority,
+        assigned_to: suggestedUser?.id || formData.assigned_to
       });
-      toast.success(`AI suggests: ${response.category} (${response.priority})\n${response.reasoning}`);
+      
+      const assignmentMsg = suggestedUser 
+        ? `, assigned to ${suggestedUser.full_name}` 
+        : '';
+      toast.success(`AI suggests: ${response.category} (${response.priority})${assignmentMsg}\n${response.reasoning}`);
     } catch (error) {
       toast.error('AI categorization failed');
     } finally {

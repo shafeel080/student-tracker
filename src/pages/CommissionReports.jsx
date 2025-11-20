@@ -7,8 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, CheckCircle } from "lucide-react";
-import { filterLedgersByRole, canMarkReleased } from "../components/utils/LedgerUtils";
+import { Search, CheckCircle, Eye } from "lucide-react";
+import { 
+  filterLedgersByRole, 
+  canTakeAction, 
+  getApprovalStatusBadge,
+  getNextApprovalStatus 
+} from "../components/utils/CommissionApprovalUtils";
+import ApprovalDialog from "../components/commission/ApprovalDialog";
+import ApprovalHistory from "../components/commission/ApprovalHistory";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -19,6 +27,9 @@ export default function CommissionReports() {
   const [filterYear, setFilterYear] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLedger, setSelectedLedger] = useState(null);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -42,14 +53,56 @@ export default function CommissionReports() {
     enabled: !!currentUser
   });
 
-  const markReleasedMutation = useMutation({
-    mutationFn: ({ id, date }) => base44.entities.CommissionLedger.update(id, {
-      is_released: true,
-      actual_release_date: date
-    }),
+  const approvalMutation = useMutation({
+    mutationFn: async ({ ledgerId, action, level, data }) => {
+      const updateData = {
+        [`${level}_approval_status`]: action === 'approve' ? 'approved' : 'rejected',
+        [`${level}_approved_by_id`]: currentUser.id,
+        [`${level}_approved_by_name`]: currentUser.full_name,
+        [`${level}_approved_at`]: new Date().toISOString(),
+      };
+
+      if (action === 'reject' && data.rejectionReason) {
+        updateData[`${level}_rejection_reason`] = data.rejectionReason;
+        updateData.overall_status = 'rejected';
+      } else if (action === 'approve') {
+        const ledger = ledgers.find(l => l.id === ledgerId);
+        updateData.overall_status = getNextApprovalStatus(ledger.overall_status, 'approve');
+        
+        // If finance admin is approving, also set release info
+        if (level === 'finance_admin') {
+          updateData.actual_release_date = new Date().toISOString();
+        }
+      }
+
+      await base44.entities.CommissionLedger.update(ledgerId, updateData);
+      
+      // If finance admin approved, create payout transaction
+      if (level === 'finance_admin' && action === 'approve' && data) {
+        const ledger = ledgers.find(l => l.id === ledgerId);
+        await base44.entities.PayoutTransaction.create({
+          commission_ledger_id: ledgerId,
+          mentor_id: ledger.mentor_id,
+          mentor_name: ledger.mentor_name,
+          quarter: ledger.quarter,
+          payout_amount_usd: ledger.commission_release_usd,
+          payout_method: data.payoutMethod,
+          payout_reference: data.payoutReference || '',
+          payout_date: new Date().toISOString(),
+          processed_by_id: currentUser.id,
+          processed_by_name: currentUser.full_name,
+          notes: data.notes || ''
+        });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['commission-ledgers']);
-      toast.success('Commission marked as released');
+      toast.success('Commission approval processed successfully');
+      setShowApprovalDialog(false);
+      setSelectedLedger(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to process approval: ' + error.message);
     }
   });
 
@@ -65,7 +118,7 @@ export default function CommissionReports() {
   }
 
   // Filter ledgers
-  let filteredLedgers = filterLedgersByRole(currentUser, ledgers);
+  let filteredLedgers = filterLedgersByRole(ledgers, currentUser);
 
   if (filterMentor !== 'all') {
     filteredLedgers = filteredLedgers.filter(l => l.mentor_id === filterMentor);
@@ -77,11 +130,7 @@ export default function CommissionReports() {
     filteredLedgers = filteredLedgers.filter(l => l.year === parseInt(filterYear));
   }
   if (filterStatus !== 'all') {
-    if (filterStatus === 'released') {
-      filteredLedgers = filteredLedgers.filter(l => l.is_released);
-    } else if (filterStatus === 'pending') {
-      filteredLedgers = filteredLedgers.filter(l => !l.is_released);
-    }
+    filteredLedgers = filteredLedgers.filter(l => l.overall_status === filterStatus);
   }
   if (searchTerm) {
     filteredLedgers = filteredLedgers.filter(l =>
@@ -100,20 +149,63 @@ export default function CommissionReports() {
   // Calculate summary
   const totalGrossCommission = filteredLedgers.reduce((sum, l) => sum + (l.gross_commission_usd || 0), 0);
   const totalReleased = filteredLedgers
-    .filter(l => l.is_released)
+    .filter(l => l.overall_status === 'released')
     .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0);
   const totalPending = filteredLedgers
-    .filter(l => !l.is_released)
+    .filter(l => l.overall_status !== 'released' && l.overall_status !== 'rejected')
     .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0);
 
-  const handleMarkReleased = (ledger) => {
-    const today = new Date().toISOString().split('T')[0];
-    if (window.confirm(`Mark commission as released for ${ledger.mentor_name} - ${ledger.quarter}?`)) {
-      markReleasedMutation.mutate({ id: ledger.id, date: today });
-    }
+  const handleApprove = (ledger) => {
+    setSelectedLedger(ledger);
+    setShowApprovalDialog(true);
   };
 
-  const canMark = canMarkReleased(currentUser);
+  const handleApprovalSubmit = (data) => {
+    const role = currentUser.app_role;
+    let level = '';
+    
+    if (role === 'broker_admin' || (role === 'super_admin' && selectedLedger.overall_status === 'pending_broker_approval')) {
+      level = 'broker_admin';
+    } else if (role === 'academic_head' || (role === 'super_admin' && selectedLedger.overall_status === 'pending_academic_approval')) {
+      level = 'academic_head';
+    } else if (role === 'finance_admin' || (role === 'super_admin' && selectedLedger.overall_status === 'pending_finance_approval')) {
+      level = 'finance_admin';
+    }
+    
+    approvalMutation.mutate({
+      ledgerId: selectedLedger.id,
+      action: 'approve',
+      level,
+      data
+    });
+  };
+
+  const handleReject = (rejectionReason) => {
+    const role = currentUser.app_role;
+    let level = '';
+    
+    if (role === 'broker_admin' || (role === 'super_admin' && selectedLedger.overall_status === 'pending_broker_approval')) {
+      level = 'broker_admin';
+    } else if (role === 'academic_head' || (role === 'super_admin' && selectedLedger.overall_status === 'pending_academic_approval')) {
+      level = 'academic_head';
+    } else if (role === 'finance_admin' || (role === 'super_admin' && selectedLedger.overall_status === 'pending_finance_approval')) {
+      level = 'finance_admin';
+    }
+    
+    approvalMutation.mutate({
+      ledgerId: selectedLedger.id,
+      action: 'reject',
+      level,
+      data: { rejectionReason }
+    });
+  };
+
+  const getApprovalLevel = (ledger) => {
+    if (ledger.overall_status === 'pending_broker_approval') return 'broker';
+    if (ledger.overall_status === 'pending_academic_approval') return 'academic';
+    if (ledger.overall_status === 'pending_finance_approval') return 'finance';
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
@@ -205,8 +297,11 @@ export default function CommissionReports() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending_broker_approval">Pending Broker</SelectItem>
+                  <SelectItem value="pending_academic_approval">Pending Academic</SelectItem>
+                  <SelectItem value="pending_finance_approval">Pending Finance</SelectItem>
                   <SelectItem value="released">Released</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -232,72 +327,103 @@ export default function CommissionReports() {
                     <TableHead className="font-semibold">Buffer In</TableHead>
                     <TableHead className="font-semibold">Buffer Out</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
-                    {canMark && <TableHead className="font-semibold text-right">Actions</TableHead>}
+                    <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredLedgers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={canMark ? 10 : 9} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                         No commission ledgers found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredLedgers.map((ledger) => (
-                      <TableRow key={ledger.id} className="hover:bg-gray-50 transition-colors">
-                        <TableCell className="font-medium">{ledger.mentor_name}</TableCell>
-                        <TableCell className="font-semibold text-blue-600">{ledger.quarter}</TableCell>
-                        <TableCell className="font-semibold">${ledger.net_deposit_usd?.toFixed(2)}</TableCell>
-                        <TableCell className="font-semibold">${ledger.gross_commission_usd?.toFixed(2)}</TableCell>
-                        <TableCell className="font-semibold text-emerald-600">
-                          ${ledger.commission_release_usd?.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="font-semibold text-amber-600">
-                          ${ledger.commission_buffer_usd?.toFixed(2)}
-                        </TableCell>
-                        <TableCell>${ledger.buffer_carried_in_usd?.toFixed(2)}</TableCell>
-                        <TableCell>${ledger.buffer_carried_out_usd?.toFixed(2)}</TableCell>
-                        <TableCell>
-                          {ledger.is_released ? (
-                            <div>
-                              <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200">
-                                RELEASED
-                              </Badge>
-                              {ledger.actual_release_date && (
-                                <div className="text-xs text-gray-600 mt-1">
-                                  {format(new Date(ledger.actual_release_date), 'MMM d, yyyy')}
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
-                              PENDING
+                    filteredLedgers.map((ledger) => {
+                      const statusBadge = getApprovalStatusBadge(ledger);
+                      const canAct = canTakeAction(ledger, currentUser);
+                      
+                      return (
+                        <TableRow key={ledger.id} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="font-medium">{ledger.mentor_name}</TableCell>
+                          <TableCell className="font-semibold text-blue-600">{ledger.quarter}</TableCell>
+                          <TableCell className="font-semibold">${ledger.net_deposit_usd?.toFixed(2)}</TableCell>
+                          <TableCell className="font-semibold">${ledger.gross_commission_usd?.toFixed(2)}</TableCell>
+                          <TableCell className="font-semibold text-emerald-600">
+                            ${ledger.commission_release_usd?.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="font-semibold text-amber-600">
+                            ${ledger.commission_buffer_usd?.toFixed(2)}
+                          </TableCell>
+                          <TableCell>${ledger.buffer_carried_in_usd?.toFixed(2)}</TableCell>
+                          <TableCell>${ledger.buffer_carried_out_usd?.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={statusBadge.color}>
+                              {statusBadge.label}
                             </Badge>
-                          )}
-                        </TableCell>
-                        {canMark && (
-                          <TableCell className="text-right">
-                            {!ledger.is_released && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleMarkReleased(ledger)}
-                                disabled={markReleasedMutation.isPending}
-                                className="bg-emerald-600 hover:bg-emerald-700"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Mark Released
-                              </Button>
+                            {ledger.actual_release_date && ledger.overall_status === 'released' && (
+                              <div className="text-xs text-gray-600 mt-1">
+                                {format(new Date(ledger.actual_release_date), 'MMM d, yyyy')}
+                              </div>
                             )}
                           </TableCell>
-                        )}
-                      </TableRow>
-                    ))
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedLedger(ledger);
+                                  setShowHistoryDialog(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              {canAct && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApprove(ledger)}
+                                  disabled={approvalMutation.isPending}
+                                  className="bg-emerald-600 hover:bg-emerald-700"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Process
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
         </Card>
+
+        {/* Approval Dialog */}
+        {selectedLedger && (
+          <ApprovalDialog
+            open={showApprovalDialog}
+            onOpenChange={setShowApprovalDialog}
+            ledger={selectedLedger}
+            approvalLevel={getApprovalLevel(selectedLedger)}
+            onApprove={handleApprovalSubmit}
+            onReject={handleReject}
+            isSubmitting={approvalMutation.isPending}
+          />
+        )}
+
+        {/* History Dialog */}
+        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Commission Ledger Details</DialogTitle>
+            </DialogHeader>
+            {selectedLedger && <ApprovalHistory ledger={selectedLedger} />}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

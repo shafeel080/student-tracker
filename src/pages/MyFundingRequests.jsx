@@ -261,6 +261,7 @@ export default function MyFundingRequests() {
                         <TableHead className="font-semibold">Code</TableHead>
                         <TableHead className="font-semibold">MT5 Login</TableHead>
                         <TableHead className="font-semibold">Amount</TableHead>
+                        <TableHead className="font-semibold">Commission</TableHead>
                         <TableHead className="font-semibold">Payment Method</TableHead>
                         <TableHead className="font-semibold">Screenshot</TableHead>
                       </TableRow>
@@ -268,12 +269,23 @@ export default function MyFundingRequests() {
                     <TableBody>
                       {myTransactions.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                          <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                             No funding requests yet
                           </TableCell>
                         </TableRow>
                       ) : (
-                        myTransactions.map((transaction) => (
+                        myTransactions.map((transaction) => {
+                          const txAmount = transaction.amount_usd || 0;
+                          const commissionRate = 0.04;
+                          let commissionEarned = 0;
+
+                          if (transaction.status === 'APPROVED') {
+                            commissionEarned = transaction.type === 'DEPOSIT' 
+                              ? txAmount * commissionRate 
+                              : -txAmount * commissionRate;
+                          }
+
+                          return (
                           <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="text-sm">
                               {transaction.requested_at
@@ -307,6 +319,11 @@ export default function MyFundingRequests() {
                             <TableCell className="font-semibold text-gray-900">
                               ${transaction.amount_usd?.toFixed(2)}
                             </TableCell>
+                            <TableCell className={`font-semibold ${commissionEarned >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {transaction.status === 'APPROVED' 
+                                ? `$${commissionEarned.toFixed(2)}` 
+                                : '-'}
+                            </TableCell>
                             <TableCell className="text-sm">{transaction.payment_method}</TableCell>
                             <TableCell>
                               {transaction.screenshot_url ? (
@@ -322,9 +339,10 @@ export default function MyFundingRequests() {
                                 '-'
                               )}
                             </TableCell>
-                          </TableRow>
-                        ))
-                      )}
+                            </TableRow>
+                            );
+                            })
+                            )}
                     </TableBody>
                   </Table>
                 </div>

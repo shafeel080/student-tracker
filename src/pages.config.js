@@ -16,7 +16,6 @@ import MentorPerformance from './pages/MentorPerformance';
 import Leaderboard from './pages/Leaderboard';
 import GamificationSettings from './pages/GamificationSettings';
 import Tickets from './pages/Tickets';
-import AIInsightsPage from './pages/AIInsightsPage';
 import __Layout from './Layout.jsx';
 
 
@@ -39,7 +38,6 @@ export const PAGES = {
     "Leaderboard": Leaderboard,
     "GamificationSettings": GamificationSettings,
     "Tickets": Tickets,
-    "AIInsightsPage": AIInsightsPage,
 }
 
 export const pagesConfig = {

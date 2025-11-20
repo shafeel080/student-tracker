@@ -41,47 +41,6 @@ export default function AddTransactionDialog({ open, onClose, onSubmit, students
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         setFormData({ ...formData, screenshot_url: file_url });
         toast.success('Screenshot uploaded');
-
-        // Try to extract data from screenshot using AI
-        try {
-          const extractPrompt = `Analyze this payment screenshot and extract transaction details.
-
-Return JSON with any fields you can identify:
-{
-  "amount": "number or null",
-  "transaction_id": "string or null",
-  "payment_method": "string or null",
-  "user_id": "string or null"
-}`;
-
-          const extraction = await base44.integrations.Core.InvokeLLM({
-            prompt: extractPrompt,
-            file_urls: [file_url],
-            response_json_schema: {
-              type: "object",
-              properties: {
-                amount: { type: "number" },
-                transaction_id: { type: "string" },
-                payment_method: { type: "string" },
-                user_id: { type: "string" }
-              }
-            }
-          });
-
-          // Auto-fill extracted data
-          const updates = {};
-          if (extraction.amount && !formData.amount_usd) updates.amount_usd = extraction.amount;
-          if (extraction.transaction_id && !formData.transaction_id) updates.transaction_id = extraction.transaction_id;
-          if (extraction.payment_method && !formData.payment_method) updates.payment_method = extraction.payment_method;
-          if (extraction.user_id && !formData.user_id) updates.user_id = extraction.user_id;
-
-          if (Object.keys(updates).length > 0) {
-            setFormData({ ...formData, screenshot_url: file_url, ...updates });
-            toast.success('AI extracted data from screenshot');
-          }
-        } catch (extractError) {
-          // Silently fail extraction, user can fill manually
-        }
       } catch (error) {
         toast.error('Failed to upload screenshot');
       } finally {

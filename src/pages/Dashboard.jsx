@@ -5,7 +5,6 @@ import StatsCard from "../components/dashboard/StatsCard";
 import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TransactionTable from "../components/transactions/TransactionTable";
-import AIAssistant from "../components/ai/AIAssistant";
 import { canViewAllStudents, isMentorRole, canApproveTransactions } from "../components/utils/DataMasking";
 import { 
   filterFundingTransactionsByRole, 
@@ -318,9 +317,6 @@ export default function Dashboard() {
             />
           </CardContent>
         </Card>
-
-        {/* AI Assistant */}
-        <AIAssistant />
       </div>
     </div>
   );

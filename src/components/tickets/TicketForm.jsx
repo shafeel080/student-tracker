@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function TicketForm({ ticket, onSubmit, onCancel, isSubmitting, students, users }) {
@@ -20,7 +20,6 @@ export default function TicketForm({ ticket, onSubmit, onCancel, isSubmitting, s
     screenshot_url: ''
   });
   const [uploading, setUploading] = useState(false);
-  const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
   useEffect(() => {
     if (ticket) {
@@ -41,67 +40,6 @@ export default function TicketForm({ ticket, onSubmit, onCancel, isSubmitting, s
       } finally {
         setUploading(false);
       }
-    }
-  };
-
-  const autoCategorizeTicekt = async () => {
-    if (!formData.title || !formData.description) {
-      toast.error('Please enter title and description first');
-      return;
-    }
-
-    setAiAnalyzing(true);
-    try {
-      const availableUsers = users.filter(u => 
-        ['super_admin', 'academic_admin'].includes(u.app_role)
-      );
-
-      const prompt = `Analyze this support ticket and suggest the best category, priority, and who should handle it:
-
-Title: ${formData.title}
-Description: ${formData.description}
-
-Available support staff:
-${availableUsers.map(u => `- ${u.full_name} (${u.app_role})`).join('\n')}
-
-Return JSON with:
-{
-  "category": "technical|financial|account|general",
-  "priority": "low|medium|high|urgent",
-  "suggested_assignee_name": "Name from available staff or null",
-  "reasoning": "Brief explanation"
-}`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            category: { type: "string" },
-            priority: { type: "string" },
-            suggested_assignee_name: { type: "string" },
-            reasoning: { type: "string" }
-          }
-        }
-      });
-
-      const suggestedUser = availableUsers.find(u => u.full_name === response.suggested_assignee_name);
-
-      setFormData({
-        ...formData,
-        category: response.category,
-        priority: response.priority,
-        assigned_to: suggestedUser?.id || formData.assigned_to
-      });
-      
-      const assignmentMsg = suggestedUser 
-        ? `, assigned to ${suggestedUser.full_name}` 
-        : '';
-      toast.success(`AI suggests: ${response.category} (${response.priority})${assignmentMsg}\n${response.reasoning}`);
-    } catch (error) {
-      toast.error('AI categorization failed');
-    } finally {
-      setAiAnalyzing(false);
     }
   };
 
@@ -143,29 +81,6 @@ Return JSON with:
           placeholder="Detailed description of the issue..."
           required
         />
-      </div>
-
-      <div className="flex justify-end mb-2">
-        <Button
-          type="button"
-          onClick={autoCategorizeTicekt}
-          disabled={aiAnalyzing || !formData.title || !formData.description}
-          variant="outline"
-          size="sm"
-          className="border-purple-200 text-purple-700 hover:bg-purple-50"
-        >
-          {aiAnalyzing ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              AI Analyzing...
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Auto-Categorize with AI
-            </>
-          )}
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

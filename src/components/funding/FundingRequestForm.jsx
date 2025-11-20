@@ -46,25 +46,15 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const selectedStudent = students.find(s => s.id === formData.student_id);
     if (!selectedStudent) {
       toast.error('Please select a student');
       return;
     }
-    
-    // Use current user's upline commission percentage (they are the primary mentor)
-    // Make sure to parse it as a number
-    const uplinePercentage = parseFloat(currentUser.upline_commission_percentage) || 0;
-    console.log('Upline percentage for transaction:', {
-      currentUserName: currentUser.full_name,
-      currentUserId: currentUser.id,
-      uplinePercentage: uplinePercentage,
-      rawValue: currentUser.upline_commission_percentage,
-      typeOf: typeof currentUser.upline_commission_percentage,
-      currentUserFullObject: currentUser
-    });
-    
+
+    // Important: Don't pass upline_commission_percentage here
+    // It will be fetched fresh in the mutation
     const dataToSubmit = {
       ...formData,
       amount_usd: parseFloat(formData.amount_usd),
@@ -75,17 +65,11 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       primary_mentor_name: selectedStudent.primary_mentor_name,
       senior_mentor_id: selectedStudent.senior_mentor_id,
       senior_mentor_name: selectedStudent.senior_mentor_name,
-      upline_commission_percentage: uplinePercentage,
       requested_by_id: currentUser.id,
       requested_by_name: currentUser.full_name,
       requested_at: new Date().toISOString()
     };
-    
-    console.log('Final data to submit:', {
-      upline_commission_percentage: dataToSubmit.upline_commission_percentage,
-      typeOf: typeof dataToSubmit.upline_commission_percentage
-    });
-    
+
     onSubmit(dataToSubmit);
   };
 

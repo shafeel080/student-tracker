@@ -3,15 +3,18 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Medal, Award, TrendingUp, Users, DollarSign, Flame, RefreshCw } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp, Users, DollarSign, Flame, RefreshCw, Info } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import BadgeDisplay from "../components/gamification/BadgeDisplay";
+import PointsGuide from "../components/gamification/PointsGuide";
 import { calculateMentorPoints, calculateStreakBonus, awardBadges, calculateWeeklyStreak } from "../components/utils/GamificationUtils";
 import { toast } from "sonner";
 
 export default function Leaderboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -158,16 +161,26 @@ export default function Leaderboard() {
             </h1>
             <p className="text-gray-600 mt-1">Compete, achieve, and earn rewards!</p>
           </div>
-          {canRecalculate && (
+          <div className="flex items-center gap-3">
             <Button 
-              onClick={recalculateAllPoints} 
-              disabled={isRecalculating}
-              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => setShowGuide(true)}
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRecalculating ? 'animate-spin' : ''}`} />
-              {isRecalculating ? 'Recalculating...' : 'Recalculate All'}
+              <Info className="h-4 w-4 mr-2" />
+              How to Earn Points
             </Button>
-          )}
+            {canRecalculate && (
+              <Button 
+                onClick={recalculateAllPoints} 
+                disabled={isRecalculating}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRecalculating ? 'animate-spin' : ''}`} />
+                {isRecalculating ? 'Recalculating...' : 'Recalculate All'}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Current User's Rank Card */}
@@ -313,6 +326,19 @@ export default function Leaderboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Points & Badge Guide Dialog */}
+        <Dialog open={showGuide} onOpenChange={setShowGuide}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl flex items-center gap-2">
+                <Trophy className="h-6 w-6 text-yellow-500" />
+                Points & Badge System Guide
+              </DialogTitle>
+            </DialogHeader>
+            <PointsGuide settings={settings} />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

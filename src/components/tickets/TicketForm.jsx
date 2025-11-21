@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import SearchableStudentSelect from '../common/SearchableStudentSelect';
 
 export default function TicketForm({ ticket, onSubmit, onCancel, isSubmitting, students, users }) {
   const [formData, setFormData] = useState({
@@ -120,25 +121,14 @@ export default function TicketForm({ ticket, onSubmit, onCancel, isSubmitting, s
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="student">Related Student</Label>
-          <Select
-            value={formData.student_id}
-            onValueChange={(value) => setFormData({ ...formData, student_id: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select student (optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>None</SelectItem>
-              {students.map((student) => (
-                <SelectItem key={student.id} value={student.id}>
-                  {student.student_code} - {student.full_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <SearchableStudentSelect
+          students={students}
+          value={formData.student_id}
+          onValueChange={(value) => setFormData({ ...formData, student_id: value })}
+          label="Related Student"
+          placeholder="Select student (optional)"
+          allowNone
+        />
 
         <div className="space-y-2">
           <Label htmlFor="assigned">Assign To</Label>

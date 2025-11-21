@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import SearchableStudentSelect from '../common/SearchableStudentSelect';
 
 const PAYMENT_METHODS = [
   'AED TRANSFER',
@@ -93,25 +94,13 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="student">Student *</Label>
-          <Select
-            value={formData.student_id}
-            onValueChange={(value) => setFormData({ ...formData, student_id: value })}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select student" />
-            </SelectTrigger>
-            <SelectContent>
-              {students.map((student) => (
-                <SelectItem key={student.id} value={student.id}>
-                  {student.student_code} - {student.full_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <SearchableStudentSelect
+          students={students}
+          value={formData.student_id}
+          onValueChange={(value) => setFormData({ ...formData, student_id: value })}
+          label="Student"
+          required
+        />
 
         <div className="space-y-2">
           <Label htmlFor="amount">Amount (USD) *</Label>

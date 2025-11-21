@@ -47,7 +47,10 @@ export default function MyCommissionHistory() {
     .filter(l => l.overall_status !== 'released' && l.overall_status !== 'rejected')
     .reduce((sum, l) => sum + (l.commission_release_usd || 0), 0);
 
-  const totalBuffer = myLedgers.reduce((sum, l) => sum + (l.commission_buffer_usd || 0), 0);
+  // Get buffer from last released commission statement
+  const releasedLedgers = myLedgers.filter(l => l.overall_status === 'released');
+  const lastReleasedLedger = releasedLedgers.length > 0 ? releasedLedgers[0] : null;
+  const totalBuffer = lastReleasedLedger ? (lastReleasedLedger.buffer_carried_out_usd || 0) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">

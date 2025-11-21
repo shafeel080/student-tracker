@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import StudentForm from "../components/students/StudentForm";
-import { Plus, Search, Eye, Users, UserCheck } from "lucide-react";
+import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
+import { Plus, Search, Eye, Users, UserCheck, Upload } from "lucide-react";
 import { 
   canCreateStudent, 
   filterStudentsByRole, 
@@ -23,6 +24,7 @@ import { format } from "date-fns";
 export default function Students() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('my');
 
@@ -80,6 +82,11 @@ export default function Students() {
   const canCreate = canCreateStudent(currentUser.app_role);
   const isMentor = ['junior_mentor', 'senior_mentor'].includes(currentUser.app_role);
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
+
+  // Get mentor users for bulk import
+  const mentorUsers = users.filter(u => 
+    ['junior_mentor', 'senior_mentor'].includes(u.app_role)
+  );
 
   // For mentors: filter students into My and Team
   // For admins: show all students
@@ -142,10 +149,16 @@ export default function Students() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Students</h1>
           {canCreate && (isMentor ? activeTab === 'my' : true) && (
-            <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Student
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={() => setShowBulkImportDialog(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                <Upload className="h-4 w-4 mr-2" />
+                Bulk Import
+              </Button>
+              <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Student
+              </Button>
+            </div>
           )}
         </div>
 
@@ -384,6 +397,17 @@ export default function Students() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Bulk Import Dialog */}
+        <BulkImportStudentsDialog
+          open={showBulkImportDialog}
+          onOpenChange={setShowBulkImportDialog}
+          onImportComplete={() => {
+            queryClient.invalidateQueries(['students']);
+            setShowBulkImportDialog(false);
+          }}
+          mentors={mentorUsers}
+        />
       </div>
     </div>
   );

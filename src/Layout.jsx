@@ -3,17 +3,18 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
-  LayoutDashboard, 
-  Users, 
-  TrendingUp, 
-  Award, 
-  Target, 
-  Ticket,
-  DollarSign,
-  Menu,
-  X,
-  LogOut
-} from 'lucide-react';
+        LayoutDashboard, 
+        Users, 
+        TrendingUp, 
+        Award, 
+        Target, 
+        Ticket,
+        DollarSign,
+        Menu,
+        X,
+        LogOut,
+        Shield
+      } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Layout({ children, currentPageName }) {
@@ -53,7 +54,8 @@ export default function Layout({ children, currentPageName }) {
     { name: 'GamificationSettings', href: createPageUrl('GamificationSettings'), icon: Target, roles: ['super_admin', 'academic_head'] },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: TrendingUp, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'] },
     { name: 'Commissions', href: createPageUrl('Commissions'), icon: Award, roles: ['super_admin', 'broker_admin', 'academic_head'] },
-    { name: 'Tickets', href: createPageUrl('Tickets'), icon: Ticket, roles: ['super_admin', 'academic_admin', 'broker_admin', 'senior_mentor', 'junior_mentor'] }
+    { name: 'Tickets', href: createPageUrl('Tickets'), icon: Ticket, roles: ['super_admin', 'academic_admin', 'broker_admin', 'senior_mentor', 'junior_mentor'] },
+    { name: 'AuditLogs', href: createPageUrl('AuditLogs'), icon: Shield, roles: ['super_admin'] }
   ];
 
   const filteredNavigation = navigation.filter(item => 

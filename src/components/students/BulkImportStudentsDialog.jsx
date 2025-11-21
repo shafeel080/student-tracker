@@ -12,6 +12,7 @@ import { base44 } from "@/api/base44Client";
 export default function BulkImportStudentsDialog({ open, onOpenChange, onImportComplete, mentors }) {
   const [file, setFile] = useState(null);
   const [assignmentMethod, setAssignmentMethod] = useState('round_robin');
+  const [selectedMentorId, setSelectedMentorId] = useState('');
   const [importing, setImporting] = useState(false);
   const [results, setResults] = useState(null);
 
@@ -72,6 +73,18 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
     });
   };
 
+  const assignToSpecificMentor = (students, mentorId) => {
+    const mentor = mentors.find(m => m.id === mentorId);
+    if (!mentor) return students;
+    
+    return students.map(student => ({
+      ...student,
+      primary_mentor_id: mentor.id,
+      primary_mentor_name: mentor.full_name,
+      status: 'ACTIVE'
+    }));
+  };
+
   const handleImport = async () => {
     if (!file) {
       toast.error('Please select a file');
@@ -94,6 +107,13 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
       // Assign mentors based on method
       if (assignmentMethod === 'round_robin') {
         students = assignMentorsRoundRobin(students);
+      } else if (assignmentMethod === 'specific_mentor') {
+        if (!selectedMentorId) {
+          toast.error('Please select a mentor');
+          setImporting(false);
+          return;
+        }
+        students = assignToSpecificMentor(students, selectedMentorId);
       }
 
       // Generate student codes
@@ -181,12 +201,34 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="round_robin">Round Robin (Auto-assign to mentors)</SelectItem>
+                <SelectItem value="specific_mentor">Assign to Specific Mentor</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-gray-500">
-              Round Robin will automatically distribute students evenly among all mentors
+              {assignmentMethod === 'round_robin' 
+                ? 'Round Robin will automatically distribute students evenly among all mentors'
+                : 'All students will be assigned to the selected mentor'}
             </p>
           </div>
+
+          {/* Specific Mentor Selection */}
+          {assignmentMethod === 'specific_mentor' && (
+            <div className="space-y-2">
+              <Label>Select Mentor *</Label>
+              <Select value={selectedMentorId} onValueChange={setSelectedMentorId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a mentor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {mentors.map((mentor) => (
+                    <SelectItem key={mentor.id} value={mentor.id}>
+                      {mentor.full_name} ({mentor.app_role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* File Upload */}
           <div className="space-y-2">

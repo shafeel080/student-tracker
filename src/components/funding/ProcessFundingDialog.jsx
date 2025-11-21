@@ -24,10 +24,10 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     payment_method: '',
     mt5_account_id: '',
     mt5_login: '',
-    user_id: '',
     transaction_id: '',
     notes: ''
   });
+  const [transactionIdError, setTransactionIdError] = useState('');
 
   const { data: mt5Accounts = [] } = useQuery({
     queryKey: ['mt5accounts', transaction?.student_id],
@@ -39,20 +39,44 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     enabled: !!transaction?.student_id && open
   });
 
+  const { data: allTransactions = [] } = useQuery({
+    queryKey: ['all-funding-transactions'],
+    queryFn: () => base44.entities.FundingTransaction.list(),
+    enabled: open
+  });
+
   useEffect(() => {
     if (transaction) {
       setFormData({
         payment_method: transaction.payment_method || '',
         mt5_account_id: transaction.mt5_account_id || '',
         mt5_login: transaction.mt5_login || '',
-        user_id: transaction.user_id || '',
         transaction_id: transaction.transaction_id || '',
         notes: transaction.notes || ''
       });
+      setTransactionIdError('');
     }
   }, [transaction]);
 
   const handleApprove = () => {
+    // Validate transaction ID is provided
+    if (!formData.transaction_id || formData.transaction_id.trim() === '') {
+      setTransactionIdError('Transaction ID is required');
+      return;
+    }
+
+    // Check for duplicate transaction ID
+    const duplicate = allTransactions.find(
+      t => t.transaction_id === formData.transaction_id && t.id !== transaction.id
+    );
+    
+    if (duplicate) {
+      setTransactionIdError('This Transaction ID already exists');
+      return;
+    }
+
+    setTransactionIdError('');
+    
     const selectedMT5Account = mt5Accounts.find(acc => acc.id === formData.mt5_account_id);
     
     const updatedData = {
@@ -146,7 +170,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="mt5_login">MT5 Login (Manual)</Label>
               <Input
                 id="mt5_login"
@@ -157,24 +181,23 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="user_id">CRM User ID</Label>
-              <Input
-                id="user_id"
-                value={formData.user_id}
-                onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
-                placeholder="Enter user ID"
-              />
-            </div>
-
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="transaction_id">Transaction ID</Label>
+              <Label htmlFor="transaction_id">
+                Transaction ID <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="transaction_id"
                 value={formData.transaction_id}
-                onChange={(e) => setFormData({ ...formData, transaction_id: e.target.value })}
-                placeholder="Enter transaction ID"
+                onChange={(e) => {
+                  setFormData({ ...formData, transaction_id: e.target.value });
+                  setTransactionIdError('');
+                }}
+                placeholder="Enter unique transaction ID"
+                className={transactionIdError ? 'border-red-500' : ''}
               />
+              {transactionIdError && (
+                <p className="text-sm text-red-600">{transactionIdError}</p>
+              )}
             </div>
 
             <div className="space-y-2 md:col-span-2">

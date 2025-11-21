@@ -305,6 +305,7 @@ export default function Tickets() {
                 <TableHead className="font-semibold">Priority</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
                 <TableHead className="font-semibold">Student</TableHead>
+                <TableHead className="font-semibold">Created By</TableHead>
                 <TableHead className="font-semibold">Assigned To</TableHead>
                 <TableHead className="font-semibold">Created</TableHead>
                 <TableHead className="font-semibold text-right">Actions</TableHead>
@@ -313,7 +314,7 @@ export default function Tickets() {
             <TableBody>
               {filteredTickets.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     No tickets found
                   </TableCell>
                 </TableRow>
@@ -332,6 +333,9 @@ export default function Tickets() {
                     <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                     <TableCell className="text-sm">
                       {ticket.student_name || '-'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {ticket.created_by || '-'}
                     </TableCell>
                     <TableCell className="text-sm">
                       {ticket.assigned_to_name || 'Unassigned'}

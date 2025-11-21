@@ -19,8 +19,8 @@ export default function Commissions() {
   }, []);
 
   const { data: commissions = [] } = useQuery({
-    queryKey: ['commissions'],
-    queryFn: () => base44.entities.Commission.list('-created_date'),
+    queryKey: ['commission-ledgers'],
+    queryFn: () => base44.entities.CommissionLedger.list('-created_date'),
     enabled: !!currentUser
   });
 
@@ -40,17 +40,21 @@ export default function Commissions() {
     ? commissions.filter(c => c.mentor_id === currentUser.id)
     : commissions;
 
-  const totalCommission = filteredCommissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
-  const totalPayable = filteredCommissions.reduce((sum, c) => sum + (c.payable_amount || 0), 0);
+  const totalCommission = filteredCommissions.reduce((sum, c) => sum + (c.gross_commission_usd || 0), 0);
+  const totalPayable = filteredCommissions.reduce((sum, c) => sum + (c.commission_release_usd || 0), 0);
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'calculated':
+      case 'pending_broker_approval':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'pending_academic_approval':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'paid':
+      case 'pending_finance_approval':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'released':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -103,21 +107,20 @@ export default function Commissions() {
             <TableHeader>
               <TableRow className="bg-gray-50">
                 <TableHead className="font-semibold">Mentor</TableHead>
-                <TableHead className="font-semibold">Period</TableHead>
-                <TableHead className="font-semibold">Type</TableHead>
+                <TableHead className="font-semibold">Quarter</TableHead>
                 <TableHead className="font-semibold">Net Deposit</TableHead>
-                <TableHead className="font-semibold">Commission Rate</TableHead>
-                <TableHead className="font-semibold">Commission Amount</TableHead>
-                <TableHead className="font-semibold">Buffer Amount</TableHead>
-                <TableHead className="font-semibold">Payable Amount</TableHead>
+                <TableHead className="font-semibold">Gross (4%)</TableHead>
+                <TableHead className="font-semibold">Buffer In</TableHead>
+                <TableHead className="font-semibold">Release (75%)</TableHead>
+                <TableHead className="font-semibold">Buffer (25%)</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold">Date</TableHead>
+                <TableHead className="font-semibold">Release Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCommissions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     No commission records found
                   </TableCell>
                 </TableRow>
@@ -125,25 +128,26 @@ export default function Commissions() {
                 filteredCommissions.map((commission) => (
                   <TableRow key={commission.id} className="hover:bg-gray-50 transition-colors">
                     <TableCell className="font-medium">{commission.mentor_name}</TableCell>
-                    <TableCell className="font-mono text-sm">{commission.period}</TableCell>
-                    <TableCell className="text-sm capitalize">{commission.period_type}</TableCell>
-                    <TableCell className="font-mono">${(commission.total_net_deposit || 0).toFixed(2)}</TableCell>
-                    <TableCell>{(commission.commission_rate || 0)}%</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold text-blue-600">{commission.quarter}</TableCell>
+                    <TableCell className="font-mono">${(commission.net_deposit_usd || 0).toFixed(2)}</TableCell>
+                    <TableCell className="font-mono font-medium">
+                      ${(commission.gross_commission_usd || 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">${(commission.buffer_carried_in_usd || 0).toFixed(2)}</TableCell>
                     <TableCell className="font-mono font-medium text-emerald-600">
-                      ${(commission.commission_amount || 0).toFixed(2)}
+                      ${(commission.commission_release_usd || 0).toFixed(2)}
                     </TableCell>
-                    <TableCell className="font-mono">${(commission.buffer_amount || 0).toFixed(2)}</TableCell>
-                    <TableCell className="font-mono font-medium text-blue-600">
-                      ${(commission.payable_amount || 0).toFixed(2)}
-                    </TableCell>
+                    <TableCell className="font-mono text-amber-600">${(commission.commission_buffer_usd || 0).toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getStatusColor(commission.status)}>
-                        {commission.status}
+                      <Badge variant="outline" className={getStatusColor(commission.overall_status)}>
+                        {commission.overall_status?.replace(/_/g, ' ')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {commission.calculation_date 
-                        ? format(new Date(commission.calculation_date), 'MMM d, yyyy')
+                      {commission.actual_release_date 
+                        ? format(new Date(commission.actual_release_date), 'MMM d, yyyy')
+                        : commission.release_date
+                        ? format(new Date(commission.release_date), 'MMM d, yyyy')
                         : '-'
                       }
                     </TableCell>

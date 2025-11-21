@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Download, Upload, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
+import { logAction } from "../utils/AuditLogger";
 
 export default function BulkImportStudentsDialog({ open, onOpenChange, onImportComplete, mentors }) {
   const [file, setFile] = useState(null);
@@ -135,6 +136,9 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
 
       // Bulk create students
       const created = await base44.entities.Student.bulkCreate(students);
+
+      // Log bulk import
+      await logAction('bulk_import_students', 'Student', null, `Imported ${created.length} students`, null, { count: created.length, method: assignmentMethod });
 
       setResults({
         success: true,

@@ -64,7 +64,10 @@ export default function TargetsManagement() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.MentorTarget.delete(id),
+    mutationFn: async (id) => {
+      await logAction('delete_target', 'MentorTarget', id, `Deleted target`, null, null);
+      return base44.entities.MentorTarget.delete(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['mentor-targets']);
       toast.success('Target deleted successfully');

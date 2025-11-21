@@ -20,6 +20,7 @@ import {
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function Students() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -61,10 +62,12 @@ export default function Students() {
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const studentCode = await generateStudentCode(base44);
-      return base44.entities.Student.create({
+      const newStudent = await base44.entities.Student.create({
         ...data,
         student_code: studentCode
       });
+      await logAction('create_student', 'Student', newStudent.id, `Created student: ${data.full_name}`, null, data);
+      return newStudent;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['students']);

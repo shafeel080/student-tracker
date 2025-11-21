@@ -68,7 +68,11 @@ export default function Tickets() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Ticket.create(data),
+    mutationFn: async (data) => {
+      const result = await base44.entities.Ticket.create(data);
+      await logAction('create_ticket', 'Ticket', result.id, `Created ticket: ${data.title}`, null, data);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['tickets']);
       setShowCreateDialog(false);
@@ -77,7 +81,11 @@ export default function Tickets() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Ticket.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const result = await base44.entities.Ticket.update(id, data);
+      await logAction('update_ticket', 'Ticket', id, `Updated ticket: ${data.title}`, null, data);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['tickets']);
       setShowReviewDialog(false);

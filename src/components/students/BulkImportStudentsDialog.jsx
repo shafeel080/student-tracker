@@ -1,0 +1,249 @@
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Download, Upload, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
+
+export default function BulkImportStudentsDialog({ open, onOpenChange, onImportComplete, mentors }) {
+  const [file, setFile] = useState(null);
+  const [assignmentMethod, setAssignmentMethod] = useState('round_robin');
+  const [importing, setImporting] = useState(false);
+  const [results, setResults] = useState(null);
+
+  const downloadTemplate = () => {
+    const csvContent = "full_name,email,phone,country,notes\n" +
+                       "John Doe,john@example.com,+1234567890,USA,Sample student\n" +
+                       "Jane Smith,jane@example.com,+0987654321,UK,";
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'student_import_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Template downloaded');
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setResults(null);
+    }
+  };
+
+  const parseCSV = (text) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const headers = lines[0].split(',').map(h => h.trim());
+    
+    const students = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim());
+      const student = {};
+      headers.forEach((header, index) => {
+        if (values[index]) {
+          student[header] = values[index];
+        }
+      });
+      if (student.full_name && student.email) {
+        students.push(student);
+      }
+    }
+    return students;
+  };
+
+  const assignMentorsRoundRobin = (students) => {
+    if (mentors.length === 0) return students;
+    
+    return students.map((student, index) => {
+      const mentor = mentors[index % mentors.length];
+      return {
+        ...student,
+        primary_mentor_id: mentor.id,
+        primary_mentor_name: mentor.full_name,
+        status: 'ACTIVE'
+      };
+    });
+  };
+
+  const handleImport = async () => {
+    if (!file) {
+      toast.error('Please select a file');
+      return;
+    }
+
+    setImporting(true);
+    setResults(null);
+
+    try {
+      const text = await file.text();
+      let students = parseCSV(text);
+
+      if (students.length === 0) {
+        toast.error('No valid students found in CSV');
+        setImporting(false);
+        return;
+      }
+
+      // Assign mentors based on method
+      if (assignmentMethod === 'round_robin') {
+        students = assignMentorsRoundRobin(students);
+      }
+
+      // Generate student codes
+      const existingStudents = await base44.entities.Student.list();
+      const existingCodes = existingStudents.map(s => s.student_code).filter(Boolean);
+      
+      let maxNumber = 0;
+      existingCodes.forEach(code => {
+        const match = code.match(/STU-(\d+)/);
+        if (match) {
+          maxNumber = Math.max(maxNumber, parseInt(match[1]));
+        }
+      });
+
+      students = students.map((student, index) => ({
+        ...student,
+        student_code: `STU-${String(maxNumber + index + 1).padStart(4, '0')}`
+      }));
+
+      // Bulk create students
+      const created = await base44.entities.Student.bulkCreate(students);
+
+      setResults({
+        success: true,
+        total: students.length,
+        created: created.length
+      });
+
+      toast.success(`Successfully imported ${created.length} students`);
+      onImportComplete();
+    } catch (error) {
+      console.error('Import error:', error);
+      setResults({
+        success: false,
+        error: error.message || 'Failed to import students'
+      });
+      toast.error('Import failed');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setFile(null);
+    setResults(null);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Bulk Import Students</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Template Download */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Download className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">Step 1: Download Template</h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  Download the CSV template and fill in your student data
+                </p>
+                <Button
+                  onClick={downloadTemplate}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Template
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Assignment Method */}
+          <div className="space-y-2">
+            <Label>Mentor Assignment Method</Label>
+            <Select value={assignmentMethod} onValueChange={setAssignmentMethod}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="round_robin">Round Robin (Auto-assign to mentors)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500">
+              Round Robin will automatically distribute students evenly among all mentors
+            </p>
+          </div>
+
+          {/* File Upload */}
+          <div className="space-y-2">
+            <Label>Upload CSV File</Label>
+            <Input
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              disabled={importing}
+            />
+            {file && (
+              <p className="text-sm text-green-600 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                {file.name} selected
+              </p>
+            )}
+          </div>
+
+          {/* Results */}
+          {results && (
+            <Alert variant={results.success ? "default" : "destructive"}>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {results.success ? (
+                  <div>
+                    Successfully imported {results.created} of {results.total} students
+                  </div>
+                ) : (
+                  <div>Import failed: {results.error}</div>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={handleClose} disabled={importing}>
+              {results ? 'Close' : 'Cancel'}
+            </Button>
+            {!results && (
+              <Button onClick={handleImport} disabled={!file || importing}>
+                {importing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import Students
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

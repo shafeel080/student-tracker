@@ -370,11 +370,13 @@ export default function Tickets() {
               onSubmit={handleCreateSubmit}
               onCancel={() => setShowCreateDialog(false)}
               isSubmitting={createMutation.isPending}
-              students={students.filter(s => 
-                ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(currentUser.app_role) ||
-                s.primary_mentor_id === currentUser.id ||
-                s.senior_mentor_id === currentUser.id
-              )}
+              students={['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(currentUser?.app_role)
+                ? students
+                : students.filter(s => 
+                    s.primary_mentor_id === currentUser?.id ||
+                    s.senior_mentor_id === currentUser?.id
+                  )
+              }
               users={users}
               currentUser={currentUser}
             />

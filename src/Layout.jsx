@@ -52,7 +52,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'CommissionReports', href: createPageUrl('CommissionReports'), icon: Award, roles: ['super_admin', 'broker_admin', 'academic_head', 'academic_admin', 'finance_admin'] },
     { name: 'GamificationSettings', href: createPageUrl('GamificationSettings'), icon: Target, roles: ['super_admin', 'academic_head'] },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: TrendingUp, roles: ['all'] },
-    { name: 'Commissions', href: createPageUrl('Commissions'), icon: Award, roles: ['super_admin', 'broker_admin', 'academic_head', 'senior_mentor', 'junior_mentor'] },
+    { name: 'Commissions', href: createPageUrl('Commissions'), icon: Award, roles: ['super_admin', 'broker_admin', 'academic_head'] },
     { name: 'Tickets', href: createPageUrl('Tickets'), icon: Ticket, roles: ['super_admin', 'academic_admin', 'broker_admin', 'senior_mentor', 'junior_mentor'] }
   ];
 

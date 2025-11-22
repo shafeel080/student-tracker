@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import StudentForm from "../components/students/StudentForm";
+import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
 import { Plus, Search, Eye, Users, UserCheck, Upload } from "lucide-react";
 import { 
@@ -76,8 +77,32 @@ export default function Students() {
     }
   });
 
+  const createRequestMutation = useMutation({
+    mutationFn: async (data) => {
+      const user = await base44.auth.me();
+      const newRequest = await base44.entities.StudentRequest.create({
+        ...data,
+        requested_by_id: user.id,
+        requested_by_name: user.full_name,
+        requested_at: new Date().toISOString(),
+        status: 'PENDING_ACADEMIC_APPROVAL'
+      });
+      await logAction('create_student_request', 'StudentRequest', newRequest.id, `Submitted student request: ${data.full_name}`, null, data);
+      return newRequest;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['student-requests']);
+      setShowAddDialog(false);
+      toast.success('Student request submitted for approval');
+    }
+  });
+
   const handleSubmit = (formData) => {
-    createMutation.mutate(formData);
+    if (isMentor) {
+      createRequestMutation.mutate(formData);
+    } else {
+      createMutation.mutate(formData);
+    }
   };
 
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -159,7 +184,7 @@ export default function Students() {
               </Button>
               <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Student
+                {isMentor ? 'Request Student' : 'Add Student'}
               </Button>
             </div>
           )}
@@ -390,14 +415,24 @@ export default function Students() {
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Student</DialogTitle>
+              <DialogTitle>{isMentor ? 'Request New Student' : 'Add New Student'}</DialogTitle>
             </DialogHeader>
-            <StudentForm
-              onSubmit={handleSubmit}
-              onCancel={() => setShowAddDialog(false)}
-              isSubmitting={createMutation.isPending}
-              users={users}
-            />
+            {isMentor ? (
+              <StudentRequestForm
+                onSubmit={handleSubmit}
+                onCancel={() => setShowAddDialog(false)}
+                isSubmitting={createRequestMutation.isPending}
+                users={users}
+                currentUser={currentUser}
+              />
+            ) : (
+              <StudentForm
+                onSubmit={handleSubmit}
+                onCancel={() => setShowAddDialog(false)}
+                isSubmitting={createMutation.isPending}
+                users={users}
+              />
+            )}
           </DialogContent>
         </Dialog>
 

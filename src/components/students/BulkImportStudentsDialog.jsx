@@ -125,9 +125,18 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
         students = assignToSpecificMentor(students, selectedMentorId);
       }
 
-      // Generate student codes
+      // Fetch existing students for duplication check and code generation
       const existingStudents = await base44.entities.Student.list();
+      const existingEmails = new Set(existingStudents.map(s => s.email?.toLowerCase()).filter(Boolean));
       const existingCodes = existingStudents.map(s => s.student_code).filter(Boolean);
+      
+      // Check for duplicates
+      const duplicates = students.filter(s => existingEmails.has(s.email?.toLowerCase()));
+      if (duplicates.length > 0) {
+        toast.error(`Found ${duplicates.length} duplicate email(s): ${duplicates.map(d => d.email).join(', ')}`);
+        setImporting(false);
+        return;
+      }
       
       let maxNumber = 0;
       existingCodes.forEach(code => {

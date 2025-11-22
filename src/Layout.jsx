@@ -13,7 +13,8 @@ import {
         Menu,
         X,
         LogOut,
-        Shield
+        Shield,
+        UserPlus
       } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -45,6 +46,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'MentorPerformance', href: createPageUrl('MentorPerformance'), icon: Award, roles: ['all'] },
     { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head', 'academic_admin'] },
     { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['all'] },
+    { name: 'StudentRequestApprovals', href: createPageUrl('StudentRequestApprovals'), icon: UserPlus, roles: ['academic_head', 'broker_admin'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['all'] },
     { name: 'FundingActivities', href: createPageUrl('MyFundingRequests'), icon: DollarSign, roles: ['senior_mentor', 'junior_mentor'] },
     { name: 'FundingRequests', href: createPageUrl('FundingRequests'), icon: DollarSign, roles: ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'] },

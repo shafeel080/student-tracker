@@ -356,7 +356,7 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
   const unlockedTopics = getUnlockedModules();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/40 to-purple-100/30 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -371,37 +371,37 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
 
         {/* Performance Overview */}
         {performanceData && (
-          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card className="border-none shadow-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
             <CardHeader>
-              <CardTitle className="text-lg">Your Performance Snapshot</CardTitle>
+              <CardTitle className="text-lg text-white">Your Performance Snapshot</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
                   <div className="flex items-center gap-2 mb-1">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span className="text-xs text-gray-600">Active Students</span>
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <span className="text-xs text-gray-700">Active Students</span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{performanceData.active_students}</p>
                 </div>
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
                   <div className="flex items-center gap-2 mb-1">
-                    <DollarSign className="h-4 w-4 text-gray-500" />
-                    <span className="text-xs text-gray-600">Net Deposit</span>
+                    <DollarSign className="h-4 w-4 text-emerald-600" />
+                    <span className="text-xs text-gray-700">Net Deposit</span>
                   </div>
                   <p className="text-2xl font-bold text-emerald-600">${performanceData.total_net_deposit.toFixed(0)}</p>
                 </div>
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
                   <div className="flex items-center gap-2 mb-1">
-                    <Target className="h-4 w-4 text-gray-500" />
-                    <span className="text-xs text-gray-600">Target Achievement</span>
+                    <Target className="h-4 w-4 text-indigo-600" />
+                    <span className="text-xs text-gray-700">Target Achievement</span>
                   </div>
                   <p className="text-2xl font-bold text-blue-600">{performanceData.avg_target_achievement.toFixed(0)}%</p>
                 </div>
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
                   <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="h-4 w-4 text-gray-500" />
-                    <span className="text-xs text-gray-600">Recent Activity</span>
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                    <span className="text-xs text-gray-700">Recent Activity</span>
                   </div>
                   <p className="text-2xl font-bold text-purple-600">{performanceData.recent_transactions_count}</p>
                 </div>

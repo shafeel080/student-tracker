@@ -147,10 +147,10 @@ export default function Dashboard() {
   ].filter(s => s.value > 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-100/40 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl shadow-xl p-8 border border-blue-700">
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-3xl shadow-2xl p-8 border-none">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
           <div className="relative z-10">
@@ -231,7 +231,7 @@ export default function Dashboard() {
         {myFundingTransactions.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Transaction Trend Chart */}
-            <Card className="lg:col-span-2 border-gray-200 shadow-lg">
+            <Card className="lg:col-span-2 border-none shadow-xl bg-white/80 backdrop-blur-sm">
               <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-blue-600" />
@@ -267,7 +267,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Status Distribution Chart */}
-            <Card className="border-gray-200 shadow-lg">
+            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm">
               <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Activity className="h-5 w-5 text-blue-600" />
@@ -300,7 +300,7 @@ export default function Dashboard() {
         )}
 
         {/* Recent Transactions */}
-        <Card className="border-gray-200 shadow-lg">
+        <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Activity className="h-5 w-5 text-blue-600" />

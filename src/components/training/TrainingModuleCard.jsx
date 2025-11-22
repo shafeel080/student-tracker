@@ -6,7 +6,7 @@ import { Sparkles, Loader2, Lock } from "lucide-react";
 
 export default function TrainingModuleCard({ topic, onGenerate, isGenerating, isRecommended, isLocked }) {
   return (
-    <Card className={`border-gray-200 hover:border-blue-300 transition-all hover:shadow-lg ${isRecommended ? 'ring-2 ring-amber-300' : ''} ${isLocked ? 'opacity-60' : ''}`}>
+    <Card className={`border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] bg-white/80 backdrop-blur-sm ${isRecommended ? 'ring-2 ring-amber-400 shadow-amber-500/20' : ''} ${isLocked ? 'opacity-60' : ''}`}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className={`p-3 rounded-lg ${topic.color}`}>

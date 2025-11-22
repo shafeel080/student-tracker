@@ -86,7 +86,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-white border-r border-gray-200">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/30 border-r border-gray-200 shadow-lg">
         <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-6 mb-8">
             <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
@@ -100,11 +100,11 @@ export default function Layout({ children, currentPageName }) {
           </div>
 
           <div className="px-4 mb-4">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-              <p className="text-sm font-semibold text-gray-900">{currentUser.full_name}</p>
-              <p className="text-xs text-gray-600 mt-1">{currentUser.email}</p>
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-4 border-none shadow-lg">
+              <p className="text-sm font-semibold text-white">{currentUser.full_name}</p>
+              <p className="text-xs text-blue-100 mt-1">{currentUser.email}</p>
               <div className="mt-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
                   {currentUser.app_role?.replace(/_/g, ' ')}
                 </span>
               </div>
@@ -119,10 +119,10 @@ export default function Layout({ children, currentPageName }) {
                   key={item.name}
                   to={item.href}
                   className={`
-                    group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all
+                    group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
                     ${isActive 
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/40 scale-[1.02]' 
+                      : 'text-gray-700 hover:bg-white/80 hover:shadow-md'
                     }
                   `}
                 >
@@ -149,7 +149,7 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Mobile header */}
-      <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-40">
+      <div className="lg:hidden bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="flex items-center justify-between p-4">
           <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">

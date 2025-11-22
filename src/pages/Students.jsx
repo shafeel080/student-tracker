@@ -13,7 +13,7 @@ import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
 import { Plus, Search, Eye, Users, UserCheck, Upload } from "lucide-react";
 import { 
-  canCreateStudent, 
+  canSubmitStudentRequest, 
   filterStudentsByRole, 
   applyStudentMasking,
   generateStudentCode
@@ -107,7 +107,7 @@ export default function Students() {
 
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
-  const canCreate = canCreateStudent(currentUser.app_role);
+  const canCreate = canSubmitStudentRequest(currentUser.app_role);
   const isMentor = ['junior_mentor', 'senior_mentor'].includes(currentUser.app_role);
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
 

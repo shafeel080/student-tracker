@@ -157,11 +157,11 @@ export default function Leaderboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Trophy className="h-8 w-8 text-yellow-500" />
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 tracking-tight">
+              <Trophy className="h-9 w-9 text-yellow-500" />
               Mentor Leaderboard
             </h1>
-            <p className="text-gray-600 mt-1">Compete, achieve, and earn rewards!</p>
+            <p className="text-gray-600 mt-2 text-base">Compete, achieve, and earn rewards!</p>
           </div>
           <div className="flex items-center gap-3">
             <Button 
@@ -257,8 +257,8 @@ export default function Leaderboard() {
 
         {/* Full Leaderboard Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">Full Rankings</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Full Rankings</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

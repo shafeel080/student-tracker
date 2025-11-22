@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -138,22 +139,22 @@ export default function Personnel() {
   const adminCount = filteredUsers.filter(u => ['super_admin', 'admin', 'broker_admin'].includes(u.app_role)).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/20 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Personnel Directory</h1>
-            <p className="text-gray-600 mt-1">Manage users and roles</p>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Personnel Directory</h1>
+            <p className="text-gray-600 mt-2 text-base">Manage users and roles</p>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border-none p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
+                <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Users</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{totalUsers}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -162,10 +163,10 @@ export default function Personnel() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border-none p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Mentors</p>
+                <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Mentors</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{mentorCount}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -174,10 +175,10 @@ export default function Personnel() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border-none p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Administrators</p>
+                <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Administrators</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{adminCount}</p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -188,7 +189,7 @@ export default function Personnel() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border-none p-5">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -218,7 +219,7 @@ export default function Personnel() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border-none overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

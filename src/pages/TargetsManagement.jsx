@@ -156,8 +156,8 @@ export default function TargetsManagement() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Targets Management</h1>
-            <p className="text-gray-600 mt-1">Create and manage mentor targets</p>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Targets Management</h1>
+            <p className="text-gray-600 mt-2 text-base">Create and manage mentor targets</p>
           </div>
           {canCreate && (
             <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
@@ -169,28 +169,28 @@ export default function TargetsManagement() {
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="border-gray-200">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Total Targets</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{totalTargets}</p>
+          <Card className="border-none bg-gradient-to-br from-gray-100 to-slate-100 shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Targets</p>
+              <p className="text-3xl font-bold text-gray-900 mt-1">{totalTargets}</p>
             </CardContent>
           </Card>
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">In Progress</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">{inProgressCount}</p>
+          <Card className="border-none bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">In Progress</p>
+              <p className="text-3xl font-bold text-blue-700 mt-1">{inProgressCount}</p>
             </CardContent>
           </Card>
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Achieved</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">{achievedCount}</p>
+          <Card className="border-none bg-gradient-to-br from-emerald-100 to-teal-100 shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Achieved</p>
+              <p className="text-3xl font-bold text-emerald-700 mt-1">{achievedCount}</p>
             </CardContent>
           </Card>
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Missed</p>
-              <p className="text-2xl font-bold text-red-600 mt-1">{missedCount}</p>
+          <Card className="border-none bg-gradient-to-br from-red-100 to-pink-100 shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Missed</p>
+              <p className="text-3xl font-bold text-red-700 mt-1">{missedCount}</p>
             </CardContent>
           </Card>
         </div>
@@ -242,8 +242,8 @@ export default function TargetsManagement() {
 
         {/* Targets Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">Targets</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Targets</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

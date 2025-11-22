@@ -197,8 +197,8 @@ export default function MyFundingRequests() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Funding Activities</h1>
-            <p className="text-gray-600 mt-1">Manage your deposit and withdrawal requests</p>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Funding Activities</h1>
+            <p className="text-gray-600 mt-2 text-base">Manage your deposit and withdrawal requests</p>
           </div>
           {canCreate && activeTab === 'my' && (
             <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">

@@ -144,11 +144,11 @@ export default function GamificationSettings() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <Settings className="h-8 w-8 text-blue-600" />
               Gamification Settings
             </h1>
-            <p className="text-gray-600 mt-1">Configure point values and rules</p>
+            <p className="text-gray-600 mt-2 text-base">Configure point values and rules</p>
           </div>
           {settings.length === 0 && (
             <Button onClick={handleCreateDefaults} variant="outline">
@@ -160,8 +160,8 @@ export default function GamificationSettings() {
 
         {/* Settings Form */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">Point Configuration</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Point Configuration</CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
             {defaultSettings.map((setting) => (

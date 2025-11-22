@@ -33,6 +33,10 @@ export default function AIInsights() {
     const fetchUser = async () => {
       const user = await base44.auth.me();
       setCurrentUser(user);
+      // Auto-select current user for mentors
+      if (['junior_mentor', 'senior_mentor'].includes(user.app_role)) {
+        setSelectedMentor(user.id);
+      }
     };
     fetchUser();
   }, []);

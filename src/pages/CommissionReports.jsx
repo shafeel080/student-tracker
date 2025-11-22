@@ -228,28 +228,28 @@ export default function CommissionReports() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Commission Reports</h1>
-          <p className="text-gray-600 mt-1">View and manage all mentor commission ledgers</p>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Commission Reports</h1>
+          <p className="text-gray-600 mt-2 text-base">View and manage all mentor commission ledgers</p>
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Total Gross Commission</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">${totalGrossCommission.toFixed(2)}</p>
+          <Card className="border-none bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Gross Commission</p>
+              <p className="text-3xl font-bold text-blue-700 mt-1">${totalGrossCommission.toFixed(2)}</p>
             </CardContent>
           </Card>
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Total Released</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">${totalReleased.toFixed(2)}</p>
+          <Card className="border-none bg-gradient-to-br from-emerald-100 to-teal-100 shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Released</p>
+              <p className="text-3xl font-bold text-emerald-700 mt-1">${totalReleased.toFixed(2)}</p>
             </CardContent>
           </Card>
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Pending Release</p>
-              <p className="text-2xl font-bold text-amber-600 mt-1">${totalPending.toFixed(2)}</p>
+          <Card className="border-none bg-gradient-to-br from-amber-100 to-orange-100 shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Pending Release</p>
+              <p className="text-3xl font-bold text-amber-700 mt-1">${totalPending.toFixed(2)}</p>
             </CardContent>
           </Card>
         </div>
@@ -326,8 +326,8 @@ export default function CommissionReports() {
 
         {/* Commission Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">Commission Ledgers</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Commission Ledgers</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

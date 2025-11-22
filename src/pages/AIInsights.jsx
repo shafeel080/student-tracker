@@ -288,11 +288,11 @@ Consider factors like:
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Brain className="h-8 w-8 text-purple-600" />
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 tracking-tight">
+              <Brain className="h-9 w-9 text-purple-600" />
               AI Performance Insights
             </h1>
-            <p className="text-gray-600 mt-1">AI-powered analysis and predictions for mentor performance</p>
+            <p className="text-gray-600 mt-2 text-base">AI-powered analysis and predictions for mentor performance</p>
           </div>
           {canViewAI && (
             <Button 

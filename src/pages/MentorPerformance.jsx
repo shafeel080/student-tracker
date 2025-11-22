@@ -166,8 +166,8 @@ export default function MentorPerformance() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mentor Performance Dashboard</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Mentor Performance Dashboard</h1>
+          <p className="text-gray-600 mt-2 text-base">
             {isMentor ? 'Your performance metrics and insights' : 'Comprehensive mentor performance analytics'}
           </p>
         </div>
@@ -175,43 +175,43 @@ export default function MentorPerformance() {
         {/* Aggregate Stats - Admin only */}
         {isAdmin && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4">
+            <Card className="border-none bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg">
+              <CardContent className="p-5">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
+                  <div className="p-2 bg-white/80 rounded-lg shadow-sm">
                     <Users className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Total Mentors</p>
-                    <p className="text-xl font-bold text-blue-600">{aggregateStats.totalMentors}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-700">Total Mentors</p>
+                    <p className="text-2xl font-bold text-blue-700">{aggregateStats.totalMentors}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-purple-200 bg-purple-50">
-              <CardContent className="p-4">
+            <Card className="border-none bg-gradient-to-br from-purple-100 to-pink-100 shadow-lg">
+              <CardContent className="p-5">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
+                  <div className="p-2 bg-white/80 rounded-lg shadow-sm">
                     <Users className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Active Students</p>
-                    <p className="text-xl font-bold text-purple-600">{aggregateStats.totalActiveStudents}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-700">Active Students</p>
+                    <p className="text-2xl font-bold text-purple-700">{aggregateStats.totalActiveStudents}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-emerald-200 bg-emerald-50">
-              <CardContent className="p-4">
+            <Card className="border-none bg-gradient-to-br from-emerald-100 to-teal-100 shadow-lg">
+              <CardContent className="p-5">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-100 rounded-lg">
+                  <div className="p-2 bg-white/80 rounded-lg shadow-sm">
                     <DollarSign className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Total Released</p>
-                    <p className="text-xl font-bold text-emerald-600">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-700">Total Released</p>
+                    <p className="text-2xl font-bold text-emerald-700">
                       ${aggregateStats.totalCommissionsReleased.toFixed(2)}
                     </p>
                   </div>
@@ -219,15 +219,15 @@ export default function MentorPerformance() {
               </CardContent>
             </Card>
 
-            <Card className="border-amber-200 bg-amber-50">
-              <CardContent className="p-4">
+            <Card className="border-none bg-gradient-to-br from-amber-100 to-orange-100 shadow-lg">
+              <CardContent className="p-5">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-100 rounded-lg">
+                  <div className="p-2 bg-white/80 rounded-lg shadow-sm">
                     <TrendingUp className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Total Pending</p>
-                    <p className="text-xl font-bold text-amber-600">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-700">Total Pending</p>
+                    <p className="text-2xl font-bold text-amber-700">
                       ${aggregateStats.totalCommissionsPending.toFixed(2)}
                     </p>
                   </div>
@@ -271,8 +271,8 @@ export default function MentorPerformance() {
 
         {/* Performance Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">Performance Metrics</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Performance Metrics</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

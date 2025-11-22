@@ -132,8 +132,8 @@ export default function MyTargets() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Targets</h1>
-          <p className="text-gray-600 mt-1">Track your performance against weekly, monthly, and quarterly targets</p>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">My Targets</h1>
+          <p className="text-gray-600 mt-2 text-base">Track your performance against weekly, monthly, and quarterly targets</p>
         </div>
 
         {/* Active Targets Summary */}
@@ -160,8 +160,8 @@ export default function MyTargets() {
 
         {/* All Targets Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">All Targets</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">All Targets</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

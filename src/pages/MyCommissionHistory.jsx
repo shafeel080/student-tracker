@@ -57,49 +57,49 @@ export default function MyCommissionHistory() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Commission History</h1>
-          <p className="text-gray-600 mt-1">View your quarterly commission statements</p>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">My Commission History</h1>
+          <p className="text-gray-600 mt-2 text-base">View your quarterly commission statements</p>
         </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-emerald-200 bg-emerald-50">
+          <Card className="border-none bg-gradient-to-br from-emerald-100 to-teal-100 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-emerald-100 rounded-lg">
+                <div className="p-3 bg-white/80 rounded-lg shadow-sm">
                   <DollarSign className="h-6 w-6 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total Released</p>
-                  <p className="text-2xl font-bold text-emerald-600">${totalReleased.toFixed(2)}</p>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Released</p>
+                  <p className="text-3xl font-bold text-emerald-700">${totalReleased.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-blue-200 bg-blue-50">
+          <Card className="border-none bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
+                <div className="p-3 bg-white/80 rounded-lg shadow-sm">
                   <TrendingUp className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Pending Release</p>
-                  <p className="text-2xl font-bold text-blue-600">${totalPending.toFixed(2)}</p>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Pending Release</p>
+                  <p className="text-3xl font-bold text-blue-700">${totalPending.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-200 bg-amber-50">
+          <Card className="border-none bg-gradient-to-br from-amber-100 to-orange-100 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-amber-100 rounded-lg">
+                <div className="p-3 bg-white/80 rounded-lg shadow-sm">
                   <Calendar className="h-6 w-6 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total Buffer</p>
-                  <p className="text-2xl font-bold text-amber-600">${totalBuffer.toFixed(2)}</p>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Buffer</p>
+                  <p className="text-3xl font-bold text-amber-700">${totalBuffer.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -108,8 +108,8 @@ export default function MyCommissionHistory() {
 
         {/* Commission History Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">Commission Statements</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Commission Statements</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

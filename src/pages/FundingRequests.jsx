@@ -201,8 +201,8 @@ export default function FundingRequests() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Funding Requests Management</h1>
-            <p className="text-gray-600 mt-1">Review and process deposit and withdrawal requests</p>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Funding Requests Management</h1>
+            <p className="text-gray-600 mt-2 text-base">Review and process deposit and withdrawal requests</p>
           </div>
           {isBackendAdmin && (
             <div className="flex gap-2">
@@ -220,28 +220,28 @@ export default function FundingRequests() {
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="border-amber-200 bg-amber-50">
+          <Card className="border-none bg-gradient-to-br from-amber-100 to-orange-100 shadow-lg">
             <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Pending Requests</p>
-              <p className="text-2xl font-bold text-amber-600 mt-1">{pendingCount}</p>
+              <p className="text-sm font-medium text-gray-700 uppercase tracking-wide">Pending Requests</p>
+              <p className="text-3xl font-bold text-amber-700 mt-1">{pendingCount}</p>
             </CardContent>
           </Card>
-          <Card className="border-emerald-200 bg-emerald-50">
+          <Card className="border-none bg-gradient-to-br from-emerald-100 to-teal-100 shadow-lg">
             <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">{approvedCount}</p>
+              <p className="text-sm font-medium text-gray-700 uppercase tracking-wide">Approved</p>
+              <p className="text-3xl font-bold text-emerald-700 mt-1">{approvedCount}</p>
             </CardContent>
           </Card>
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-none bg-gradient-to-br from-red-100 to-pink-100 shadow-lg">
             <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Rejected</p>
-              <p className="text-2xl font-bold text-red-600 mt-1">{rejectedCount}</p>
+              <p className="text-sm font-medium text-gray-700 uppercase tracking-wide">Rejected</p>
+              <p className="text-3xl font-bold text-red-700 mt-1">{rejectedCount}</p>
             </CardContent>
           </Card>
-          <Card className="border-blue-200 bg-blue-50">
+          <Card className="border-none bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg">
             <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Pending Amount</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">${totalPendingAmount.toFixed(2)}</p>
+              <p className="text-sm font-medium text-gray-700 uppercase tracking-wide">Pending Amount</p>
+              <p className="text-3xl font-bold text-blue-700 mt-1">${totalPendingAmount.toFixed(2)}</p>
             </CardContent>
           </Card>
         </div>
@@ -305,8 +305,8 @@ export default function FundingRequests() {
 
         {/* Transactions Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">Funding Requests</CardTitle>
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Funding Requests</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

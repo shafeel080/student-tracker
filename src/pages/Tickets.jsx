@@ -198,7 +198,7 @@ export default function Tickets() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Support Tickets</h1>
           {canCreate && (
             <Button onClick={() => setShowCreateDialog(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -221,7 +221,7 @@ export default function Tickets() {
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="space-y-2">
-              <Label className="text-xs">Status</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Status</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger>
                   <SelectValue />
@@ -237,7 +237,7 @@ export default function Tickets() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs">Priority</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Priority</Label>
               <Select value={filterPriority} onValueChange={setFilterPriority}>
                 <SelectTrigger>
                   <SelectValue />
@@ -253,7 +253,7 @@ export default function Tickets() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs">Category</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Category</Label>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger>
                   <SelectValue />
@@ -269,7 +269,7 @@ export default function Tickets() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs">Student</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Student</Label>
               <Select value={filterStudent} onValueChange={setFilterStudent}>
                 <SelectTrigger>
                   <SelectValue />
@@ -286,7 +286,7 @@ export default function Tickets() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs">Assigned To</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Assigned To</Label>
               <Select value={filterMentor} onValueChange={setFilterMentor}>
                 <SelectTrigger>
                   <SelectValue />

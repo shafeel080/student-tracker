@@ -150,7 +150,7 @@ export default function Students() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Students</h1>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Students</h1>
           {canCreate && (isMentor ? activeTab === 'my' : true) && (
             <div className="flex gap-3">
               <Button onClick={() => setShowBulkImportDialog(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
@@ -189,8 +189,8 @@ export default function Students() {
             {/* My Students Tab */}
             <TabsContent value="my">
             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-              <div className="p-4 bg-gray-50 border-b border-gray-200">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
                   <UserCheck className="h-5 w-5 text-blue-600" />
                   My Students ({displayStudents.length})
                 </h3>
@@ -256,8 +256,8 @@ export default function Students() {
           {isSeniorMentor && (
             <TabsContent value="team">
               <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                <div className="p-4 bg-purple-50 border-b border-purple-200">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-200">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
                     <Users className="h-5 w-5 text-purple-600" />
                     Team Students ({displayStudents.length})
                   </h3>
@@ -323,8 +323,8 @@ export default function Students() {
         ) : (
           /* Admin view - all students in one table */
           <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-            <div className="p-4 bg-gray-50 border-b border-gray-200">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
+            <div className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+              <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
                 <Users className="h-5 w-5 text-blue-600" />
                 All Students ({displayStudents.length})
               </h3>

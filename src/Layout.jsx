@@ -39,6 +39,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navigation = [
     { name: 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, roles: ['all'] },
+    { name: 'AIInsights', href: createPageUrl('AIInsights'), icon: TrendingUp, roles: ['all'] },
     { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Award, roles: ['all'] },
     { name: 'MentorPerformance', href: createPageUrl('MentorPerformance'), icon: Award, roles: ['all'] },
     { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head', 'academic_admin'] },

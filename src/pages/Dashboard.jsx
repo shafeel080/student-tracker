@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import StatsCard from "../components/dashboard/StatsCard";
-import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet, Activity } from "lucide-react";
+import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet, Activity, Trophy, Zap, CheckCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TransactionTable from "../components/transactions/TransactionTable";
 import { canViewAllStudents, isMentorRole, canApproveTransactions } from "../components/utils/DataMasking";
@@ -57,6 +57,24 @@ export default function Dashboard() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
+    enabled: !!currentUser
+  });
+
+  const { data: mentorPoints = [] } = useQuery({
+    queryKey: ['mentor-points'],
+    queryFn: () => base44.entities.MentorPoints.list('-total_points', 5),
+    enabled: !!currentUser
+  });
+
+  const { data: mentorTargets = [] } = useQuery({
+    queryKey: ['mentor-targets'],
+    queryFn: () => base44.entities.MentorTarget.list(),
+    enabled: !!currentUser && isMentorRole(currentUser.app_role)
+  });
+
+  const { data: tickets = [] } = useQuery({
+    queryKey: ['tickets'],
+    queryFn: () => base44.entities.Ticket.list('-created_date', 20),
     enabled: !!currentUser
   });
 
@@ -146,6 +164,29 @@ export default function Dashboard() {
     { name: 'Rejected', value: myFundingTransactions.filter(t => t.status === 'REJECTED').length, color: '#ef4444' }
   ].filter(s => s.value > 0);
 
+  // Get current user's points
+  const myPoints = mentorPoints.find(p => p.mentor_id === currentUser.id);
+
+  // Get active mentor targets
+  const myActiveTargets = mentorTargets.filter(t => 
+    t.mentor_id === currentUser.id && 
+    t.target_status === 'IN_PROGRESS'
+  );
+
+  // Get my open tickets
+  const myOpenTickets = tickets.filter(t => 
+    t.created_by === currentUser.id && 
+    (t.status === 'open' || t.status === 'in_progress')
+  );
+
+  // Student status breakdown
+  const activeStudents = filteredStudents.filter(s => s.status === 'ACTIVE').length;
+  const inactiveStudents = filteredStudents.filter(s => s.status === 'INACTIVE').length;
+  const studentStatusData = [
+    { name: 'Active', value: activeStudents, color: '#10b981' },
+    { name: 'Inactive', value: inactiveStudents, color: '#6b7280' }
+  ].filter(s => s.value > 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -224,6 +265,163 @@ export default function Dashboard() {
                 />
               )}
             </>
+          )}
+        </div>
+
+        {/* Quick Actions & Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Alerts & Tasks */}
+          <Card className="border-amber-200 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardHeader className="border-b border-amber-100">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+                Action Required
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
+              {pendingFundingRequests > 0 && (
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-amber-200">
+                  <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                    <Wallet className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">{pendingFundingRequests} Pending Requests</p>
+                    <p className="text-xs text-gray-600">Review funding requests</p>
+                  </div>
+                </div>
+              )}
+              {myOpenTickets.length > 0 && (
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-amber-200">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <AlertCircle className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">{myOpenTickets.length} Open Tickets</p>
+                    <p className="text-xs text-gray-600">Pending resolution</p>
+                  </div>
+                </div>
+              )}
+              {pendingFundingRequests === 0 && myOpenTickets.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <CheckCircle className="h-12 w-12 text-emerald-500 mb-2" />
+                  <p className="text-sm font-medium text-gray-900">All caught up!</p>
+                  <p className="text-xs text-gray-500 mt-1">No pending actions</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Leaderboard Preview */}
+          {isMentorRole(currentUser.app_role) && mentorPoints.length > 0 && (
+            <Card className="border-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-indigo-50">
+              <CardHeader className="border-b border-purple-100">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-purple-600" />
+                  Leaderboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {myPoints && (
+                  <div className="mb-4 p-3 bg-white rounded-lg border-2 border-purple-300">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-600">Your Rank</p>
+                        <p className="text-2xl font-bold text-purple-600">#{myPoints.rank || '-'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-600">Total Points</p>
+                        <p className="text-2xl font-bold text-gray-900">{myPoints.total_points?.toLocaleString() || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {mentorPoints.slice(0, 3).map((mentor, idx) => (
+                    <div key={mentor.id} className="flex items-center gap-3 p-2 bg-white rounded-lg">
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                        idx === 0 ? 'bg-yellow-100 text-yellow-700' :
+                        idx === 1 ? 'bg-gray-100 text-gray-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{mentor.mentor_name}</p>
+                        <p className="text-xs text-gray-600">{mentor.total_points?.toLocaleString() || 0} pts</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Target Progress */}
+          {isMentorRole(currentUser.app_role) && myActiveTargets.length > 0 && (
+            <Card className="border-blue-200 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50">
+              <CardHeader className="border-b border-blue-100">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Target className="h-5 w-5 text-blue-600" />
+                  Target Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                {myActiveTargets.slice(0, 2).map(target => {
+                  const progress = (target.achievement_net_deposit_usd / target.target_net_deposit_usd) * 100;
+                  return (
+                    <div key={target.id} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-gray-600">{target.period_type}</span>
+                        <span className="text-xs font-bold text-blue-600">{progress.toFixed(0)}%</span>
+                      </div>
+                      <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">${target.achievement_net_deposit_usd?.toLocaleString() || 0}</span>
+                        <span className="text-gray-900 font-semibold">${target.target_net_deposit_usd?.toLocaleString() || 0}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Student Status Overview */}
+          {studentStatusData.length > 0 && (
+            <Card className="border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50 to-teal-50">
+              <CardHeader className="border-b border-emerald-100">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Users className="h-5 w-5 text-emerald-600" />
+                  Student Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={studentStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {studentStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           )}
         </div>
 

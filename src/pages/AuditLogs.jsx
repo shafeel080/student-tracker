@@ -119,45 +119,45 @@ export default function AuditLogs() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <Shield className="h-8 w-8 text-red-600" />
               Audit Logs
             </h1>
-            <p className="text-gray-600 mt-1">Complete system activity and security audit trail</p>
+            <p className="text-gray-600 mt-2 text-base">Complete system activity and security audit trail</p>
           </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Total Events</div>
-              <div className="text-2xl font-bold text-blue-600">{logs.length}</div>
+          <Card className="border-none bg-gradient-to-br from-blue-100 to-indigo-100 shadow-lg">
+            <CardContent className="p-5">
+              <div className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Events</div>
+              <div className="text-3xl font-bold text-blue-700 mt-1">{logs.length}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Successful Actions</div>
-              <div className="text-2xl font-bold text-green-600">
+          <Card className="border-none bg-gradient-to-br from-green-100 to-emerald-100 shadow-lg">
+            <CardContent className="p-5">
+              <div className="text-sm font-semibold uppercase tracking-wider text-gray-700">Successful Actions</div>
+              <div className="text-3xl font-bold text-green-700 mt-1">
                 {logs.filter(l => l.success !== false).length}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Failed Actions</div>
-              <div className="text-2xl font-bold text-red-600">
+          <Card className="border-none bg-gradient-to-br from-red-100 to-pink-100 shadow-lg">
+            <CardContent className="p-5">
+              <div className="text-sm font-semibold uppercase tracking-wider text-gray-700">Failed Actions</div>
+              <div className="text-3xl font-bold text-red-700 mt-1">
                 {logs.filter(l => l.success === false).length}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200 bg-purple-50">
-            <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Unique Users</div>
-              <div className="text-2xl font-bold text-purple-600">
+          <Card className="border-none bg-gradient-to-br from-purple-100 to-pink-100 shadow-lg">
+            <CardContent className="p-5">
+              <div className="text-sm font-semibold uppercase tracking-wider text-gray-700">Unique Users</div>
+              <div className="text-3xl font-bold text-purple-700 mt-1">
                 {new Set(logs.map(l => l.user_id)).size}
               </div>
             </CardContent>
@@ -166,8 +166,8 @@ export default function AuditLogs() {
 
         {/* Filters */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight flex items-center gap-2">
               <Filter className="h-5 w-5" />
               Filters
             </CardTitle>
@@ -233,8 +233,8 @@ export default function AuditLogs() {
 
         {/* Logs Table */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg font-semibold">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">
               Activity Log ({filteredLogs.length} events)
             </CardTitle>
           </CardHeader>

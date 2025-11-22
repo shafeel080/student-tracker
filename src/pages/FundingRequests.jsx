@@ -19,6 +19,7 @@ import {
 } from "../components/utils/FundingAccessControl";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function FundingRequests() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -60,7 +61,12 @@ export default function FundingRequests() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.FundingTransaction.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const result = await base44.entities.FundingTransaction.update(id, data);
+      const action = data.status === 'APPROVED' ? 'approve_funding_transaction' : 'reject_funding_transaction';
+      await logAction(action, 'FundingTransaction', id, `${data.status} transaction for ${data.student_name}`, null, data);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['funding-transactions']);
       setShowProcessDialog(false);
@@ -72,12 +78,14 @@ export default function FundingRequests() {
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const user = await base44.auth.me();
-      return base44.entities.FundingTransaction.create({
+      const result = await base44.entities.FundingTransaction.create({
         ...data,
         requested_by_id: user.id,
         requested_by_name: user.full_name,
         requested_at: new Date().toISOString()
       });
+      await logAction('create_funding_transaction', 'FundingTransaction', result.id, `Created ${data.type} for ${data.student_name}`, null, data);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['funding-transactions']);
@@ -95,7 +103,9 @@ export default function FundingRequests() {
         requested_by_name: user.full_name,
         requested_at: new Date().toISOString()
       }));
-      return base44.entities.FundingTransaction.bulkCreate(transactionsWithMeta);
+      const result = await base44.entities.FundingTransaction.bulkCreate(transactionsWithMeta);
+      await logAction('bulk_import_transactions', 'FundingTransaction', null, `Imported ${transactions.length} transactions`, null, { count: transactions.length });
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['funding-transactions']);

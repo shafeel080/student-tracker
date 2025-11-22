@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Settings, Save, RotateCcw } from "lucide-react";
 import { getDefaultSettings } from "../components/utils/GamificationUtils";
 import { toast } from "sonner";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function GamificationSettings() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -85,6 +86,7 @@ export default function GamificationSettings() {
         }
       }
       
+      await logAction('update_gamification_settings', 'GamificationSettings', null, 'Updated gamification settings', null, formData);
       toast.success('Settings saved successfully!');
     } catch (error) {
       toast.error('Failed to save settings');

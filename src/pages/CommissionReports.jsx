@@ -19,6 +19,7 @@ import ApprovalHistory from "../components/commission/ApprovalHistory";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function CommissionReports() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -86,6 +87,11 @@ export default function CommissionReports() {
       }
 
       await base44.entities.CommissionLedger.update(ledgerId, updateData);
+      
+      // Log the action
+      const ledger = ledgers.find(l => l.id === ledgerId);
+      const actionType = action === 'approve' ? 'approve_commission_ledger' : 'reject_commission_ledger';
+      await logAction(actionType, 'CommissionLedger', ledgerId, `${action} commission for ${ledger.mentor_name} - ${ledger.quarter}`, null, updateData);
       
       // If finance admin approved, create payout transaction
       if (level === 'finance_admin' && action === 'approve' && data) {

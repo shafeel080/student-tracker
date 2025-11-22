@@ -18,6 +18,7 @@ import {
 import { computeTargetAchievement } from "../components/utils/TargetMetricsUtils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function TargetsManagement() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -55,7 +56,11 @@ export default function TargetsManagement() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.MentorTarget.create(data),
+    mutationFn: async (data) => {
+      const result = await base44.entities.MentorTarget.create(data);
+      await logAction('create_target', 'MentorTarget', result.id, `Created target for ${data.mentor_name}`, null, data);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['mentor-targets']);
       setShowAddDialog(false);

@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import TicketForm from "../components/tickets/TicketForm";
 import { canCreateTicket, canReviewTicket, filterTicketsByRole } from "../components/utils/TicketAccessControl";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function Tickets() {
   const [currentUser, setCurrentUser] = useState(null);

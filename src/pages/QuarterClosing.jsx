@@ -15,6 +15,7 @@ import {
   calculateReleaseDate
 } from "../components/utils/LedgerUtils";
 import { toast } from "sonner";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function QuarterClosing() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -50,7 +51,11 @@ export default function QuarterClosing() {
   });
 
   const closeLedgerMutation = useMutation({
-    mutationFn: (data) => base44.entities.CommissionLedger.create(data),
+    mutationFn: async (data) => {
+      const result = await base44.entities.CommissionLedger.create(data);
+      await logAction('close_quarter', 'CommissionLedger', result.id, `Closed quarter ${data.quarter} for ${data.mentor_name}`, null, data);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['commission-ledgers']);
       toast.success('Quarter ledger created successfully');

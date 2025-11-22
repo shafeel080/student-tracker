@@ -23,6 +23,7 @@ import { Plus, Search, Edit, Users, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import PersonnelForm from '../components/personnel/PersonnelForm';
 import { canViewPersonnel, canEditPersonnel, filterPersonnelByRole } from '../components/utils/PersonnelAccessControl';
+import { logAction } from '../components/utils/AuditLogger';
 
 export default function Personnel() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -52,7 +53,11 @@ export default function Personnel() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ userId, userData }) => base44.entities.User.update(userId, userData),
+    mutationFn: async ({ userId, userData }) => {
+      const result = await base44.entities.User.update(userId, userData);
+      await logAction('update_user', 'User', userId, `Updated user: ${userData.full_name}`, null, userData);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-users'] });
       setShowForm(false);

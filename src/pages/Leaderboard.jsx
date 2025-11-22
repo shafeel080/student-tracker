@@ -10,6 +10,7 @@ import BadgeDisplay from "../components/gamification/BadgeDisplay";
 import PointsGuide from "../components/gamification/PointsGuide";
 import { calculateMentorPoints, calculateStreakBonus, awardBadges, calculateWeeklyStreak } from "../components/utils/GamificationUtils";
 import { toast } from "sonner";
+import { logAction } from "../components/utils/AuditLogger";
 
 export default function Leaderboard() {
   const [currentUser, setCurrentUser] = useState(null);

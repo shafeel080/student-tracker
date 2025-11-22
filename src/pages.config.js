@@ -18,6 +18,7 @@ import GamificationSettings from './pages/GamificationSettings';
 import Tickets from './pages/Tickets';
 import AuditLogs from './pages/AuditLogs';
 import AIInsights from './pages/AIInsights';
+import MentorTraining from './pages/MentorTraining';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "Tickets": Tickets,
     "AuditLogs": AuditLogs,
     "AIInsights": AIInsights,
+    "MentorTraining": MentorTraining,
 }
 
 export const pagesConfig = {

@@ -65,10 +65,14 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
     
     return students.map((student, index) => {
       const mentor = mentors[index % mentors.length];
+      const seniorMentor = mentor.senior_mentor_id ? mentors.find(m => m.id === mentor.senior_mentor_id) : null;
+      
       return {
         ...student,
         primary_mentor_id: mentor.id,
         primary_mentor_name: mentor.full_name,
+        senior_mentor_id: seniorMentor?.id || mentor.senior_mentor_id || null,
+        senior_mentor_name: seniorMentor?.full_name || mentor.senior_mentor_name || null,
         status: 'ACTIVE'
       };
     });
@@ -78,10 +82,14 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
     const mentor = mentors.find(m => m.id === mentorId);
     if (!mentor) return students;
     
+    const seniorMentor = mentor.senior_mentor_id ? mentors.find(m => m.id === mentor.senior_mentor_id) : null;
+    
     return students.map(student => ({
       ...student,
       primary_mentor_id: mentor.id,
       primary_mentor_name: mentor.full_name,
+      senior_mentor_id: seniorMentor?.id || mentor.senior_mentor_id || null,
+      senior_mentor_name: seniorMentor?.full_name || mentor.senior_mentor_name || null,
       status: 'ACTIVE'
     }));
   };

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import StatsCard from "../components/dashboard/StatsCard";
-import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet, Activity } from "lucide-react";
+import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet, Activity, Trophy, Zap, CheckCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../utils";
 import TransactionTable from "../components/transactions/TransactionTable";
 import { canViewAllStudents, isMentorRole, canApproveTransactions } from "../components/utils/DataMasking";
 import { 
@@ -58,6 +61,18 @@ export default function Dashboard() {
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
     enabled: !!currentUser
+  });
+
+  const { data: mentorPoints = [] } = useQuery({
+    queryKey: ['mentor-points'],
+    queryFn: () => base44.entities.MentorPoints.list('-total_points'),
+    enabled: !!currentUser && isMentorRole(currentUser.app_role)
+  });
+
+  const { data: mentorTargets = [] } = useQuery({
+    queryKey: ['mentor-targets'],
+    queryFn: () => base44.entities.MentorTarget.list(),
+    enabled: !!currentUser && isMentorRole(currentUser.app_role)
   });
 
   if (!currentUser) {
@@ -146,6 +161,35 @@ export default function Dashboard() {
     { name: 'Rejected', value: myFundingTransactions.filter(t => t.status === 'REJECTED').length, color: '#ef4444' }
   ].filter(s => s.value > 0);
 
+  // Leaderboard position for mentors
+  const myRank = isMentorRole(currentUser.app_role) 
+    ? mentorPoints.findIndex(mp => mp.mentor_id === currentUser.id) + 1 
+    : null;
+  const myPoints = mentorPoints.find(mp => mp.mentor_id === currentUser.id);
+
+  // Target progress for mentors
+  const activeTargets = isMentorRole(currentUser.app_role)
+    ? mentorTargets.filter(t => t.mentor_id === currentUser.id && t.target_status === 'IN_PROGRESS')
+    : [];
+
+  // Top performing students
+  const topStudents = filteredStudents
+    .map(student => {
+      const studentTransactions = myFundingTransactions.filter(
+        t => t.student_id === student.id && t.status === 'APPROVED'
+      );
+      const netDeposit = studentTransactions
+        .filter(t => t.type === 'DEPOSIT')
+        .reduce((sum, t) => sum + (t.amount_usd || 0), 0) -
+        studentTransactions
+        .filter(t => t.type === 'WITHDRAWAL')
+        .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+      return { ...student, netDeposit };
+    })
+    .filter(s => s.netDeposit > 0)
+    .sort((a, b) => b.netDeposit - a.netDeposit)
+    .slice(0, 5);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -166,6 +210,206 @@ export default function Dashboard() {
               <span className="text-blue-100 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
           </div>
+        </div>
+
+        {/* Quick Actions & Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
+          <Card className="border-gray-200 shadow-lg">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-600" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-2">
+              {isMentorRole(currentUser.app_role) ? (
+                <>
+                  <Link to={createPageUrl('Students')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Users className="h-4 w-4 mr-2" />
+                      View Students
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('MyFundingRequests')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Wallet className="h-4 w-4 mr-2" />
+                      Funding Activities
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('MyTargets')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Target className="h-4 w-4 mr-2" />
+                      My Targets
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('Leaderboard')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Trophy className="h-4 w-4 mr-2" />
+                      Leaderboard
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to={createPageUrl('FundingRequests')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Wallet className="h-4 w-4 mr-2" />
+                      Funding Requests
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('TargetsManagement')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Target className="h-4 w-4 mr-2" />
+                      Manage Targets
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('Personnel')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Users className="h-4 w-4 mr-2" />
+                      Personnel
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('CommissionReports')}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Award className="h-4 w-4 mr-2" />
+                      Commission Reports
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Leaderboard Position (Mentors Only) */}
+          {isMentorRole(currentUser.app_role) && myRank && (
+            <Card className="border-gray-200 shadow-lg">
+              <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-yellow-50 to-amber-50">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-yellow-600" />
+                  Your Leaderboard Rank
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="text-center space-y-4">
+                  <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white rounded-full w-24 h-24 flex items-center justify-center mx-auto text-3xl font-bold shadow-lg">
+                    #{myRank}
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{myPoints?.total_points?.toLocaleString() || 0}</p>
+                    <p className="text-sm text-gray-600">Total Points</p>
+                  </div>
+                  <Link to={createPageUrl('Leaderboard')}>
+                    <Button size="sm" className="w-full bg-yellow-600 hover:bg-yellow-700">
+                      View Full Leaderboard
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Target Progress (Mentors Only) */}
+          {isMentorRole(currentUser.app_role) && activeTargets.length > 0 && (
+            <Card className="border-gray-200 shadow-lg">
+              <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Target className="h-5 w-5 text-blue-600" />
+                  Active Targets
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                {activeTargets.slice(0, 3).map((target) => {
+                  const progress = (target.achievement_percent || 0);
+                  return (
+                    <div key={target.id} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium">{target.period_type}</span>
+                        <span className="text-gray-600">{progress.toFixed(0)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className={`h-2.5 rounded-full ${
+                            progress >= 100 ? 'bg-green-500' : progress >= 75 ? 'bg-blue-500' : 'bg-amber-500'
+                          }`}
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        ${(target.achievement_net_deposit_usd || 0).toLocaleString()} / ${target.target_net_deposit_usd?.toLocaleString()}
+                      </p>
+                    </div>
+                  );
+                })}
+                <Link to={createPageUrl('MyTargets')}>
+                  <Button size="sm" variant="outline" className="w-full mt-2">
+                    View All Targets
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Top Students */}
+          {topStudents.length > 0 && (
+            <Card className="border-gray-200 shadow-lg">
+              <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-green-50">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Award className="h-5 w-5 text-emerald-600" />
+                  Top Students
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                {topStudents.map((student, index) => (
+                  <div key={student.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                        index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                        index === 1 ? 'bg-gray-100 text-gray-800' :
+                        index === 2 ? 'bg-amber-100 text-amber-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{student.full_name}</p>
+                        <p className="text-xs text-gray-600">{student.student_code}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm font-semibold text-emerald-600">
+                      ${student.netDeposit.toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+                <Link to={createPageUrl('Students')}>
+                  <Button size="sm" variant="outline" className="w-full mt-2">
+                    View All Students
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Pending Approvals Alert (Admins) */}
+          {canProcessFundingTransaction(currentUser.app_role) && pendingFundingRequests > 0 && (
+            <Card className="border-amber-200 bg-amber-50 shadow-lg">
+              <CardHeader className="border-b border-amber-100">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-amber-900">
+                  <AlertCircle className="h-5 w-5 text-amber-600" />
+                  Pending Approvals
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-center space-y-3">
+                <div className="text-4xl font-bold text-amber-900">{pendingFundingRequests}</div>
+                <p className="text-sm text-amber-800">Funding requests awaiting your review</p>
+                <Link to={createPageUrl('FundingRequests')}>
+                  <Button className="w-full bg-amber-600 hover:bg-amber-700">
+                    Review Requests
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Stats Grid */}

@@ -361,47 +361,47 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <BookOpen className="h-8 w-8 text-blue-600" />
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+              <BookOpen className="h-9 w-9 text-blue-600" />
               Mentor Training Resources
             </h1>
-            <p className="text-gray-600 mt-1">AI-powered personalized training modules</p>
+            <p className="text-gray-600 mt-2 text-base">AI-powered personalized training modules</p>
           </div>
         </div>
 
         {/* Performance Overview */}
         {performanceData && (
-          <Card className="border-none shadow-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-            <CardHeader>
-              <CardTitle className="text-lg text-white">Your Performance Snapshot</CardTitle>
+          <Card className="border-none shadow-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl font-bold text-white">Your Performance Snapshot</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="h-4 w-4 text-blue-600" />
-                    <span className="text-xs text-gray-700">Active Students</span>
+                    <span className="text-xs text-gray-700 font-medium">Active Students</span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{performanceData.active_students}</p>
                 </div>
-                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <DollarSign className="h-4 w-4 text-emerald-600" />
-                    <span className="text-xs text-gray-700">Net Deposit</span>
+                    <span className="text-xs text-gray-700 font-medium">Net Deposit</span>
                   </div>
                   <p className="text-2xl font-bold text-emerald-600">${performanceData.total_net_deposit.toFixed(0)}</p>
                 </div>
-                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <Target className="h-4 w-4 text-indigo-600" />
-                    <span className="text-xs text-gray-700">Target Achievement</span>
+                    <span className="text-xs text-gray-700 font-medium">Target Achievement</span>
                   </div>
                   <p className="text-2xl font-bold text-blue-600">{performanceData.avg_target_achievement.toFixed(0)}%</p>
                 </div>
-                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-md">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingUp className="h-4 w-4 text-purple-600" />
-                    <span className="text-xs text-gray-700">Recent Activity</span>
+                    <span className="text-xs text-gray-700 font-medium">Recent Activity</span>
                   </div>
                   <p className="text-2xl font-bold text-purple-600">{performanceData.recent_transactions_count}</p>
                 </div>
@@ -419,9 +419,9 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
           {/* Training Modules Tab */}
           <TabsContent value="modules" className="space-y-6">
             {recommendedTopicIds.length > 0 && (
-              <Card className="border-amber-200 bg-amber-50">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
+              <Card className="border-gray-200">
+                <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
+                  <CardTitle className="text-lg font-semibold tracking-tight flex items-center gap-2">
                     <Brain className="h-5 w-5 text-amber-600" />
                     Recommended for You
                   </CardTitle>
@@ -528,9 +528,12 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
               </div>
             ) : (
               <Card className="border-gray-200">
+                <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+                  <CardTitle className="text-lg font-semibold tracking-tight">No Modules Yet</CardTitle>
+                </CardHeader>
                 <CardContent className="p-12 text-center">
                   <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Modules Yet</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No Modules Yet</h3>
                   <p className="text-gray-600 mb-4">
                     Generate your first AI-powered training module from the "Training Modules" tab
                   </p>

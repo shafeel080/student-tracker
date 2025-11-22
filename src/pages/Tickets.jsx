@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Eye, AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Plus, Search, Eye, AlertCircle, CheckCircle2, Clock, XCircle, Ticket as TicketIcon } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import TicketForm from "../components/tickets/TicketForm";
@@ -198,7 +198,10 @@ export default function Tickets() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Support Tickets</h1>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+            <TicketIcon className="h-9 w-9 text-blue-600" />
+            Support Tickets
+          </h1>
           {canCreate && (
             <Button onClick={() => setShowCreateDialog(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -208,8 +211,12 @@ export default function Tickets() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-          <div className="relative">
+        <Card className="border-gray-200">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">Filters</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search tickets..."
@@ -302,11 +309,17 @@ export default function Tickets() {
               </Select>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Tickets Table */}
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <Table>
+        <Card className="border-gray-200">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="text-lg font-semibold tracking-tight">All Tickets</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">
                 <TableHead className="font-semibold">Title</TableHead>
@@ -367,7 +380,9 @@ export default function Tickets() {
               )}
             </TableBody>
           </Table>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Create Ticket Dialog */}
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

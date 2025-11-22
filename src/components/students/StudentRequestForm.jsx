@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 
-export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, users = [], currentUser }) {
+export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, users, currentUser }) {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -16,10 +16,11 @@ export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, u
   });
 
   // Auto-assign current user as primary mentor
+  const [primaryMentorId, setPrimaryMentorId] = useState(currentUser?.id || '');
   const [seniorMentorInfo, setSeniorMentorInfo] = useState(null);
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && primaryMentorId === currentUser.id) {
       // Get senior mentor info for current user
       const seniorMentor = users.find(u => u.id === currentUser.senior_mentor_id);
       setSeniorMentorInfo({
@@ -27,13 +28,13 @@ export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, u
         name: currentUser.senior_mentor_name || seniorMentor?.full_name || null
       });
     }
-  }, [currentUser, users]);
+  }, [currentUser, primaryMentorId, users]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
       ...formData,
-      requested_primary_mentor_id: currentUser?.id || '',
+      requested_primary_mentor_id: primaryMentorId,
       requested_primary_mentor_name: currentUser?.full_name || '',
       requested_senior_mentor_id: seniorMentorInfo?.id || null,
       requested_senior_mentor_name: seniorMentorInfo?.name || null

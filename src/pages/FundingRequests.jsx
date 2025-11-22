@@ -138,12 +138,16 @@ export default function FundingRequests() {
     filteredTransactions = filteredTransactions.filter(t => t.primary_mentor_name === filterMentor);
   }
   if (searchTerm) {
-    filteredTransactions = filteredTransactions.filter(t =>
-      t.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.mt5_login?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const lowerSearch = searchTerm.toLowerCase();
+    filteredTransactions = filteredTransactions.filter(t => {
+      const student = students.find(s => s.id === t.student_id);
+      return t.student_name?.toLowerCase().includes(lowerSearch) ||
+        t.student_code?.toLowerCase().includes(lowerSearch) ||
+        t.mt5_login?.toLowerCase().includes(lowerSearch) ||
+        t.transaction_id?.toLowerCase().includes(lowerSearch) ||
+        t.user_id?.toLowerCase().includes(lowerSearch) ||
+        student?.email?.toLowerCase().includes(lowerSearch);
+    });
   }
 
   // Get unique mentors for filter

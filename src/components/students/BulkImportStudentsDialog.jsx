@@ -132,14 +132,23 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
       
       // Check for duplicates
       const duplicates = students.filter(s => existingEmails.has(s.email?.toLowerCase()));
+      console.log('Checking duplicates:', { duplicates, existingEmails: Array.from(existingEmails), studentEmails: students.map(s => s.email) });
+      
       if (duplicates.length > 0) {
         const duplicateEmails = duplicates.map(d => d.email).join(', ');
-        toast.error(`Duplicate entry detected: ${duplicateEmails}`);
+        console.log('Duplicates found:', duplicateEmails);
+        
         setResults({
           success: false,
           error: `Duplicate entry detected: ${duplicateEmails}`
         });
         setImporting(false);
+        
+        toast.error(`Duplicate entry detected: ${duplicateEmails}`, {
+          duration: 5000,
+          position: 'top-center'
+        });
+        
         return;
       }
       

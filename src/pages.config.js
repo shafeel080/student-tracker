@@ -20,6 +20,7 @@ import AuditLogs from './pages/AuditLogs';
 import AIInsights from './pages/AIInsights';
 import MentorTraining from './pages/MentorTraining';
 import StudentRequestApprovals from './pages/StudentRequestApprovals';
+import MyStudentRequests from './pages/MyStudentRequests';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "AIInsights": AIInsights,
     "MentorTraining": MentorTraining,
     "StudentRequestApprovals": StudentRequestApprovals,
+    "MyStudentRequests": MyStudentRequests,
 }
 
 export const pagesConfig = {

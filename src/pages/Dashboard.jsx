@@ -243,24 +243,69 @@ export default function Dashboard() {
                   <AreaChart data={last6Months}>
                     <defs>
                       <linearGradient id="colorDeposits" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
+                        <stop offset="50%" stopColor="#34d399" stopOpacity={0.5}/>
+                        <stop offset="95%" stopColor="#6ee7b7" stopOpacity={0.1}/>
                       </linearGradient>
                       <linearGradient id="colorWithdrawals" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.9}/>
+                        <stop offset="50%" stopColor="#f87171" stopOpacity={0.5}/>
+                        <stop offset="95%" stopColor="#fca5a5" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                    <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                      formatter={(value) => `$${value.toFixed(2)}`}
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeOpacity={0.5} />
+                    <XAxis 
+                      dataKey="month" 
+                      tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
+                      tickLine={{ stroke: '#e5e7eb' }}
+                      axisLine={{ stroke: '#d1d5db' }}
                     />
-                    <Legend />
-                    <Area type="monotone" dataKey="deposits" stroke="#10b981" fillOpacity={1} fill="url(#colorDeposits)" name="Deposits" />
-                    <Area type="monotone" dataKey="withdrawals" stroke="#ef4444" fillOpacity={1} fill="url(#colorWithdrawals)" name="Withdrawals" />
+                    <YAxis 
+                      tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
+                      tickLine={{ stroke: '#e5e7eb' }}
+                      axisLine={{ stroke: '#d1d5db' }}
+                      tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'white',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        padding: '12px',
+                        fontWeight: 500
+                      }}
+                      labelStyle={{ color: '#111827', fontWeight: 700, marginBottom: '8px', fontSize: '13px' }}
+                      itemStyle={{ padding: '4px 0', fontSize: '13px' }}
+                      formatter={(value) => [`$${value.toLocaleString()}`, '']}
+                    />
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '20px' }}
+                      iconType="circle"
+                      formatter={(value) => <span style={{ color: '#6b7280', fontWeight: 600, fontSize: '13px' }}>{value}</span>}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="deposits" 
+                      stroke="#10b981" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#colorDeposits)" 
+                      name="Deposits"
+                      animationDuration={1500}
+                      animationBegin={0}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="withdrawals" 
+                      stroke="#ef4444" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#colorWithdrawals)" 
+                      name="Withdrawals"
+                      animationDuration={1500}
+                      animationBegin={200}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -283,15 +328,37 @@ export default function Dashboard() {
                       cy="50%"
                       labelLine={false}
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
+                      outerRadius={90}
+                      innerRadius={55}
                       fill="#8884d8"
                       dataKey="value"
+                      animationBegin={0}
+                      animationDuration={1000}
+                      paddingAngle={2}
                     >
                       {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color}
+                          style={{ 
+                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                            transition: 'all 0.3s ease'
+                          }}
+                        />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `${value} transactions`} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'white',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        padding: '12px',
+                        fontWeight: 500
+                      }}
+                      labelStyle={{ color: '#111827', fontWeight: 700, marginBottom: '4px', fontSize: '13px' }}
+                      formatter={(value) => [`${value} transactions`, '']}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>

@@ -248,20 +248,42 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
 
           {/* Specific Mentor Selection */}
           {assignmentMethod === 'specific_mentor' && (
-            <div className="space-y-2">
-              <Label>Select Mentor *</Label>
-              <Select value={selectedMentorId} onValueChange={setSelectedMentorId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a mentor..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {mentors.map((mentor) => (
-                    <SelectItem key={mentor.id} value={mentor.id}>
-                      {mentor.full_name} ({mentor.app_role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Primary Mentor *</Label>
+                <Select value={selectedMentorId} onValueChange={setSelectedMentorId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a primary mentor..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mentors.map((mentor) => (
+                      <SelectItem key={mentor.id} value={mentor.id}>
+                        {mentor.full_name} ({mentor.app_role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedMentorId && (
+                <div className="space-y-2">
+                  <Label>Senior Mentor (Auto-assigned)</Label>
+                  <Input
+                    value={(() => {
+                      const selectedMentor = mentors.find(m => m.id === selectedMentorId);
+                      if (selectedMentor?.senior_mentor_name) {
+                        return selectedMentor.senior_mentor_name;
+                      }
+                      return 'None';
+                    })()}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Senior mentor is automatically assigned based on the primary mentor's hierarchy
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

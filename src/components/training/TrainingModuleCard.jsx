@@ -10,7 +10,7 @@ export default function TrainingModuleCard({ topic, onGenerate, isGenerating, is
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className={`p-3 rounded-lg ${topic.color}`}>
-            <topic.icon className="h-6 w-6" />
+            {topic.icon && <topic.icon className="h-6 w-6" />}
           </div>
           <div className="flex gap-2">
             {isRecommended && (

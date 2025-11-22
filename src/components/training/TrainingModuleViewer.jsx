@@ -14,12 +14,13 @@ export default function TrainingModuleViewer({ module, onClose, onComplete }) {
   const [quizScore, setQuizScore] = useState(null);
 
   const handleQuizComplete = (score, total) => {
-    setQuizScore({ score, total, percentage: (score / total) * 100 });
+    const percentage = (score / total) * 100;
+    setQuizScore({ score, total, percentage });
     setQuizCompleted(true);
     
     if (score / total >= 0.8) {
       toast.success(`Excellent! You scored ${score}/${total}`);
-      onComplete(module.id);
+      onComplete(module.id, score, total, percentage);
     } else {
       toast.warning(`You scored ${score}/${total}. Review the content and try again.`);
     }

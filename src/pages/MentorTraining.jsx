@@ -25,7 +25,6 @@ export default function MentorTraining() {
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedModule, setSelectedModule] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedModules, setGeneratedModules] = useState([]);
   const [performanceData, setPerformanceData] = useState(null);
 
   useEffect(() => {
@@ -57,6 +56,12 @@ export default function MentorTraining() {
   const { data: ledgers = [] } = useQuery({
     queryKey: ['ledgers-training'],
     queryFn: () => base44.entities.CommissionLedger.list(),
+    enabled: !!currentUser
+  });
+
+  const { data: trainingProgress = [], refetch: refetchProgress } = useQuery({
+    queryKey: ['training-progress'],
+    queryFn: () => base44.entities.TrainingProgress.list('-generated_at'),
     enabled: !!currentUser
   });
 
@@ -149,6 +154,16 @@ export default function MentorTraining() {
   const generateTrainingModule = async (topic) => {
     setIsGenerating(true);
     try {
+      // Check if module already exists
+      const existingProgress = trainingProgress.find(
+        p => p.mentor_id === currentUser.id && p.topic_id === topic.id
+      );
+      
+      if (existingProgress) {
+        toast.info('This module has already been generated. Check My Learning.');
+        setIsGenerating(false);
+        return;
+      }
       // Determine performance level
       let performanceLevel = 'intermediate';
       if (performanceData) {
@@ -243,17 +258,20 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
         }
       });
 
-      const newModule = {
-        id: Date.now().toString(),
-        topic: topic,
-        module: moduleResult,
-        quiz: quizResult,
-        generatedAt: new Date().toISOString(),
-        completed: false
+      // Save to database
+      const progressData = {
+        mentor_id: currentUser.id,
+        mentor_name: currentUser.full_name,
+        topic_id: topic.id,
+        topic_title: topic.title,
+        module_data: JSON.stringify(moduleResult),
+        quiz_data: JSON.stringify(quizResult),
+        completed: false,
+        generated_at: new Date().toISOString()
       };
 
-      setGeneratedModules(prev => [newModule, ...prev]);
-      setSelectedModule(newModule);
+      await base44.entities.TrainingProgress.create(progressData);
+      await refetchProgress();
       toast.success('Training module generated successfully!');
     } catch (error) {
       console.error('Generation error:', error);
@@ -313,6 +331,29 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
   }
 
   const recommendedTopicIds = getRecommendedTopics();
+
+  // Filter progress for current mentor
+  const myProgress = trainingProgress.filter(p => p.mentor_id === currentUser.id);
+
+  // Determine which modules are unlocked
+  const getUnlockedModules = () => {
+    const completedTopics = myProgress
+      .filter(p => p.completed && p.quiz_percentage >= 80)
+      .map(p => p.topic_id);
+    
+    return trainingTopics.map((topic, index) => {
+      // First module is always unlocked
+      if (index === 0) return { ...topic, isUnlocked: true };
+      
+      // Check if previous module is completed
+      const previousTopic = trainingTopics[index - 1];
+      const isPreviousCompleted = completedTopics.includes(previousTopic.id);
+      
+      return { ...topic, isUnlocked: isPreviousCompleted };
+    });
+  };
+
+  const unlockedTopics = getUnlockedModules();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
@@ -390,7 +431,7 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
                     Based on your performance, we recommend focusing on these areas:
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {trainingTopics
+                    {unlockedTopics
                       .filter(topic => recommendedTopicIds.includes(topic.id))
                       .map(topic => (
                         <TrainingModuleCard
@@ -399,6 +440,7 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
                           onGenerate={generateTrainingModule}
                           isGenerating={isGenerating}
                           isRecommended={true}
+                          isLocked={!topic.isUnlocked}
                         />
                       ))}
                   </div>
@@ -409,13 +451,14 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">All Training Topics</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {trainingTopics.map(topic => (
+                {unlockedTopics.map(topic => (
                   <TrainingModuleCard
                     key={topic.id}
                     topic={topic}
                     onGenerate={generateTrainingModule}
                     isGenerating={isGenerating}
                     isRecommended={recommendedTopicIds.includes(topic.id)}
+                    isLocked={!topic.isUnlocked}
                   />
                 ))}
               </div>
@@ -424,45 +467,64 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
 
           {/* My Learning Tab */}
           <TabsContent value="my-learning" className="space-y-6">
-            {generatedModules.length > 0 ? (
+            {myProgress.length > 0 ? (
               <div className="space-y-4">
-                {generatedModules.map(module => (
-                  <Card 
-                    key={module.id} 
-                    className="border-gray-200 hover:border-blue-300 transition-colors cursor-pointer"
-                    onClick={() => setSelectedModule(module)}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-lg ${module.topic.color}`}>
-                            <module.topic.icon className="h-6 w-6" />
+                {myProgress.map(progress => {
+                  const topic = trainingTopics.find(t => t.id === progress.topic_id);
+                  return (
+                    <Card 
+                      key={progress.id} 
+                      className="border-gray-200 hover:border-blue-300 transition-colors cursor-pointer"
+                      onClick={() => {
+                        const moduleData = {
+                          id: progress.id,
+                          topic: topic,
+                          module: JSON.parse(progress.module_data),
+                          quiz: JSON.parse(progress.quiz_data),
+                          generatedAt: progress.generated_at,
+                          completed: progress.completed,
+                          progressRecord: progress
+                        };
+                        setSelectedModule(moduleData);
+                      }}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-lg ${topic?.color || 'bg-gray-100 text-gray-800'}`}>
+                              {topic && <topic.icon className="h-6 w-6" />}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{progress.topic_title}</h3>
+                              <p className="text-sm text-gray-600">
+                                Generated {new Date(progress.generated_at).toLocaleDateString()}
+                              </p>
+                              {progress.quiz_score !== undefined && (
+                                <p className="text-sm font-medium text-blue-600 mt-1">
+                                  Quiz Score: {progress.quiz_score}/{progress.quiz_total} ({progress.quiz_percentage?.toFixed(0)}%)
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{module.module.title}</h3>
-                            <p className="text-sm text-gray-600">
-                              Generated {new Date(module.generatedAt).toLocaleDateString()}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            {progress.completed ? (
+                              <Badge className="bg-green-100 text-green-800">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Completed
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">In Progress</Badge>
+                            )}
+                            <Button size="sm">
+                              <PlayCircle className="h-4 w-4 mr-1" />
+                              Continue
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {module.completed ? (
-                            <Badge className="bg-green-100 text-green-800">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Completed
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">In Progress</Badge>
-                          )}
-                          <Button size="sm">
-                            <PlayCircle className="h-4 w-4 mr-1" />
-                            Continue
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <Card className="border-gray-200">
@@ -483,10 +545,17 @@ Create 5 multiple-choice questions that test understanding of the key concepts. 
           <TrainingModuleViewer
             module={selectedModule}
             onClose={() => setSelectedModule(null)}
-            onComplete={(moduleId) => {
-              setGeneratedModules(prev => 
-                prev.map(m => m.id === moduleId ? { ...m, completed: true } : m)
-              );
+            onComplete={async (moduleId, score, total, percentage) => {
+              // Update progress in database
+              await base44.entities.TrainingProgress.update(moduleId, {
+                completed: true,
+                quiz_score: score,
+                quiz_total: total,
+                quiz_percentage: percentage,
+                completed_at: new Date().toISOString()
+              });
+              await refetchProgress();
+              setSelectedModule(null);
             }}
           />
         )}

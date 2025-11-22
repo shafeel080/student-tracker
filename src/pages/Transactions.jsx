@@ -189,7 +189,7 @@ export default function Transactions() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Transactions</h1>
           {isMentorRole(currentUser.app_role) && (
             <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />

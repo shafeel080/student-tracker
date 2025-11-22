@@ -81,7 +81,7 @@ export default function MT5Accounts() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">MT5 Accounts</h1>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">MT5 Accounts</h1>
         </div>
 
         {/* Search */}
@@ -97,19 +97,19 @@ export default function MT5Accounts() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">Total Accounts</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{filteredAccounts.length}</p>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border-none shadow-lg p-5">
+            <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">Total Accounts</p>
+            <p className="text-3xl font-bold text-gray-900 mt-1">{filteredAccounts.length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">MT5 Accounts</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">
+          <div className="border-none bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl shadow-lg p-5">
+            <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">MT5 Accounts</p>
+            <p className="text-3xl font-bold text-blue-700 mt-1">
               {filteredAccounts.filter(a => a.platform === 'MT5').length}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">MT4 Accounts</p>
-            <p className="text-2xl font-bold text-purple-600 mt-1">
+          <div className="border-none bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl shadow-lg p-5">
+            <p className="text-sm font-semibold uppercase tracking-wider text-gray-700">MT4 Accounts</p>
+            <p className="text-3xl font-bold text-purple-700 mt-1">
               {filteredAccounts.filter(a => a.platform === 'MT4').length}
             </p>
           </div>

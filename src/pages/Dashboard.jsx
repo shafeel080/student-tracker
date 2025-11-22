@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import StatsCard from "../components/dashboard/StatsCard";
 import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TransactionTable from "../components/transactions/TransactionTable";
 import { canViewAllStudents, isMentorRole, canApproveTransactions } from "../components/utils/DataMasking";
 import { 
   filterFundingTransactionsByRole, 

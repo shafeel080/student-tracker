@@ -87,31 +87,31 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/30 border-r border-gray-200 shadow-lg">
-        <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-6 mb-8">
+        <div className="flex flex-col flex-grow pt-6 pb-4 overflow-y-auto">
+          <div className="flex items-center flex-shrink-0 px-6 mb-10">
             <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
                 <Award className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Commission Portal</h1>
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Commission Portal</h1>
               </div>
             </Link>
           </div>
 
-          <div className="px-4 mb-4">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-4 border-none shadow-lg">
-              <p className="text-sm font-semibold text-white">{currentUser.full_name}</p>
-              <p className="text-xs text-blue-100 mt-1">{currentUser.email}</p>
-              <div className="mt-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+          <div className="px-4 mb-6">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 border-none shadow-xl">
+              <p className="text-sm font-bold text-white tracking-wide">{currentUser.full_name}</p>
+              <p className="text-xs text-blue-100 mt-1.5">{currentUser.email}</p>
+              <div className="mt-3">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/25 text-white backdrop-blur-sm">
                   {currentUser.app_role?.replace(/_/g, ' ')}
                 </span>
               </div>
             </div>
           </div>
 
-          <nav className="flex-1 px-3 space-y-1">
+          <nav className="flex-1 px-3 space-y-1.5">
             {filteredNavigation.map((item) => {
               const isActive = currentPageName === item.name;
               return (

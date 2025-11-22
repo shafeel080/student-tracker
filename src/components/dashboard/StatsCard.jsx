@@ -12,25 +12,25 @@ export default function StatsCard({ title, value, icon: Icon, color, trend, tren
   };
 
   return (
-    <Card className="border-none shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
+    <Card className="border-none shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/80 backdrop-blur-sm hover:scale-[1.02] group cursor-pointer">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
+            <p className="text-sm font-medium text-gray-600 mb-1 transition-all duration-300 group-hover:text-gray-800">{title}</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1 transition-all duration-300 group-hover:scale-105">{value}</p>
             {trend && (
               <div className="flex items-center gap-1 mt-2">
                 {trendUp !== undefined && (
-                  trendUp ? <TrendingUp className="h-3 w-3 text-emerald-600" /> : <TrendingDown className="h-3 w-3 text-gray-400" />
+                  trendUp ? <TrendingUp className="h-3 w-3 text-emerald-600 transition-transform duration-300 group-hover:translate-y-[-2px]" /> : <TrendingDown className="h-3 w-3 text-gray-400" />
                 )}
-                <p className={`text-xs ${trendUp ? 'text-emerald-600' : 'text-gray-500'}`}>
+                <p className={`text-xs ${trendUp ? 'text-emerald-600' : 'text-gray-500'} transition-all duration-300`}>
                   {trend}
                 </p>
               </div>
             )}
           </div>
-          <div className={`p-4 rounded-2xl ${colorClasses[color]}`}>
-            <Icon className="h-7 w-7" />
+          <div className={`p-4 rounded-2xl ${colorClasses[color]} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+            <Icon className="h-7 w-7 transition-transform duration-300 group-hover:scale-110" />
           </div>
         </div>
       </CardContent>

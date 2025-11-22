@@ -169,7 +169,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
           <StatsCard
             title="Total Students"
             value={filteredStudents.length}
@@ -229,9 +229,9 @@ export default function Dashboard() {
 
         {/* Charts Section */}
         {myFundingTransactions.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-700 delay-200">
             {/* Transaction Trend Chart */}
-            <Card className="lg:col-span-2 border-none shadow-xl bg-white/80 backdrop-blur-sm">
+            <Card className="lg:col-span-2 border-none shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-shadow duration-300">
               <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-blue-600" />
@@ -267,7 +267,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Status Distribution Chart */}
-            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm">
+            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-shadow duration-300">
               <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Activity className="h-5 w-5 text-blue-600" />
@@ -300,7 +300,7 @@ export default function Dashboard() {
         )}
 
         {/* Recent Transactions */}
-        <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm">
+        <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-shadow duration-300 animate-in fade-in duration-700 delay-300">
           <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Activity className="h-5 w-5 text-blue-600" />
@@ -321,7 +321,7 @@ export default function Dashboard() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {myFundingTransactions.slice(0, 10).map((tx) => (
-                    <tr key={tx.id} className="hover:bg-gray-50">
+                    <tr key={tx.id} className="hover:bg-gray-50 transition-colors duration-200">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {tx.student_name}
                       </td>

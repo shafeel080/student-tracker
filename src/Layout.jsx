@@ -119,10 +119,10 @@ export default function Layout({ children, currentPageName }) {
                   key={item.name}
                   to={item.href}
                   className={`
-                    group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
+                    group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ease-in-out
                     ${isActive 
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/40 scale-[1.02]' 
-                      : 'text-gray-700 hover:bg-white/80 hover:shadow-md'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/40 scale-[1.02] transform' 
+                      : 'text-gray-700 hover:bg-white/80 hover:shadow-md hover:scale-[1.01] hover:-translate-x-1'
                     }
                   `}
                 >

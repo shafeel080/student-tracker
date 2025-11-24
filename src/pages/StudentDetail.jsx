@@ -131,8 +131,8 @@ export default function StudentDetail() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Student Details</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Student Details</h1>
+              <p className="text-gray-600 mt-2 text-base">
                 <span className="font-mono font-semibold text-blue-600">
                   {displayStudent.student_code}
                 </span>
@@ -149,9 +149,9 @@ export default function StudentDetail() {
 
         {/* Student Information Card */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-semibold">Student Information</CardTitle>
+              <CardTitle className="text-xl font-semibold tracking-tight">Student Information</CardTitle>
               <Badge variant="outline" className={getStatusColor(displayStudent.status)}>
                 {displayStudent.status}
               </Badge>
@@ -207,13 +207,6 @@ export default function StudentDetail() {
                   {displayStudent.created_date 
                     ? format(new Date(displayStudent.created_date), 'MMMM d, yyyy')
                     : '-'}
-                </p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-500">Created By</label>
-                <p className="mt-1 text-base text-gray-900">
-                  {displayStudent.created_by || '-'}
                 </p>
               </div>
               

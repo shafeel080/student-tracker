@@ -21,6 +21,7 @@ const PAYMENT_METHODS = [
 
 export default function ProcessFundingDialog({ transaction, open, onClose, onProcess }) {
   const [formData, setFormData] = useState({
+    amount_usd: 0,
     payment_method: '',
     mt5_account_id: '',
     mt5_login: '',
@@ -48,6 +49,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
   useEffect(() => {
     if (transaction) {
       setFormData({
+        amount_usd: transaction.amount_usd || 0,
         payment_method: transaction.payment_method || '',
         mt5_account_id: transaction.mt5_account_id || '',
         mt5_login: transaction.mt5_login || '',
@@ -127,6 +129,19 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
                 <span className="ml-2 font-mono font-semibold">{transaction.student_code}</span>
               </div>
             </div>
+          </div>
+
+          {/* Amount Edit Field */}
+          <div className="space-y-2">
+            <Label htmlFor="amount_usd">Amount (USD)</Label>
+            <Input
+              id="amount_usd"
+              type="number"
+              step="0.01"
+              value={formData.amount_usd}
+              onChange={(e) => setFormData({ ...formData, amount_usd: parseFloat(e.target.value) || 0 })}
+              placeholder="Enter amount in USD"
+            />
           </div>
 
           {/* Processing Fields */}

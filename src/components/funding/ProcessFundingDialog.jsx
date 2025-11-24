@@ -61,13 +61,11 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
   }, [transaction]);
 
   const handleApprove = () => {
-    // Validate transaction ID is provided
     if (!formData.transaction_id || formData.transaction_id.trim() === '') {
       setTransactionIdError('Transaction ID is required');
       return;
     }
 
-    // Check for duplicate transaction ID
     const duplicate = allTransactions.find(
       t => t.transaction_id === formData.transaction_id && t.id !== transaction.id
     );
@@ -109,16 +107,11 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Transaction Summary */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-gray-600">Type:</span>
                 <span className="ml-2 font-semibold">{transaction.type}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">Amount:</span>
-                <span className="ml-2 font-semibold">${transaction.amount_usd?.toFixed(2)}</span>
               </div>
               <div>
                 <span className="text-gray-600">Student:</span>
@@ -131,7 +124,6 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
             </div>
           </div>
 
-          {/* Amount Edit Field */}
           <div className="space-y-2">
             <Label htmlFor="amount_usd">Amount (USD)</Label>
             <Input
@@ -144,7 +136,6 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
             />
           </div>
 
-          {/* Processing Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="payment_method">Payment Method</Label>

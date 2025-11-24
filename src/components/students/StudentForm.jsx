@@ -121,6 +121,16 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
         </div>
         
         <div className="space-y-2">
+          <Label htmlFor="user_id">User ID</Label>
+          <Input
+            id="user_id"
+            value={formData.user_id}
+            onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
+            placeholder="Enter user ID from CRM"
+          />
+        </div>
+        
+        <div className="space-y-2">
           <Label htmlFor="primary_mentor">Primary Mentor</Label>
           <Select
             value={formData.primary_mentor_id}

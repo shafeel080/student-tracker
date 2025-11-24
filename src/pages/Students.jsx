@@ -164,6 +164,8 @@ export default function Students() {
   // Apply masking to displayed students
   const displayStudents = filteredStudents.map(s => applyStudentMasking(s, currentUser.app_role));
   
+  const canEdit = canEditStudent(currentUser.app_role);
+  
   const getStatusColor = (status) => {
     return status === 'ACTIVE' 
       ? 'bg-emerald-100 text-emerald-800 border-emerald-200'

@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload } from "lucide-react";
-import ProcessFundingDialog from "../components/funding/ProcessFundingDialog";
+import ProcessFundingDialog from "../components/funding/ProcessFundingDialog.jsx";
 import AddTransactionDialog from "../components/funding/AddTransactionDialog";
 import BulkImportDialog from "../components/funding/BulkImportDialog";
 import { 

@@ -28,9 +28,10 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
       const mentor = mentors.find(m => m.id === selectedMentor);
       const mentorStudents = students.filter(s => s.primary_mentor_id === selectedMentor);
       
-      csvContent = 'student_code,student_name,type,amount_usd,payment_method,mt5_login,user_id,transaction_id,notes\n';
+      csvContent = 'email,type,amount_usd,payment_method,mt5_login,transaction_id,notes\n';
+      csvContent += 'student@example.com,DEPOSIT,100.00,UPI,12345,TXN001,Sample deposit\n';
       mentorStudents.forEach(student => {
-        csvContent += `${student.student_code},${student.full_name},DEPOSIT,0.00,,,,,\n`;
+        csvContent += `${student.email},DEPOSIT,0.00,,,,,\n`;
       });
       
       filename = `bulk_funding_${mentor.full_name.replace(/\s+/g, '_')}_${Date.now()}.csv`;
@@ -41,8 +42,9 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
       }
       const student = students.find(s => s.id === selectedStudent);
       
-      csvContent = 'student_code,student_name,type,amount_usd,payment_method,mt5_login,user_id,transaction_id,notes\n';
-      csvContent += `${student.student_code},${student.full_name},DEPOSIT,0.00,,,,,\n`;
+      csvContent = 'email,type,amount_usd,payment_method,mt5_login,transaction_id,notes\n';
+      csvContent += 'student@example.com,DEPOSIT,100.00,UPI,12345,TXN001,Sample deposit\n';
+      csvContent += `${student.email},DEPOSIT,0.00,,,,,\n`;
       
       filename = `bulk_funding_${student.student_code}_${Date.now()}.csv`;
     }
@@ -98,30 +100,32 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
       const text = await file.text();
       const rows = parseCSV(text);
       
-      const transactions = rows.map(row => {
-        const student = students.find(s => s.student_code === row.student_code);
-        if (!student) {
-          throw new Error(`Student not found: ${row.student_code}`);
-        }
+      const transactions = rows
+        .filter(row => row.email && row.email !== 'student@example.com') // Skip example row
+        .map(row => {
+          const student = students.find(s => s.email?.toLowerCase() === row.email?.toLowerCase());
+          if (!student) {
+            throw new Error(`Student not found with email: ${row.email}`);
+          }
 
-        return {
-          type: row.type?.toUpperCase() || 'DEPOSIT',
-          status: 'PENDING',
-          student_id: student.id,
-          student_name: student.full_name,
-          student_code: student.student_code,
-          primary_mentor_id: student.primary_mentor_id,
-          primary_mentor_name: student.primary_mentor_name,
-          senior_mentor_id: student.senior_mentor_id,
-          senior_mentor_name: student.senior_mentor_name,
-          amount_usd: parseFloat(row.amount_usd) || 0,
-          payment_method: row.payment_method || '',
-          mt5_login: row.mt5_login || '',
-          user_id: row.user_id || '',
-          transaction_id: row.transaction_id || '',
-          notes: row.notes || ''
-        };
-      });
+          return {
+            type: row.type?.toUpperCase() || 'DEPOSIT',
+            status: 'PENDING',
+            student_id: student.id,
+            student_name: student.full_name,
+            student_code: student.student_code,
+            primary_mentor_id: student.primary_mentor_id,
+            primary_mentor_name: student.primary_mentor_name,
+            senior_mentor_id: student.senior_mentor_id,
+            senior_mentor_name: student.senior_mentor_name,
+            amount_usd: parseFloat(row.amount_usd) || 0,
+            payment_method: row.payment_method || '',
+            mt5_login: row.mt5_login || '',
+            user_id: student.user_id || '',
+            transaction_id: row.transaction_id || '',
+            notes: row.notes || ''
+          };
+        });
 
       await onImport(transactions);
       

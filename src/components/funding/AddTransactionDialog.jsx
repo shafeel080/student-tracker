@@ -103,7 +103,14 @@ export default function AddTransactionDialog({ open, onClose, onSubmit, students
             <SearchableStudentSelect
               students={students}
               value={formData.student_id}
-              onValueChange={(value) => setFormData({ ...formData, student_id: value })}
+              onValueChange={(value) => {
+                const selectedStudent = students.find(s => s.id === value);
+                setFormData({ 
+                  ...formData, 
+                  student_id: value,
+                  user_id: selectedStudent?.user_id || ''
+                });
+              }}
               label="Student"
               required
             />
@@ -155,7 +162,9 @@ export default function AddTransactionDialog({ open, onClose, onSubmit, students
               <Input
                 value={formData.user_id}
                 onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
-                placeholder="Platform user ID"
+                placeholder="Auto-populated from student"
+                disabled
+                className="bg-gray-50"
               />
             </div>
 

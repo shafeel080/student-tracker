@@ -174,20 +174,34 @@ export default function Students() {
   };
 
   const handleExportStudents = () => {
+    if (filteredStudents.length === 0) {
+      toast.error('No students to export');
+      return;
+    }
+
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
     const csvContent = [
       ['Student Code', 'Full Name', 'Email', 'Phone', 'Country', 'User ID', 'Primary Mentor', 'Senior Mentor', 'Status', 'Created Date', 'Notes'].join(','),
       ...filteredStudents.map(s => [
-        s.student_code,
-        s.full_name,
-        s.email,
-        s.phone,
-        s.country || '',
-        s.user_id || '',
-        s.primary_mentor_name,
-        s.senior_mentor_name || '',
-        s.status,
-        s.created_date ? format(new Date(s.created_date), 'yyyy-MM-dd') : '',
-        (s.notes || '').replace(/,/g, ';')
+        escapeCSV(s.student_code || ''),
+        escapeCSV(s.full_name || ''),
+        escapeCSV(s.email || ''),
+        escapeCSV(s.phone || ''),
+        escapeCSV(s.country || ''),
+        escapeCSV(s.user_id || ''),
+        escapeCSV(s.primary_mentor_name || ''),
+        escapeCSV(s.senior_mentor_name || ''),
+        escapeCSV(s.status || ''),
+        escapeCSV(s.created_date ? format(new Date(s.created_date), 'yyyy-MM-dd') : ''),
+        escapeCSV(s.notes || '')
       ].join(','))
     ].join('\n');
 
@@ -200,7 +214,7 @@ export default function Students() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success('Students exported successfully');
+    toast.success(`Exported ${filteredStudents.length} students successfully`);
   };
 
   return (

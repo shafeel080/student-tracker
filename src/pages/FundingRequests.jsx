@@ -192,26 +192,40 @@ export default function FundingRequests() {
   };
 
   const handleExportFundingRequests = () => {
+    if (filteredTransactions.length === 0) {
+      toast.error('No transactions to export');
+      return;
+    }
+
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
     const csvContent = [
       ['Requested Date', 'Type', 'Status', 'Student Name', 'Student Email', 'Student Code', 'Primary Mentor', 'MT5 Login', 'Amount USD', 'Payment Method', 'User ID', 'Transaction ID', 'Approved By', 'Approved Date', 'Notes'].join(','),
       ...filteredTransactions.map(t => {
         const student = students.find(s => s.id === t.student_id);
         return [
-          t.requested_at ? format(new Date(t.requested_at), 'yyyy-MM-dd HH:mm') : '',
-          t.type,
-          t.status,
-          t.student_name,
-          student?.email || '',
-          t.student_code,
-          t.primary_mentor_name,
-          t.mt5_login || '',
-          t.amount_usd?.toFixed(2) || '0.00',
-          t.payment_method,
-          t.user_id || '',
-          t.transaction_id || '',
-          t.approved_by_name || '',
-          t.approved_at ? format(new Date(t.approved_at), 'yyyy-MM-dd HH:mm') : '',
-          (t.notes || '').replace(/,/g, ';')
+          escapeCSV(t.requested_at ? format(new Date(t.requested_at), 'yyyy-MM-dd HH:mm') : ''),
+          escapeCSV(t.type || ''),
+          escapeCSV(t.status || ''),
+          escapeCSV(t.student_name || ''),
+          escapeCSV(student?.email || ''),
+          escapeCSV(t.student_code || ''),
+          escapeCSV(t.primary_mentor_name || ''),
+          escapeCSV(t.mt5_login || ''),
+          escapeCSV(t.amount_usd?.toFixed(2) || '0.00'),
+          escapeCSV(t.payment_method || ''),
+          escapeCSV(t.user_id || ''),
+          escapeCSV(t.transaction_id || ''),
+          escapeCSV(t.approved_by_name || ''),
+          escapeCSV(t.approved_at ? format(new Date(t.approved_at), 'yyyy-MM-dd HH:mm') : ''),
+          escapeCSV(t.notes || '')
         ].join(',');
       })
     ].join('\n');
@@ -225,7 +239,7 @@ export default function FundingRequests() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success('Funding requests exported successfully');
+    toast.success(`Exported ${filteredTransactions.length} funding requests successfully`);
   };
 
   // Calculate summary stats

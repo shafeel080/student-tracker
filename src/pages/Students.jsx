@@ -14,6 +14,7 @@ import BulkImportStudentsDialog from "../components/students/BulkImportStudentsD
 import { Plus, Search, Eye, Users, UserCheck, Upload } from "lucide-react";
 import { 
   canSubmitStudentRequest, 
+  canEditStudent,
   filterStudentsByRole, 
   applyStudentMasking,
   generateStudentCode

@@ -124,8 +124,8 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount_usd">Amount (USD)</Label>
+          <div className="space-y-2 bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+            <Label htmlFor="amount_usd" className="text-base font-semibold">Amount (USD) - Editable</Label>
             <Input
               id="amount_usd"
               type="number"
@@ -133,6 +133,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
               value={formData.amount_usd}
               onChange={(e) => setFormData({ ...formData, amount_usd: parseFloat(e.target.value) || 0 })}
               placeholder="Enter amount in USD"
+              className="text-lg font-semibold"
             />
           </div>
 

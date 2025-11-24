@@ -18,9 +18,9 @@ export default function BulkImportStudentsDialog({ open, onOpenChange, onImportC
   const [results, setResults] = useState(null);
 
   const downloadTemplate = () => {
-    const csvContent = "full_name,email,phone,country,notes\n" +
-                       "John Doe,john@example.com,+1234567890,USA,Sample student\n" +
-                       "Jane Smith,jane@example.com,+0987654321,UK,";
+    const csvContent = "full_name,email,phone,country,user_id,notes\n" +
+                       "John Doe,john@example.com,+1234567890,USA,USR123,Sample student\n" +
+                       "Jane Smith,jane@example.com,+0987654321,UK,USR456,";
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);

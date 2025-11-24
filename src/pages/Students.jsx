@@ -241,7 +241,7 @@ export default function Students() {
                 <TableBody>
                   {displayStudents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={11} className="text-center py-8 text-gray-500">
                         No students found
                       </TableCell>
                     </TableRow>
@@ -255,6 +255,7 @@ export default function Students() {
                         <TableCell className="text-sm">{student.email}</TableCell>
                         <TableCell className="text-sm font-mono">{student.phone}</TableCell>
                         <TableCell className="text-sm">{student.country || '-'}</TableCell>
+                        <TableCell className="text-sm font-mono">{student.user_id || '-'}</TableCell>
                         <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
                         <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
                         <TableCell>
@@ -298,6 +299,7 @@ export default function Students() {
                       <TableHead className="font-semibold">Email</TableHead>
                       <TableHead className="font-semibold">Phone</TableHead>
                       <TableHead className="font-semibold">Country</TableHead>
+                      <TableHead className="font-semibold">User ID</TableHead>
                       <TableHead className="font-semibold">Primary Mentor</TableHead>
                       <TableHead className="font-semibold">Senior Mentor</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
@@ -365,6 +367,7 @@ export default function Students() {
                   <TableHead className="font-semibold">Email</TableHead>
                   <TableHead className="font-semibold">Phone</TableHead>
                   <TableHead className="font-semibold">Country</TableHead>
+                  <TableHead className="font-semibold">User ID</TableHead>
                   <TableHead className="font-semibold">Primary Mentor</TableHead>
                   <TableHead className="font-semibold">Senior Mentor</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
@@ -375,7 +378,7 @@ export default function Students() {
               <TableBody>
                 {displayStudents.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={11} className="text-center py-8 text-gray-500">
                       No students found
                     </TableCell>
                   </TableRow>
@@ -389,6 +392,7 @@ export default function Students() {
                       <TableCell className="text-sm">{student.email}</TableCell>
                       <TableCell className="text-sm font-mono">{student.phone}</TableCell>
                       <TableCell className="text-sm">{student.country || '-'}</TableCell>
+                      <TableCell className="text-sm font-mono">{student.user_id || '-'}</TableCell>
                       <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
                       <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
                       <TableCell>

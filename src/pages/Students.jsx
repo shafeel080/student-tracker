@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import StudentForm from "../components/students/StudentForm";
 import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
-import { Plus, Search, Eye, Users, UserCheck, Upload } from "lucide-react";
+import { Plus, Search, Eye, Users, UserCheck, Upload, Download } from "lucide-react";
 import { 
   canSubmitStudentRequest, 
   canEditStudent,
@@ -173,6 +173,36 @@ export default function Students() {
       : 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
+  const handleExportStudents = () => {
+    const csvContent = [
+      ['Student Code', 'Full Name', 'Email', 'Phone', 'Country', 'User ID', 'Primary Mentor', 'Senior Mentor', 'Status', 'Created Date', 'Notes'].join(','),
+      ...filteredStudents.map(s => [
+        s.student_code,
+        s.full_name,
+        s.email,
+        s.phone,
+        s.country || '',
+        s.user_id || '',
+        s.primary_mentor_name,
+        s.senior_mentor_name || '',
+        s.status,
+        s.created_date ? format(new Date(s.created_date), 'yyyy-MM-dd') : '',
+        (s.notes || '').replace(/,/g, ';')
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `students_export_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Students exported successfully');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -181,6 +211,10 @@ export default function Students() {
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Students</h1>
           {canCreate && (isMentor ? activeTab === 'my' : true) && (
             <div className="flex gap-3">
+              <Button onClick={handleExportStudents} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
               <Button onClick={() => setShowBulkImportDialog(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
                 <Upload className="h-4 w-4 mr-2" />
                 Bulk Import

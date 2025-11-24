@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload, Download } from "lucide-react";
 import ProcessFundingDialog from "../components/funding/ProcessFundingDialog.jsx";
 import AddTransactionDialog from "../components/funding/AddTransactionDialog";
 import BulkImportDialog from "../components/funding/BulkImportDialog";
@@ -191,6 +191,43 @@ export default function FundingRequests() {
       : 'bg-purple-100 text-purple-800 border-purple-200';
   };
 
+  const handleExportFundingRequests = () => {
+    const csvContent = [
+      ['Requested Date', 'Type', 'Status', 'Student Name', 'Student Email', 'Student Code', 'Primary Mentor', 'MT5 Login', 'Amount USD', 'Payment Method', 'User ID', 'Transaction ID', 'Approved By', 'Approved Date', 'Notes'].join(','),
+      ...filteredTransactions.map(t => {
+        const student = students.find(s => s.id === t.student_id);
+        return [
+          t.requested_at ? format(new Date(t.requested_at), 'yyyy-MM-dd HH:mm') : '',
+          t.type,
+          t.status,
+          t.student_name,
+          student?.email || '',
+          t.student_code,
+          t.primary_mentor_name,
+          t.mt5_login || '',
+          t.amount_usd?.toFixed(2) || '0.00',
+          t.payment_method,
+          t.user_id || '',
+          t.transaction_id || '',
+          t.approved_by_name || '',
+          t.approved_at ? format(new Date(t.approved_at), 'yyyy-MM-dd HH:mm') : '',
+          (t.notes || '').replace(/,/g, ';')
+        ].join(',');
+      })
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `funding_requests_export_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Funding requests exported successfully');
+  };
+
   // Calculate summary stats
   const pendingCount = filteredTransactions.filter(t => t.status === 'PENDING').length;
   const approvedCount = filteredTransactions.filter(t => t.status === 'APPROVED').length;
@@ -208,18 +245,24 @@ export default function FundingRequests() {
             <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Funding Requests</h1>
             <p className="text-gray-600 mt-2 text-base">Review and process deposit and withdrawal requests</p>
           </div>
-          {isBackendAdmin && (
-            <div className="flex gap-2">
-              <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Transaction
-              </Button>
-              <Button onClick={() => setShowBulkImportDialog(true)} variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Bulk Import
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <Button onClick={handleExportFundingRequests} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            {isBackendAdmin && (
+              <>
+                <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Transaction
+                </Button>
+                <Button onClick={() => setShowBulkImportDialog(true)} variant="outline">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Bulk Import
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Stats Summary */}

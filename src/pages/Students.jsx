@@ -223,22 +223,24 @@ export default function Students() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Students</h1>
-          {canCreate && (isMentor ? activeTab === 'my' : true) && (
-            <div className="flex gap-3">
-              <Button onClick={handleExportStudents} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-              <Button onClick={() => setShowBulkImportDialog(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
-                <Upload className="h-4 w-4 mr-2" />
-                Bulk Import
-              </Button>
-              <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                {isMentor ? 'Request Student' : 'Add Student'}
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-3">
+            <Button onClick={handleExportStudents} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            {canCreate && (isMentor ? activeTab === 'my' : true) && (
+              <>
+                <Button onClick={() => setShowBulkImportDialog(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Bulk Import
+                </Button>
+                <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {isMentor ? 'Request Student' : 'Add Student'}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Search */}

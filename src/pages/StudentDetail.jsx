@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit, TrendingUp, TrendingDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import StudentForm from "../components/students/StudentForm";
@@ -47,6 +47,15 @@ export default function StudentDetail() {
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
     enabled: !!currentUser
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['funding-transactions', studentId],
+    queryFn: async () => {
+      const allTransactions = await base44.entities.FundingTransaction.list('-requested_at');
+      return allTransactions.filter(t => t.student_id === studentId);
+    },
+    enabled: !!studentId && !!currentUser
   });
 
   const updateMutation = useMutation({
@@ -118,6 +127,21 @@ export default function StudentDetail() {
       ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
       : 'bg-gray-100 text-gray-800 border-gray-200';
   };
+
+  const getTransactionStatusColor = (status) => {
+    switch (status) {
+      case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'APPROVED': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'REJECTED': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const deposits = transactions.filter(t => t.type === 'DEPOSIT');
+  const withdrawals = transactions.filter(t => t.type === 'WITHDRAWAL');
+  const totalDeposits = deposits.filter(t => t.status === 'APPROVED').reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+  const totalWithdrawals = withdrawals.filter(t => t.status === 'APPROVED').reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+  const netDeposit = totalDeposits - totalWithdrawals;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
@@ -224,6 +248,138 @@ export default function StudentDetail() {
 
         {/* MT5 Accounts Section */}
         <MT5AccountSection student={student} currentUser={currentUser} />
+
+        {/* Funding Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-none bg-gradient-to-br from-blue-100 to-blue-200 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-900">Total Deposits</p>
+                  <p className="text-2xl font-bold text-blue-900 mt-1">${totalDeposits.toFixed(2)}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-blue-700" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none bg-gradient-to-br from-purple-100 to-purple-200 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-900">Total Withdrawals</p>
+                  <p className="text-2xl font-bold text-purple-900 mt-1">${totalWithdrawals.toFixed(2)}</p>
+                </div>
+                <TrendingDown className="h-8 w-8 text-purple-700" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none bg-gradient-to-br from-emerald-100 to-emerald-200 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-emerald-900">Net Deposit</p>
+                  <p className="text-2xl font-bold text-emerald-900 mt-1">${netDeposit.toFixed(2)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Deposits Section */}
+        <Card className="border-gray-200">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              Deposits ({deposits.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b">
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Date</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Amount</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Payment Method</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">MT5 Login</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction ID</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deposits.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-8 text-gray-500">No deposits found</td>
+                    </tr>
+                  ) : (
+                    deposits.map((txn) => (
+                      <tr key={txn.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3 text-sm">{txn.requested_at ? format(new Date(txn.requested_at), 'MMM d, yyyy HH:mm') : '-'}</td>
+                        <td className="p-3 text-sm font-semibold text-gray-900">${txn.amount_usd?.toFixed(2)}</td>
+                        <td className="p-3 text-sm">{txn.payment_method}</td>
+                        <td className="p-3 text-sm font-mono">{txn.mt5_login || '-'}</td>
+                        <td className="p-3 text-sm font-mono">{txn.transaction_id || '-'}</td>
+                        <td className="p-3">
+                          <Badge variant="outline" className={getTransactionStatusColor(txn.status)}>
+                            {txn.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Withdrawals Section */}
+        <Card className="border-gray-200">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <TrendingDown className="h-5 w-5 text-purple-600" />
+              Withdrawals ({withdrawals.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b">
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Date</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Amount</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Payment Method</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">MT5 Login</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction ID</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {withdrawals.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-8 text-gray-500">No withdrawals found</td>
+                    </tr>
+                  ) : (
+                    withdrawals.map((txn) => (
+                      <tr key={txn.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3 text-sm">{txn.requested_at ? format(new Date(txn.requested_at), 'MMM d, yyyy HH:mm') : '-'}</td>
+                        <td className="p-3 text-sm font-semibold text-gray-900">${txn.amount_usd?.toFixed(2)}</td>
+                        <td className="p-3 text-sm">{txn.payment_method}</td>
+                        <td className="p-3 text-sm font-mono">{txn.mt5_login || '-'}</td>
+                        <td className="p-3 text-sm font-mono">{txn.transaction_id || '-'}</td>
+                        <td className="p-3">
+                          <Badge variant="outline" className={getTransactionStatusColor(txn.status)}>
+                            {txn.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Edit Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>

@@ -91,8 +91,9 @@ export default function StudentRequestApprovals() {
     
     // Check for duplicate
     const existing = checkDuplicate(request.email);
+    setDuplicateStudent(existing); // Store existing student info for display
+    
     if (existing && isBrokerAdmin) {
-      setDuplicateStudent(existing);
       setShowTransferDialog(true);
     } else {
       setShowApproveDialog(true);
@@ -366,12 +367,26 @@ export default function StudentRequestApprovals() {
             <div className="space-y-4">
               <p>Are you sure you want to approve this student registration request?</p>
               {selectedRequest && (
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                  <p><strong>Name:</strong> {selectedRequest.full_name}</p>
-                  <p><strong>Email:</strong> {selectedRequest.email}</p>
-                  <p><strong>Primary Mentor:</strong> {selectedRequest.requested_primary_mentor_name}</p>
-                  {selectedRequest.requested_senior_mentor_name && (
-                    <p><strong>Senior Mentor:</strong> {selectedRequest.requested_senior_mentor_name}</p>
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg space-y-2 text-sm border border-blue-200">
+                    <p className="font-semibold text-blue-900">New Request Details:</p>
+                    <p><strong>Name:</strong> {selectedRequest.full_name}</p>
+                    <p><strong>Email:</strong> {selectedRequest.email}</p>
+                    <p><strong>Primary Mentor:</strong> {selectedRequest.requested_primary_mentor_name}</p>
+                    {selectedRequest.requested_senior_mentor_name && (
+                      <p><strong>Senior Mentor:</strong> {selectedRequest.requested_senior_mentor_name}</p>
+                    )}
+                  </div>
+                  
+                  {duplicateStudent && (
+                    <div className="bg-amber-50 p-4 rounded-lg space-y-2 text-sm border border-amber-200">
+                      <p className="font-semibold text-amber-900">⚠️ Current Assignment (Info Only):</p>
+                      <p><strong>Current Primary Mentor:</strong> {duplicateStudent.primary_mentor_name}</p>
+                      {duplicateStudent.senior_mentor_name && (
+                        <p><strong>Current Senior Mentor:</strong> {duplicateStudent.senior_mentor_name}</p>
+                      )}
+                      <p className="text-xs text-amber-700 mt-2">This student already exists in the system</p>
+                    </div>
                   )}
                 </div>
               )}

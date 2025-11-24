@@ -21,6 +21,11 @@ import { Button } from '@/components/ui/button';
 export default function Layout({ children, currentPageName }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pendingCounts, setPendingCounts] = useState({
+    fundingRequests: 0,
+    studentRequests: 0,
+    tickets: 0
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -33,6 +38,54 @@ export default function Layout({ children, currentPageName }) {
     };
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    const fetchPendingCounts = async () => {
+      if (!currentUser) return;
+
+      try {
+        const [fundingTransactions, studentRequests, tickets] = await Promise.all([
+          base44.entities.FundingTransaction.list(),
+          base44.entities.StudentRequest.list(),
+          base44.entities.Ticket.list()
+        ]);
+
+        const role = currentUser.app_role;
+        
+        // Count pending funding requests
+        let pendingFunding = 0;
+        if (['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role)) {
+          pendingFunding = fundingTransactions.filter(t => t.status === 'PENDING').length;
+        }
+
+        // Count pending student requests
+        let pendingStudents = 0;
+        if (role === 'academic_head') {
+          pendingStudents = studentRequests.filter(r => r.status === 'PENDING_ACADEMIC_APPROVAL').length;
+        } else if (role === 'broker_admin') {
+          pendingStudents = studentRequests.filter(r => r.status === 'PENDING_BROKER_APPROVAL').length;
+        }
+
+        // Count open/unresolved tickets
+        let pendingTickets = 0;
+        if (['super_admin', 'academic_admin', 'broker_admin', 'senior_mentor', 'junior_mentor'].includes(role)) {
+          pendingTickets = tickets.filter(t => ['open', 'in_progress'].includes(t.status)).length;
+        }
+
+        setPendingCounts({
+          fundingRequests: pendingFunding,
+          studentRequests: pendingStudents,
+          tickets: pendingTickets
+        });
+      } catch (error) {
+        console.error('Error fetching pending counts:', error);
+      }
+    };
+
+    fetchPendingCounts();
+    const interval = setInterval(fetchPendingCounts, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -117,22 +170,35 @@ export default function Layout({ children, currentPageName }) {
           <nav className="flex-1 px-3 space-y-1.5">
             {filteredNavigation.map((item) => {
               const isActive = currentPageName === item.name;
+              const showBadge = 
+                (item.name === 'FundingRequests' && pendingCounts.fundingRequests > 0) ||
+                (item.name === 'StudentRequestApprovals' && pendingCounts.studentRequests > 0) ||
+                (item.name === 'Tickets' && pendingCounts.tickets > 0);
+
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`
-                    group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ease-in-out
+                    group flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ease-in-out
                     ${isActive 
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/40 scale-[1.02] transform' 
                       : 'text-gray-700 hover:bg-white/80 hover:shadow-md hover:scale-[1.01] hover:-translate-x-1'
                     }
                   `}
                 >
-                  <item.icon
-                    className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`}
-                  />
-                  {item.name}
+                  <div className="flex items-center">
+                    <item.icon
+                      className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`}
+                    />
+                    {item.name}
+                  </div>
+                  {showBadge && (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -174,21 +240,34 @@ export default function Layout({ children, currentPageName }) {
           <div className="px-2 pt-2 pb-3 space-y-1">
             {filteredNavigation.map((item) => {
               const isActive = currentPageName === item.name;
+              const showBadge = 
+                (item.name === 'FundingRequests' && pendingCounts.fundingRequests > 0) ||
+                (item.name === 'StudentRequestApprovals' && pendingCounts.studentRequests > 0) ||
+                (item.name === 'Tickets' && pendingCounts.tickets > 0);
+
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`
-                    group flex items-center px-3 py-2 text-sm font-medium rounded-lg
+                    group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
                     ${isActive 
                       ? 'bg-blue-600 text-white' 
                       : 'text-gray-700 hover:bg-gray-100'
                     }
                   `}
                 >
-                  <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                  {item.name}
+                  <div className="flex items-center">
+                    <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                    {item.name}
+                  </div>
+                  {showBadge && (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                  )}
                 </Link>
               );
             })}

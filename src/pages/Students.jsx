@@ -231,6 +231,7 @@ export default function Students() {
                     <TableHead className="font-semibold">Email</TableHead>
                     <TableHead className="font-semibold">Phone</TableHead>
                     <TableHead className="font-semibold">Country</TableHead>
+                    <TableHead className="font-semibold">User ID</TableHead>
                     <TableHead className="font-semibold">Primary Mentor</TableHead>
                     <TableHead className="font-semibold">Senior Mentor</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -309,40 +310,41 @@ export default function Students() {
                   </TableHeader>
                   <TableBody>
                     {displayStudents.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-                          No team students found
-                        </TableCell>
-                      </TableRow>
+                     <TableRow>
+                       <TableCell colSpan={11} className="text-center py-8 text-gray-500">
+                         No team students found
+                       </TableCell>
+                     </TableRow>
                     ) : (
-                      displayStudents.map((student) => (
-                        <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
-                          <TableCell className="font-mono text-sm font-medium text-blue-600">
-                            {student.student_code}
-                          </TableCell>
-                          <TableCell className="font-medium">{student.full_name}</TableCell>
-                          <TableCell className="text-sm">{student.email}</TableCell>
-                          <TableCell className="text-sm font-mono">{student.phone}</TableCell>
-                          <TableCell className="text-sm">{student.country || '-'}</TableCell>
-                          <TableCell className="text-sm text-purple-600 font-medium">{student.primary_mentor_name}</TableCell>
-                          <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={getStatusColor(student.status)}>
-                              {student.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                     displayStudents.map((student) => (
+                       <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
+                         <TableCell className="font-mono text-sm font-medium text-blue-600">
+                           {student.student_code}
+                         </TableCell>
+                         <TableCell className="font-medium">{student.full_name}</TableCell>
+                         <TableCell className="text-sm">{student.email}</TableCell>
+                         <TableCell className="text-sm font-mono">{student.phone}</TableCell>
+                         <TableCell className="text-sm">{student.country || '-'}</TableCell>
+                         <TableCell className="text-sm font-mono">{student.user_id || '-'}</TableCell>
+                         <TableCell className="text-sm text-purple-600 font-medium">{student.primary_mentor_name}</TableCell>
+                         <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
+                         <TableCell>
+                           <Badge variant="outline" className={getStatusColor(student.status)}>
+                             {student.status}
+                           </Badge>
+                         </TableCell>
+                         <TableCell className="text-sm">
+                           {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
+                         </TableCell>
+                         <TableCell className="text-right">
+                           <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
+                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                               <Eye className="h-4 w-4" />
+                             </Button>
+                           </Link>
+                         </TableCell>
+                       </TableRow>
+                     ))
                     )}
                   </TableBody>
                 </Table>

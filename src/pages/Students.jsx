@@ -11,7 +11,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import StudentForm from "../components/students/StudentForm";
 import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
-import { Plus, Search, Eye, Users, UserCheck, Upload, Download } from "lucide-react";
+import { Plus, Search, Eye, Users, UserCheck, Upload, Download, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   canSubmitStudentRequest, 
   canEditStudent,
@@ -30,6 +34,11 @@ export default function Students() {
   const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('my');
+  const [filterMentor, setFilterMentor] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDateRange, setFilterDateRange] = useState('all');
+  const [customDateFrom, setCustomDateFrom] = useState(null);
+  const [customDateTo, setCustomDateTo] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -135,6 +144,26 @@ export default function Students() {
     );
   }
 
+  // Get unique mentors for filter
+  const uniqueMentors = [...new Set(students.map(s => s.primary_mentor_name))].filter(Boolean).sort();
+
+  // Get date range based on filter
+  const getDateRange = () => {
+    const now = new Date();
+    if (filterDateRange === 'weekly') {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return { from: weekAgo, to: now };
+    } else if (filterDateRange === 'monthly') {
+      const monthAgo = new Date(now);
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return { from: monthAgo, to: now };
+    } else if (filterDateRange === 'custom' && customDateFrom && customDateTo) {
+      return { from: customDateFrom, to: customDateTo };
+    }
+    return null;
+  };
+
   // Apply search filter
   let filteredStudents;
   if (isMentor) {
@@ -152,13 +181,35 @@ export default function Students() {
   } else {
     // Admins see all students
     filteredStudents = allStudents;
+    
+    // Apply search filter
     if (searchTerm) {
-      filteredStudents = allStudents.filter(s =>
+      filteredStudents = filteredStudents.filter(s =>
         s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+    }
+
+    // Apply mentor filter
+    if (filterMentor !== 'all') {
+      filteredStudents = filteredStudents.filter(s => s.primary_mentor_name === filterMentor);
+    }
+
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      filteredStudents = filteredStudents.filter(s => s.status === filterStatus);
+    }
+
+    // Apply date filter
+    const dateRange = getDateRange();
+    if (dateRange) {
+      filteredStudents = filteredStudents.filter(s => {
+        if (!s.created_date) return false;
+        const createdDate = new Date(s.created_date);
+        return createdDate >= dateRange.from && createdDate <= dateRange.to;
+      });
     }
   }
   
@@ -245,16 +296,104 @@ export default function Students() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        {/* Search and Filters */}
+        <Card className="border-gray-200">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name, code, email or phone..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Admin Filters */}
+              {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
+                <>
+                  {/* Mentor Filter */}
+                  <Select value={filterMentor} onValueChange={setFilterMentor}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by Mentor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Mentors</SelectItem>
+                      {uniqueMentors.map((mentor) => (
+                        <SelectItem key={mentor} value={mentor}>
+                          {mentor}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Status Filter */}
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-36">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="ACTIVE">Active</SelectItem>
+                      <SelectItem value="INACTIVE">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Date Filter */}
+                  <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+                    <SelectTrigger className="w-36">
+                      <SelectValue placeholder="Date Range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="weekly">Last 7 Days</SelectItem>
+                      <SelectItem value="monthly">Last 30 Days</SelectItem>
+                      <SelectItem value="custom">Custom Range</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Custom Date Pickers */}
+                  {filterDateRange === 'custom' && (
+                    <>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-36">
+                            {customDateFrom ? format(customDateFrom, 'MMM d, yyyy') : 'From Date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={customDateFrom}
+                            onSelect={setCustomDateFrom}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-36">
+                            {customDateTo ? format(customDateTo, 'MMM d, yyyy') : 'To Date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={customDateTo}
+                            onSelect={setCustomDateTo}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs (only for mentors) */}
         {isMentor ? (

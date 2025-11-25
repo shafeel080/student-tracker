@@ -230,17 +230,17 @@ export default function Students() {
                 Export
               </Button>
             )}
+            {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
+              <Button onClick={() => setShowBulkImportDialog(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                <Upload className="h-4 w-4 mr-2" />
+                Bulk Import
+              </Button>
+            )}
             {canCreate && (isMentor ? activeTab === 'my' : true) && (
-              <>
-                <Button onClick={() => setShowBulkImportDialog(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Bulk Import
-                </Button>
-                <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {isMentor ? 'Request Student' : 'Add Student'}
-                </Button>
-              </>
+              <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                {isMentor ? 'Request Student' : 'Add Student'}
+              </Button>
             )}
           </div>
         </div>

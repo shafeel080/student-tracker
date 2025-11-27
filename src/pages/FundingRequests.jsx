@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload, Download, CheckSquare, XSquare } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload, Download, CheckSquare, XSquare, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -311,6 +311,35 @@ export default function FundingRequests() {
       toast.success(`Successfully updated payment method for ${selectedIds.length} transactions`);
     } catch (error) {
       toast.error('Failed to bulk update payment method');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  // Bulk delete (super_admin only)
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) {
+      toast.error('No transactions selected');
+      return;
+    }
+
+    setIsBulkProcessing(true);
+    try {
+      const deletePromises = selectedIds.map(id => {
+        const transaction = transactions.find(t => t.id === id);
+        return base44.entities.FundingTransaction.delete(id).then(() => 
+          logAction('delete_funding_transaction', 'FundingTransaction', id, 
+            `Deleted transaction for ${transaction?.student_name}`, transaction, null)
+        );
+      });
+
+      await Promise.all(deletePromises);
+      queryClient.invalidateQueries(['funding-transactions']);
+      setSelectedIds([]);
+      setShowBulkDeleteDialog(false);
+      toast.success(`Successfully deleted ${selectedIds.length} transactions`);
+    } catch (error) {
+      toast.error('Failed to bulk delete transactions');
     } finally {
       setIsBulkProcessing(false);
     }

@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload, Download } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload, Download, CheckSquare, XSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import ProcessFundingDialog from "../components/funding/ProcessFundingDialog.jsx";
 import AddTransactionDialog from "../components/funding/AddTransactionDialog";
 import BulkImportDialog from "../components/funding/BulkImportDialog";
@@ -31,6 +32,8 @@ export default function FundingRequests() {
   const [showProcessDialog, setShowProcessDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -174,6 +177,93 @@ export default function FundingRequests() {
       id: selectedTransaction.id,
       data: updatedData
     });
+  };
+
+  // Bulk approval handlers
+  const pendingTransactions = filteredTransactions.filter(t => t.status === 'PENDING');
+  const selectedPendingIds = selectedIds.filter(id => 
+    pendingTransactions.some(t => t.id === id)
+  );
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedIds(pendingTransactions.map(t => t.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id, checked) => {
+    if (checked) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id));
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedPendingIds.length === 0) {
+      toast.error('No pending transactions selected');
+      return;
+    }
+
+    setIsBulkProcessing(true);
+    try {
+      const updatePromises = selectedPendingIds.map(id => {
+        const transaction = transactions.find(t => t.id === id);
+        return base44.entities.FundingTransaction.update(id, {
+          status: 'APPROVED',
+          approved_by_id: currentUser.id,
+          approved_by_name: currentUser.full_name,
+          approved_at: new Date().toISOString()
+        }).then(() => 
+          logAction('approve_funding_transaction', 'FundingTransaction', id, 
+            `Bulk approved transaction for ${transaction?.student_name}`, null, { status: 'APPROVED' })
+        );
+      });
+
+      await Promise.all(updatePromises);
+      queryClient.invalidateQueries(['funding-transactions']);
+      setSelectedIds([]);
+      toast.success(`Successfully approved ${selectedPendingIds.length} transactions`);
+    } catch (error) {
+      toast.error('Failed to bulk approve transactions');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedPendingIds.length === 0) {
+      toast.error('No pending transactions selected');
+      return;
+    }
+
+    setIsBulkProcessing(true);
+    try {
+      const updatePromises = selectedPendingIds.map(id => {
+        const transaction = transactions.find(t => t.id === id);
+        return base44.entities.FundingTransaction.update(id, {
+          status: 'REJECTED',
+          approved_by_id: currentUser.id,
+          approved_by_name: currentUser.full_name,
+          approved_at: new Date().toISOString(),
+          notes: 'Bulk rejected'
+        }).then(() => 
+          logAction('reject_funding_transaction', 'FundingTransaction', id, 
+            `Bulk rejected transaction for ${transaction?.student_name}`, null, { status: 'REJECTED' })
+        );
+      });
+
+      await Promise.all(updatePromises);
+      queryClient.invalidateQueries(['funding-transactions']);
+      setSelectedIds([]);
+      toast.success(`Successfully rejected ${selectedPendingIds.length} transactions`);
+    } catch (error) {
+      toast.error('Failed to bulk reject transactions');
+    } finally {
+      setIsBulkProcessing(false);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -370,13 +460,48 @@ export default function FundingRequests() {
         {/* Transactions Table */}
         <Card className="border-gray-200">
           <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
-            <CardTitle className="text-lg font-semibold tracking-tight">Funding Requests</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold tracking-tight">Funding Requests</CardTitle>
+              {/* Bulk Action Buttons */}
+              {['super_admin', 'broker_admin'].includes(currentUser.app_role) && selectedPendingIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">{selectedPendingIds.length} selected</span>
+                  <Button
+                    size="sm"
+                    onClick={handleBulkApprove}
+                    disabled={isBulkProcessing}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    <CheckSquare className="h-4 w-4 mr-1" />
+                    Bulk Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleBulkReject}
+                    disabled={isBulkProcessing}
+                  >
+                    <XSquare className="h-4 w-4 mr-1" />
+                    Bulk Reject
+                  </Button>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
+                    {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={pendingTransactions.length > 0 && selectedPendingIds.length === pendingTransactions.length}
+                          onCheckedChange={handleSelectAll}
+                          disabled={pendingTransactions.length === 0}
+                        />
+                      </TableHead>
+                    )}
                     <TableHead className="font-semibold">Requested</TableHead>
                     <TableHead className="font-semibold">Type</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -396,13 +521,23 @@ export default function FundingRequests() {
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={14} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={['super_admin', 'broker_admin'].includes(currentUser.app_role) ? 15 : 14} className="text-center py-8 text-gray-500">
                         No funding requests found
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredTransactions.map((transaction) => (
                       <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
+                        {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
+                          <TableCell>
+                            {transaction.status === 'PENDING' && (
+                              <Checkbox
+                                checked={selectedIds.includes(transaction.id)}
+                                onCheckedChange={(checked) => handleSelectOne(transaction.id, checked)}
+                              />
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell className="text-sm">
                           {transaction.requested_at
                             ? format(new Date(transaction.requested_at), 'MMM d, HH:mm')

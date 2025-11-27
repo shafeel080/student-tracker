@@ -33,6 +33,7 @@ export default function FundingRequests() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBulkUpdateDialog, setShowBulkUpdateDialog] = useState(false);
   const [bulkUpdatePaymentMethod, setBulkUpdatePaymentMethod] = useState('');
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showProcessDialog, setShowProcessDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -552,7 +553,7 @@ export default function FundingRequests() {
                   </Button>
                 </div>
               )}
-              {/* Bulk Update Payment Method - Super Admin Only */}
+              {/* Bulk Update Payment Method & Delete - Super Admin Only */}
               {currentUser.app_role === 'super_admin' && selectedIds.length > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">{selectedIds.length} selected</span>
@@ -565,6 +566,15 @@ export default function FundingRequests() {
                   >
                     <Edit className="h-4 w-4 mr-1" />
                     Bulk Update Payment
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowBulkDeleteDialog(true)}
+                    disabled={isBulkProcessing}
+                    variant="destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Bulk Delete
                   </Button>
                 </div>
               )}
@@ -794,6 +804,32 @@ export default function FundingRequests() {
                   className="bg-purple-600 hover:bg-purple-700"
                 >
                   {isBulkProcessing ? 'Updating...' : 'Update'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk Delete Dialog - Super Admin Only */}
+        <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirm Bulk Delete</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to delete {selectedIds.length} selected transaction(s)? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowBulkDeleteDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleBulkDelete}
+                  disabled={isBulkProcessing}
+                  variant="destructive"
+                >
+                  {isBulkProcessing ? 'Deleting...' : 'Delete'}
                 </Button>
               </div>
             </div>

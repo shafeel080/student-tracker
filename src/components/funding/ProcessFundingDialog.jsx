@@ -9,13 +9,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle } from "lucide-react";
 
-const PAYMENT_METHODS = [
+const DEPOSIT_PAYMENT_METHODS = [
   'AED TRANSFER',
   'UPI',
   'CARD PAYMENT',
   'USDT',
   'INR TRANSFER',
   'Cash deposit',
+  'Other'
+];
+
+const WITHDRAWAL_PAYMENT_METHODS = [
+  'AED TRANSFER',
+  'UPI',
+  'CARD PAYMENT',
+  'USDT',
+  'INR TRANSFER',
+  'Cash Withdrawal',
+  'Bank Withdrawal',
   'Other'
 ];
 
@@ -148,7 +159,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PAYMENT_METHODS.map((method) => (
+                  {(transaction?.type === 'WITHDRAWAL' ? WITHDRAWAL_PAYMENT_METHODS : DEPOSIT_PAYMENT_METHODS).map((method) => (
                     <SelectItem key={method} value={method}>
                       {method}
                     </SelectItem>

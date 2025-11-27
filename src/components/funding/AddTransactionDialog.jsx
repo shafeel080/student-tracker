@@ -10,13 +10,24 @@ import { Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import SearchableStudentSelect from '../common/SearchableStudentSelect';
 
-const PAYMENT_METHODS = [
+const DEPOSIT_PAYMENT_METHODS = [
   'AED TRANSFER',
   'UPI',
   'CARD PAYMENT',
   'USDT',
   'INR TRANSFER',
   'Cash deposit',
+  'Other'
+];
+
+const WITHDRAWAL_PAYMENT_METHODS = [
+  'AED TRANSFER',
+  'UPI',
+  'CARD PAYMENT',
+  'USDT',
+  'INR TRANSFER',
+  'Cash Withdrawal',
+  'Bank Withdrawal',
   'Other'
 ];
 
@@ -139,7 +150,7 @@ export default function AddTransactionDialog({ open, onClose, onSubmit, students
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PAYMENT_METHODS.map((method) => (
+                  {(formData.type === 'WITHDRAWAL' ? WITHDRAWAL_PAYMENT_METHODS : DEPOSIT_PAYMENT_METHODS).map((method) => (
                     <SelectItem key={method} value={method}>
                       {method}
                     </SelectItem>

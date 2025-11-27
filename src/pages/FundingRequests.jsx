@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, TrendingUp, TrendingDown, Eye, Edit, Plus, Upload, Download, CheckSquare, XSquare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import ProcessFundingDialog from "../components/funding/ProcessFundingDialog.jsx";
 import AddTransactionDialog from "../components/funding/AddTransactionDialog";
 import BulkImportDialog from "../components/funding/BulkImportDialog";
@@ -27,7 +29,10 @@ export default function FundingRequests() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [filterMentor, setFilterMentor] = useState('all');
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showBulkUpdateDialog, setShowBulkUpdateDialog] = useState(false);
+  const [bulkUpdatePaymentMethod, setBulkUpdatePaymentMethod] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showProcessDialog, setShowProcessDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -140,6 +145,9 @@ export default function FundingRequests() {
   if (filterMentor !== 'all') {
     filteredTransactions = filteredTransactions.filter(t => t.primary_mentor_name === filterMentor);
   }
+  if (filterPaymentMethod !== 'all') {
+    filteredTransactions = filteredTransactions.filter(t => t.payment_method === filterPaymentMethod);
+  }
   if (searchTerm) {
     const lowerSearch = searchTerm.toLowerCase();
     filteredTransactions = filteredTransactions.filter(t => {
@@ -155,6 +163,9 @@ export default function FundingRequests() {
 
   // Get unique mentors for filter
   const uniqueMentors = [...new Set(transactions.map(t => t.primary_mentor_name))].filter(Boolean);
+  
+  // Get unique payment methods for filter
+  const uniquePaymentMethods = [...new Set(transactions.map(t => t.payment_method))].filter(Boolean).sort();
 
   const canProcess = canProcessFundingTransaction(currentUser.app_role);
   const canCreate = canCreateFundingTransaction(currentUser.app_role);
@@ -261,6 +272,44 @@ export default function FundingRequests() {
       toast.success(`Successfully rejected ${selectedPendingIds.length} transactions`);
     } catch (error) {
       toast.error('Failed to bulk reject transactions');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  // Bulk update payment method (super_admin only)
+  const handleBulkUpdatePaymentMethod = async () => {
+    if (selectedIds.length === 0) {
+      toast.error('No transactions selected');
+      return;
+    }
+    if (!bulkUpdatePaymentMethod) {
+      toast.error('Please select a payment method');
+      return;
+    }
+
+    setIsBulkProcessing(true);
+    try {
+      const updatePromises = selectedIds.map(id => {
+        const transaction = transactions.find(t => t.id === id);
+        return base44.entities.FundingTransaction.update(id, {
+          payment_method: bulkUpdatePaymentMethod
+        }).then(() => 
+          logAction('update_funding_transaction', 'FundingTransaction', id, 
+            `Bulk updated payment method to ${bulkUpdatePaymentMethod} for ${transaction?.student_name}`, 
+            { payment_method: transaction?.payment_method }, 
+            { payment_method: bulkUpdatePaymentMethod })
+        );
+      });
+
+      await Promise.all(updatePromises);
+      queryClient.invalidateQueries(['funding-transactions']);
+      setSelectedIds([]);
+      setShowBulkUpdateDialog(false);
+      setBulkUpdatePaymentMethod('');
+      toast.success(`Successfully updated payment method for ${selectedIds.length} transactions`);
+    } catch (error) {
+      toast.error('Failed to bulk update payment method');
     } finally {
       setIsBulkProcessing(false);
     }
@@ -453,6 +502,21 @@ export default function FundingRequests() {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Payment Method Filter */}
+              <Select value={filterPaymentMethod} onValueChange={setFilterPaymentMethod}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Payment Method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Payment Methods</SelectItem>
+                  {uniquePaymentMethods.map((method) => (
+                    <SelectItem key={method} value={method}>
+                      {method}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
@@ -486,6 +550,22 @@ export default function FundingRequests() {
                   </Button>
                 </div>
               )}
+              {/* Bulk Update Payment Method - Super Admin Only */}
+              {currentUser.app_role === 'super_admin' && selectedIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">{selectedIds.length} selected</span>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowBulkUpdateDialog(true)}
+                    disabled={isBulkProcessing}
+                    variant="outline"
+                    className="border-purple-600 text-purple-600 hover:bg-purple-50"
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Bulk Update Payment
+                  </Button>
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -496,9 +576,19 @@ export default function FundingRequests() {
                     {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
                       <TableHead className="w-12">
                         <Checkbox
-                          checked={pendingTransactions.length > 0 && selectedPendingIds.length === pendingTransactions.length}
-                          onCheckedChange={handleSelectAll}
-                          disabled={pendingTransactions.length === 0}
+                          checked={
+                            currentUser.app_role === 'super_admin' 
+                              ? filteredTransactions.length > 0 && selectedIds.length === filteredTransactions.length
+                              : pendingTransactions.length > 0 && selectedPendingIds.length === pendingTransactions.length
+                          }
+                          onCheckedChange={(checked) => {
+                            if (currentUser.app_role === 'super_admin') {
+                              setSelectedIds(checked ? filteredTransactions.map(t => t.id) : []);
+                            } else {
+                              handleSelectAll(checked);
+                            }
+                          }}
+                          disabled={currentUser.app_role === 'super_admin' ? filteredTransactions.length === 0 : pendingTransactions.length === 0}
                         />
                       </TableHead>
                     )}
@@ -530,11 +620,18 @@ export default function FundingRequests() {
                       <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
                         {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
                           <TableCell>
-                            {transaction.status === 'PENDING' && (
+                            {currentUser.app_role === 'super_admin' ? (
                               <Checkbox
                                 checked={selectedIds.includes(transaction.id)}
                                 onCheckedChange={(checked) => handleSelectOne(transaction.id, checked)}
                               />
+                            ) : (
+                              transaction.status === 'PENDING' && (
+                                <Checkbox
+                                  checked={selectedIds.includes(transaction.id)}
+                                  onCheckedChange={(checked) => handleSelectOne(transaction.id, checked)}
+                                />
+                              )
                             )}
                           </TableCell>
                         )}
@@ -655,6 +752,51 @@ export default function FundingRequests() {
           students={students}
           users={users}
         />
+
+        {/* Bulk Update Payment Method Dialog - Super Admin Only */}
+        <Dialog open={showBulkUpdateDialog} onOpenChange={setShowBulkUpdateDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Bulk Update Payment Method</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Update payment method for {selectedIds.length} selected transaction(s)
+              </p>
+              <div className="space-y-2">
+                <Label>New Payment Method</Label>
+                <Select value={bulkUpdatePaymentMethod} onValueChange={setBulkUpdatePaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AED TRANSFER">AED TRANSFER</SelectItem>
+                    <SelectItem value="UPI">UPI</SelectItem>
+                    <SelectItem value="CARD PAYMENT">CARD PAYMENT</SelectItem>
+                    <SelectItem value="USDT">USDT</SelectItem>
+                    <SelectItem value="INR TRANSFER">INR TRANSFER</SelectItem>
+                    <SelectItem value="Cash deposit">Cash deposit</SelectItem>
+                    <SelectItem value="Cash Withdrawal">Cash Withdrawal</SelectItem>
+                    <SelectItem value="Bank Withdrawal">Bank Withdrawal</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowBulkUpdateDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleBulkUpdatePaymentMethod}
+                  disabled={isBulkProcessing || !bulkUpdatePaymentMethod}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {isBulkProcessing ? 'Updating...' : 'Update'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

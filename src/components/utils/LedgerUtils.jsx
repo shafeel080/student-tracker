@@ -6,13 +6,18 @@ export const getQuarterDates = (date) => {
   const month = d.getMonth();
   const quarter_number = Math.floor(month / 3) + 1;
   
-  const start_date = new Date(year, (quarter_number - 1) * 3, 1);
-  const end_date = new Date(year, quarter_number * 3, 0);
-  end_date.setHours(23, 59, 59, 999);
+  // Construct start date directly in UTC
+  const startMonth = (quarter_number - 1) * 3;
+  const start_date_obj = new Date(Date.UTC(year, startMonth, 1));
+  
+  // Construct end date directly in UTC
+  const endMonth = quarter_number * 3;
+  const end_date_obj = new Date(Date.UTC(year, endMonth, 0));
+  end_date_obj.setUTCHours(23, 59, 59, 999);
   
   return {
-    start_date: start_date.toISOString().split('T')[0],
-    end_date: end_date.toISOString().split('T')[0],
+    start_date: start_date_obj.toISOString().split('T')[0],
+    end_date: end_date_obj.toISOString().split('T')[0],
     quarter_number,
     year
   };

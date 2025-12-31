@@ -8,6 +8,7 @@ export const getQuarterDates = (date) => {
   
   const start_date = new Date(year, (quarter_number - 1) * 3, 1);
   const end_date = new Date(year, quarter_number * 3, 0);
+  end_date.setHours(23, 59, 59, 999);
   
   return {
     start_date: start_date.toISOString().split('T')[0],

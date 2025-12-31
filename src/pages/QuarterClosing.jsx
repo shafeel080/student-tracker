@@ -208,7 +208,7 @@ export default function QuarterClosing() {
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-700 mb-2">Period</div>
                 <div className="text-base font-semibold text-gray-900">
-                  {new Date(start_date).toLocaleDateString()} - {new Date(end_date).toLocaleDateString()}
+                  {new Date(start_date + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })} - {new Date(end_date + 'T23:59:59Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}
                 </div>
               </div>
 
@@ -222,7 +222,7 @@ export default function QuarterClosing() {
             </div>
             {!isQuarterEnded && (
               <p className="text-sm text-amber-600 mt-2">
-                ⚠️ Ledgers can only be generated after the quarter has ended (after {new Date(end_date).toLocaleDateString()})
+                ⚠️ Ledgers can only be generated after the quarter has ended (after {new Date(end_date + 'T23:59:59Z').toLocaleDateString('en-US', { timeZone: 'UTC' })})
               </p>
             )}
           </CardContent>

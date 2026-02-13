@@ -30,6 +30,8 @@ export const getQuarterLabel = (year, quarter_number) => {
 export const calculateQuarterNetDeposit = (mentorId, startDate, endDate, transactions) => {
   if (!transactions || !mentorId || !startDate || !endDate) return 0;
   
+  const MAX_NET_DEPOSIT_PER_STUDENT = 25000;
+  
   const start = new Date(startDate);
   const end = new Date(endDate);
   end.setHours(23, 59, 59, 999);
@@ -42,15 +44,30 @@ export const calculateQuarterNetDeposit = (mentorId, startDate, endDate, transac
     return requestedDate >= start && requestedDate <= end;
   });
   
-  const totalDeposits = relevantTransactions
-    .filter(t => t.type === 'DEPOSIT')
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+  // Group transactions by student
+  const studentNetDeposits = {};
   
-  const totalWithdrawals = relevantTransactions
-    .filter(t => t.type === 'WITHDRAWAL')
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+  relevantTransactions.forEach(t => {
+    const studentId = t.student_id;
+    if (!studentNetDeposits[studentId]) {
+      studentNetDeposits[studentId] = 0;
+    }
+    
+    if (t.type === 'DEPOSIT') {
+      studentNetDeposits[studentId] += (t.amount_usd || 0);
+    } else if (t.type === 'WITHDRAWAL') {
+      studentNetDeposits[studentId] -= (t.amount_usd || 0);
+    }
+  });
   
-  return totalDeposits - totalWithdrawals;
+  // Apply cap per student and sum
+  let totalCappedNetDeposit = 0;
+  Object.values(studentNetDeposits).forEach(netDeposit => {
+    const cappedAmount = Math.min(netDeposit, MAX_NET_DEPOSIT_PER_STUDENT);
+    totalCappedNetDeposit += Math.max(cappedAmount, 0); // Don't count negative net deposits
+  });
+  
+  return totalCappedNetDeposit;
 };
 
 export const calculateQuarterCommission = (netDeposit, bufferCarriedIn = 0) => {

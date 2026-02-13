@@ -528,6 +528,14 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                     onChange={(e) => setFormData({...formData, discount: parseFloat(e.target.value) || 0})}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Amount Collected By</Label>
+                  <Input
+                    value={formData.amount_collected_by}
+                    onChange={(e) => setFormData({...formData, amount_collected_by: e.target.value})}
+                    placeholder="Person name"
+                  />
+                </div>
                 <div className="space-y-2 col-span-2">
                   <Label>Payment History</Label>
                   <Textarea

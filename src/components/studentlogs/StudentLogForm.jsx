@@ -178,12 +178,21 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="contact" className="w-full">
-            <TabsList className="grid grid-cols-7 w-full">
+            <TabsList className="grid grid-cols-7 w-full mb-4">
               <TabsTrigger value="contact">Contact</TabsTrigger>
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="payment">Payment</TabsTrigger>
-              <TabsTrigger value="induction">Induction Status</TabsTrigger>
+              <TabsTrigger value="induction">Induction</TabsTrigger>
               <TabsTrigger value="academic">Academic</TabsTrigger>
+              <TabsTrigger value="upgrade">Upgrade</TabsTrigger>
+              <TabsTrigger value="convocation">Convocation</TabsTrigger>
+            </TabsList>
+            <TabsList className="grid grid-cols-7 w-full">
+              <TabsTrigger value="traders">Traders Day</TabsTrigger>
+              <TabsTrigger value="livetrade">Live Trade</TabsTrigger>
+              <TabsTrigger value="ssf">SSF</TabsTrigger>
+              <TabsTrigger value="rejoining">Rejoining</TabsTrigger>
+              <TabsTrigger value="seminar">Seminar</TabsTrigger>
               <TabsTrigger value="trading">Trading</TabsTrigger>
               <TabsTrigger value="engagement">Engagement</TabsTrigger>
             </TabsList>
@@ -672,6 +681,273 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
               </div>
             </TabsContent>
 
+            <TabsContent value="upgrade" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Upgrade Response</Label>
+                  <Select value={formData.upgrade_response} onValueChange={(v) => setFormData({...formData, upgrade_response: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Interested">Interested</SelectItem>
+                      <SelectItem value="Not Interested">Not Interested</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>If Not Interested Why</Label>
+                  <Input
+                    value={formData.upgrade_not_interested_reason}
+                    onChange={(e) => setFormData({...formData, upgrade_not_interested_reason: e.target.value})}
+                    placeholder="Reason"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Course to be Upgrade</Label>
+                  <Input
+                    value={formData.course_to_upgrade}
+                    onChange={(e) => setFormData({...formData, course_to_upgrade: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Date of Upgrade</Label>
+                  <Input
+                    type="date"
+                    value={formData.upgrade_date}
+                    onChange={(e) => setFormData({...formData, upgrade_date: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Month of Upgrade</Label>
+                  <Input
+                    value={formData.upgrade_month}
+                    onChange={(e) => setFormData({...formData, upgrade_month: e.target.value})}
+                    placeholder="e.g., January 2026"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="convocation" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Convocation</Label>
+                  <Input
+                    value={formData.convocation_status}
+                    onChange={(e) => setFormData({...formData, convocation_status: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Certificate Status (KHDA, Delta)</Label>
+                  <Input
+                    value={formData.certificate_status}
+                    onChange={(e) => setFormData({...formData, certificate_status: e.target.value})}
+                    placeholder="e.g., KHDA Approved"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Convocation Month</Label>
+                  <Input
+                    value={formData.convocation_month}
+                    onChange={(e) => setFormData({...formData, convocation_month: e.target.value})}
+                    placeholder="e.g., March 2026"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="traders" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={formData.invited_traders_dayout}
+                      onCheckedChange={(checked) => setFormData({...formData, invited_traders_dayout: checked})}
+                    />
+                    Invited for Traders Day Out
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>Reason for Invite</Label>
+                  <Input
+                    value={formData.traders_dayout_invite_reason}
+                    onChange={(e) => setFormData({...formData, traders_dayout_invite_reason: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>Outcome for Traders Dayout</Label>
+                  <Textarea
+                    value={formData.traders_dayout_outcome}
+                    onChange={(e) => setFormData({...formData, traders_dayout_outcome: e.target.value})}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="livetrade" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Trading Journal Management</Label>
+                  <Input
+                    value={formData.trading_journal_management}
+                    onChange={(e) => setFormData({...formData, trading_journal_management: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Journal Link</Label>
+                  <Input
+                    value={formData.trading_journal_link}
+                    onChange={(e) => setFormData({...formData, trading_journal_link: e.target.value})}
+                    placeholder="https://"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>How Many Live Trades Attended So Far</Label>
+                  <Input
+                    type="number"
+                    value={formData.live_trades_attended_count}
+                    onChange={(e) => setFormData({...formData, live_trades_attended_count: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Attended Live Trade</Label>
+                  <Input
+                    type="date"
+                    value={formData.last_attended_live_trade}
+                    onChange={(e) => setFormData({...formData, last_attended_live_trade: e.target.value})}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ssf" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={formData.potential_to_deposit}
+                      onCheckedChange={(checked) => setFormData({...formData, potential_to_deposit: checked})}
+                    />
+                    Is He Potential to Deposit
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={formData.easy_to_convince}
+                      onCheckedChange={(checked) => setFormData({...formData, easy_to_convince: checked})}
+                    />
+                    Easy to Convince
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>Total Loss from Trading</Label>
+                  <Input
+                    type="number"
+                    value={formData.total_loss_from_trading}
+                    onChange={(e) => setFormData({...formData, total_loss_from_trading: parseFloat(e.target.value) || 0})}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="rejoining" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Rejoining Response</Label>
+                  <Select value={formData.rejoining_response} onValueChange={(v) => setFormData({...formData, rejoining_response: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Interested">Interested</SelectItem>
+                      <SelectItem value="Not Interested">Not Interested</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Date of Rejoining</Label>
+                  <Input
+                    type="date"
+                    value={formData.rejoining_date}
+                    onChange={(e) => setFormData({...formData, rejoining_date: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>Measures Taken for Rejoining</Label>
+                  <Textarea
+                    value={formData.rejoining_measures}
+                    onChange={(e) => setFormData({...formData, rejoining_measures: e.target.value})}
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Rejoined Class</Label>
+                  <Input
+                    value={formData.rejoined_class}
+                    onChange={(e) => setFormData({...formData, rejoined_class: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Sales Person (Rejoining by Admin Team)</Label>
+                  <Input
+                    value={formData.rejoining_sales_person}
+                    onChange={(e) => setFormData({...formData, rejoining_sales_person: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>Rejoinees Feedback</Label>
+                  <Textarea
+                    value={formData.rejoinees_feedback}
+                    onChange={(e) => setFormData({...formData, rejoinees_feedback: e.target.value})}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="seminar" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Number of Seminars Attended</Label>
+                  <Input
+                    type="number"
+                    value={formData.seminars_attended_count}
+                    onChange={(e) => setFormData({...formData, seminars_attended_count: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>If Not Attended, Reason</Label>
+                  <Input
+                    value={formData.seminars_not_attended_reason}
+                    onChange={(e) => setFormData({...formData, seminars_not_attended_reason: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>List of Online Seminars Attended</Label>
+                  <Textarea
+                    value={formData.online_seminars_list}
+                    onChange={(e) => setFormData({...formData, online_seminars_list: e.target.value})}
+                    placeholder="List online seminars..."
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>List of Offline Seminars Attended</Label>
+                  <Textarea
+                    value={formData.offline_seminars_list}
+                    onChange={(e) => setFormData({...formData, offline_seminars_list: e.target.value})}
+                    placeholder="List offline seminars..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="trading" className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -689,21 +965,19 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label>Assets Traded</Label>
+                  <Input
+                    value={formData.assets_traded}
+                    onChange={(e) => setFormData({...formData, assets_traded: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>Current P/L</Label>
                   <Input
                     type="number"
                     value={formData.current_profit_loss}
                     onChange={(e) => setFormData({...formData, current_profit_loss: parseFloat(e.target.value) || 0})}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={formData.potential_to_deposit}
-                      onCheckedChange={(checked) => setFormData({...formData, potential_to_deposit: checked})}
-                    />
-                    Potential to Deposit
-                  </Label>
                 </div>
               </div>
             </TabsContent>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,6 +112,23 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingPassport, setUploadingPassport] = useState(false);
+
+  const { data: academicCounselors = [] } = useQuery({
+    queryKey: ['academic-counselors'],
+    queryFn: () => base44.entities.AcademicCounselor.list(),
+    initialData: []
+  });
+
+  const countries = [
+    "United Arab Emirates", "India", "Pakistan", "Bangladesh", "Philippines",
+    "United States", "United Kingdom", "Canada", "Australia", "Saudi Arabia",
+    "Kuwait", "Bahrain", "Qatar", "Oman", "Egypt", "Jordan", "Lebanon",
+    "Turkey", "Malaysia", "Singapore", "Indonesia", "Thailand", "China",
+    "Japan", "South Korea", "Germany", "France", "Italy", "Spain",
+    "Netherlands", "Belgium", "Switzerland", "Sweden", "Norway", "Denmark",
+    "Russia", "South Africa", "Nigeria", "Kenya", "Ghana", "Brazil",
+    "Argentina", "Mexico", "Other"
+  ].sort();
 
   useEffect(() => {
     if (log) {
@@ -400,6 +418,21 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label>Academic Counselors</Label>
+                  <Select value={formData.academic_counselors} onValueChange={(v) => setFormData({...formData, academic_counselors: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select counselor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {academicCounselors.filter(c => c.status === 'Active').map(counselor => (
+                        <SelectItem key={counselor.id} value={counselor.counselor_name}>
+                          {counselor.counselor_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>Mode of Study</Label>
                   <Select value={formData.mode_of_study} onValueChange={(v) => setFormData({...formData, mode_of_study: v})}>
                     <SelectTrigger>
@@ -409,6 +442,21 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                       <SelectItem value="Online">Online</SelectItem>
                       <SelectItem value="Offline">Offline</SelectItem>
                       <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Country of Attendance</Label>
+                  <Select value={formData.country_of_attendance} onValueChange={(v) => setFormData({...formData, country_of_attendance: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map(country => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

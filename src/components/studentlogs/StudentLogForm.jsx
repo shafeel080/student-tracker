@@ -178,10 +178,11 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="contact" className="w-full">
-            <TabsList className="grid grid-cols-6 w-full">
+            <TabsList className="grid grid-cols-7 w-full">
               <TabsTrigger value="contact">Contact</TabsTrigger>
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="payment">Payment</TabsTrigger>
+              <TabsTrigger value="induction">Induction Status</TabsTrigger>
               <TabsTrigger value="academic">Academic</TabsTrigger>
               <TabsTrigger value="trading">Trading</TabsTrigger>
               <TabsTrigger value="engagement">Engagement</TabsTrigger>
@@ -542,6 +543,40 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                     value={formData.payment_history}
                     onChange={(e) => setFormData({...formData, payment_history: e.target.value})}
                     rows={3}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="induction" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Induction</Label>
+                  <Select value={formData.induction_status} onValueChange={(v) => setFormData({...formData, induction_status: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Not Started">Not Started</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Induction Done By</Label>
+                  <Input
+                    value={formData.induction_done_by}
+                    onChange={(e) => setFormData({...formData, induction_done_by: e.target.value})}
+                    placeholder="Name of person"
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>Student Onboarding Document Status</Label>
+                  <Input
+                    value={formData.onboarding_document_status}
+                    onChange={(e) => setFormData({...formData, onboarding_document_status: e.target.value})}
+                    placeholder="Document status details"
                   />
                 </div>
               </div>

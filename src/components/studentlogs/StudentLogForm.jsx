@@ -194,7 +194,7 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
               <TabsTrigger value="rejoining">Rejoining</TabsTrigger>
               <TabsTrigger value="seminar">Seminar</TabsTrigger>
               <TabsTrigger value="practice">Practice Tracking</TabsTrigger>
-              <TabsTrigger value="trading">Trading</TabsTrigger>
+              <TabsTrigger value="feedback">Feedback & Review</TabsTrigger>
             </TabsList>
 
             {/* Contact Status Tab */}
@@ -1021,24 +1021,8 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
               </div>
             </TabsContent>
 
-            <TabsContent value="engagement" className="space-y-4 mt-4">
+            <TabsContent value="feedback" className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Practice Sessions Attended</Label>
-                  <Input
-                    type="number"
-                    value={formData.practice_sessions_attended}
-                    onChange={(e) => setFormData({...formData, practice_sessions_attended: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Seminars Attended</Label>
-                  <Input
-                    type="number"
-                    value={formData.seminars_attended_count}
-                    onChange={(e) => setFormData({...formData, seminars_attended_count: parseInt(e.target.value) || 0})}
-                  />
-                </div>
                 <div className="space-y-2 col-span-2">
                   <Label>Feedback</Label>
                   <Textarea

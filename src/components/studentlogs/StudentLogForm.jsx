@@ -193,8 +193,8 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
               <TabsTrigger value="ssf">SSF</TabsTrigger>
               <TabsTrigger value="rejoining">Rejoining</TabsTrigger>
               <TabsTrigger value="seminar">Seminar</TabsTrigger>
+              <TabsTrigger value="practice">Practice Tracking</TabsTrigger>
               <TabsTrigger value="trading">Trading</TabsTrigger>
-              <TabsTrigger value="engagement">Engagement</TabsTrigger>
             </TabsList>
 
             {/* Contact Status Tab */}
@@ -944,6 +944,45 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                     placeholder="List offline seminars..."
                     rows={3}
                   />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="practice" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Mentor Assigned (Last)</Label>
+                  <Input
+                    value={formData.mentor_assigned}
+                    onChange={(e) => setFormData({...formData, mentor_assigned: e.target.value})}
+                    placeholder="Mentor name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Practice Sessions Attended</Label>
+                  <Input
+                    type="number"
+                    value={formData.practice_sessions_attended}
+                    onChange={(e) => setFormData({...formData, practice_sessions_attended: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={formData.attended_senior_mentor_class}
+                      onCheckedChange={(checked) => setFormData({...formData, attended_senior_mentor_class: checked})}
+                    />
+                    Did the Student Attend Senior Mentor Class
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={formData.discussion_with_senior_mentor}
+                      onCheckedChange={(checked) => setFormData({...formData, discussion_with_senior_mentor: checked})}
+                    />
+                    Did the Client Have Discussion Session with Senior Mentors
+                  </Label>
                 </div>
               </div>
             </TabsContent>

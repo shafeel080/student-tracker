@@ -99,6 +99,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'MentorPerformance', href: createPageUrl('MentorPerformance'), icon: Award, roles: ['all'] },
     { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head', 'academic_admin'] },
     { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['all'] },
+    { name: 'StudentLogs', href: createPageUrl('StudentLogs'), icon: Users, roles: ['all'] },
     { name: 'MyStudentRequests', href: createPageUrl('MyStudentRequests'), icon: UserPlus, roles: ['junior_mentor', 'senior_mentor'] },
     { name: 'StudentRequestApprovals', href: createPageUrl('StudentRequestApprovals'), icon: UserPlus, roles: ['academic_head', 'broker_admin'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['all'] },

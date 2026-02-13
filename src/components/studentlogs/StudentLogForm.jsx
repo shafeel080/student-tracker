@@ -608,6 +608,30 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label>If Not Attended, Reason</Label>
+                  <Input
+                    value={formData.exam_not_attended_reason}
+                    onChange={(e) => setFormData({...formData, exam_not_attended_reason: e.target.value})}
+                    placeholder="Reason for not attending"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Exam Valuation Date</Label>
+                  <Input
+                    type="date"
+                    value={formData.exam_valuation_date}
+                    onChange={(e) => setFormData({...formData, exam_valuation_date: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Exam Evaluator</Label>
+                  <Input
+                    value={formData.exam_evaluator}
+                    onChange={(e) => setFormData({...formData, exam_evaluator: e.target.value})}
+                    placeholder="Evaluator name"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>Exam Marks</Label>
                   <Input
                     type="number"
@@ -627,6 +651,23 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                       <SelectItem value="Pending">Pending</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>If Failed, Assigned Mentor</Label>
+                  <Input
+                    value={formData.failed_assigned_mentor}
+                    onChange={(e) => setFormData({...formData, failed_assigned_mentor: e.target.value})}
+                    placeholder="Mentor name"
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>Reason for Failure</Label>
+                  <Textarea
+                    value={formData.failure_reason}
+                    onChange={(e) => setFormData({...formData, failure_reason: e.target.value})}
+                    placeholder="Detailed reason for failure"
+                    rows={3}
+                  />
                 </div>
               </div>
             </TabsContent>

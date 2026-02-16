@@ -23,6 +23,8 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
     app_role: 'junior_mentor',
     senior_mentor_id: '',
     senior_mentor_name: '',
+    assigned_mentor_id: '',
+    assigned_mentor_name: '',
     commission_rate: 4,
     upline_commission_percentage: 0
   });
@@ -35,6 +37,8 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
         app_role: user.app_role || 'junior_mentor',
         senior_mentor_id: user.senior_mentor_id || '',
         senior_mentor_name: user.senior_mentor_name || '',
+        assigned_mentor_id: user.assigned_mentor_id || '',
+        assigned_mentor_name: user.assigned_mentor_name || '',
         commission_rate: user.commission_rate || 4,
         upline_commission_percentage: user.upline_commission_percentage || 0
       });
@@ -47,6 +51,7 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
   };
 
   const seniorMentors = allUsers?.filter(u => u.app_role === 'senior_mentor') || [];
+  const allMentors = allUsers?.filter(u => ['senior_mentor', 'junior_mentor'].includes(u.app_role)) || [];
 
   const handleSeniorMentorChange = (mentorId) => {
     const mentor = seniorMentors.find(m => m.id === mentorId);
@@ -54,6 +59,15 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
       ...formData,
       senior_mentor_id: mentorId,
       senior_mentor_name: mentor?.full_name || ''
+    });
+  };
+
+  const handleAssignedMentorChange = (mentorId) => {
+    const mentor = allMentors.find(m => m.id === mentorId);
+    setFormData({
+      ...formData,
+      assigned_mentor_id: mentorId,
+      assigned_mentor_name: mentor?.full_name || ''
     });
   };
 
@@ -105,6 +119,8 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
                 <SelectItem value="academic_admin">Academic Admin</SelectItem>
                 <SelectItem value="senior_mentor">Senior Mentor</SelectItem>
                 <SelectItem value="junior_mentor">Junior Mentor</SelectItem>
+                <SelectItem value="finance_admin">Finance Admin</SelectItem>
+                <SelectItem value="assistance">Assistance</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -161,6 +177,28 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
                 placeholder="e.g., 1 for 1%"
               />
               <p className="text-xs text-gray-500 mt-1">Percentage given to senior mentor from this junior's net deposits</p>
+            </div>
+          )}
+
+          {formData.app_role === 'assistance' && (
+            <div>
+              <Label htmlFor="assigned_mentor">Assigned Mentor *</Label>
+              <Select
+                value={formData.assigned_mentor_id}
+                onValueChange={handleAssignedMentorChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select mentor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allMentors.map((mentor) => (
+                    <SelectItem key={mentor.id} value={mentor.id}>
+                      {mentor.full_name} ({mentor.app_role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">Students and funding requests will be associated with this mentor</p>
             </div>
           )}
 

@@ -108,6 +108,17 @@ export default function Students() {
   });
 
   const handleSubmit = (formData) => {
+    // For assistance users, auto-assign their mentor
+    if (currentUser.app_role === 'assistance' && currentUser.assigned_mentor_id) {
+      const mentorUser = users.find(u => u.id === currentUser.assigned_mentor_id);
+      formData.primary_mentor_id = currentUser.assigned_mentor_id;
+      formData.primary_mentor_name = currentUser.assigned_mentor_name;
+      if (mentorUser?.senior_mentor_id) {
+        formData.senior_mentor_id = mentorUser.senior_mentor_id;
+        formData.senior_mentor_name = mentorUser.senior_mentor_name;
+      }
+    }
+    
     if (isMentor) {
       createRequestMutation.mutate(formData);
     } else {
@@ -120,6 +131,7 @@ export default function Students() {
   const canCreate = canSubmitStudentRequest(currentUser.app_role);
   const isMentor = ['junior_mentor', 'senior_mentor'].includes(currentUser.app_role);
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
+  const isAssistance = currentUser.app_role === 'assistance';
 
   // Get mentor users for bulk import
   const mentorUsers = users.filter(u => 
@@ -127,12 +139,16 @@ export default function Students() {
   );
 
   // For mentors: filter students into My and Team
+  // For assistance: show only students of their assigned mentor
   // For admins: show all students
   let myStudents = [];
   let teamStudents = [];
   let allStudents = students;
 
-  if (isMentor) {
+  if (isAssistance && currentUser.assigned_mentor_id) {
+    // Assistance sees only students assigned to their mentor
+    allStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
+  } else if (isMentor) {
     // Filter MY students - students where I am the primary mentor
     myStudents = students.filter(s => s.primary_mentor_id === currentUser.id);
     
@@ -172,6 +188,18 @@ export default function Students() {
     
     if (searchTerm) {
       filteredStudents = activeStudents.filter(s =>
+        s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+  } else if (isAssistance) {
+    // Assistance users see filtered students
+    filteredStudents = allStudents;
+    
+    if (searchTerm) {
+      filteredStudents = filteredStudents.filter(s =>
         s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -290,7 +318,7 @@ export default function Students() {
             {canCreate && (isMentor ? activeTab === 'my' : true) && (
               <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
-                {isMentor ? 'Request Student' : 'Add Student'}
+                {isMentor ? 'Request Student' : isAssistance ? 'Add Student' : 'Add Student'}
               </Button>
             )}
           </div>
@@ -395,7 +423,7 @@ export default function Students() {
           </CardContent>
         </Card>
 
-        {/* Tabs (only for mentors) */}
+        {/* Tabs (only for mentors) OR single table for assistance/admins */}
         {isMentor ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: isSeniorMentor ? '1fr 1fr' : '1fr' }}>

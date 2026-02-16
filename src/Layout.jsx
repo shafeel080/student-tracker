@@ -104,7 +104,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'MyStudentRequests', href: createPageUrl('MyStudentRequests'), icon: UserPlus, roles: ['junior_mentor', 'senior_mentor'] },
     { name: 'StudentRequestApprovals', href: createPageUrl('StudentRequestApprovals'), icon: UserPlus, roles: ['academic_head', 'broker_admin'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['all'] },
-    { name: 'FundingActivities', href: createPageUrl('MyFundingRequests'), icon: DollarSign, roles: ['senior_mentor', 'junior_mentor'] },
+    { name: 'FundingActivities', href: createPageUrl('MyFundingRequests'), icon: DollarSign, roles: ['senior_mentor', 'junior_mentor', 'assistance'] },
     { name: 'FundingRequests', href: createPageUrl('FundingRequests'), icon: DollarSign, roles: ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'] },
     { name: 'MyTargets', href: createPageUrl('MyTargets'), icon: Target, roles: ['senior_mentor', 'junior_mentor'] },
     { name: 'TargetsManagement', href: createPageUrl('TargetsManagement'), icon: Target, roles: ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'] },

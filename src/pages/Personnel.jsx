@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -129,7 +128,9 @@ export default function Personnel() {
       academic_head: 'bg-blue-100 text-blue-800',
       academic_admin: 'bg-cyan-100 text-cyan-800',
       senior_mentor: 'bg-green-100 text-green-800',
-      junior_mentor: 'bg-yellow-100 text-yellow-800'
+      junior_mentor: 'bg-yellow-100 text-yellow-800',
+      finance_admin: 'bg-indigo-100 text-indigo-800',
+      assistance: 'bg-pink-100 text-pink-800'
     };
     return colors[role] || 'bg-gray-100 text-gray-800';
   };
@@ -213,6 +214,8 @@ export default function Personnel() {
                 <SelectItem value="academic_admin">Academic Admin</SelectItem>
                 <SelectItem value="senior_mentor">Senior Mentor</SelectItem>
                 <SelectItem value="junior_mentor">Junior Mentor</SelectItem>
+                <SelectItem value="finance_admin">Finance Admin</SelectItem>
+                <SelectItem value="assistance">Assistance</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -229,6 +232,7 @@ export default function Personnel() {
                 <TableHead>Commission Rate</TableHead>
                 <TableHead>Upline %</TableHead>
                 <TableHead>Senior Mentor</TableHead>
+                <TableHead>Assigned Mentor</TableHead>
                 <TableHead>Joined</TableHead>
                 {canEditPersonnel(currentUser.app_role) && <TableHead>Actions</TableHead>}
               </TableRow>
@@ -236,7 +240,7 @@ export default function Personnel() {
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -262,6 +266,9 @@ export default function Personnel() {
                     </TableCell>
                     <TableCell>
                       {user.senior_mentor_name || '-'}
+                    </TableCell>
+                    <TableCell>
+                      {user.assigned_mentor_name || '-'}
                     </TableCell>
                     <TableCell>
                       {new Date(user.created_date).toLocaleDateString()}

@@ -97,16 +97,28 @@ export default function MyFundingRequests() {
     );
   }
 
-  // Filter MY transactions - transactions where I am the primary mentor
-  const myTransactions = transactions.filter(t => t.primary_mentor_id === currentUser.id);
-  const myStudents = students.filter(s => s.primary_mentor_id === currentUser.id);
+  // Filter transactions based on user role
+  const isAssistance = currentUser.app_role === 'assistance';
+  
+  let myTransactions, myStudents, teamTransactions;
+  
+  if (isAssistance && currentUser.assigned_mentor_id) {
+    // Assistance users see transactions and students of their assigned mentor
+    myTransactions = transactions.filter(t => t.primary_mentor_id === currentUser.assigned_mentor_id);
+    myStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
+    teamTransactions = [];
+  } else {
+    // Filter MY transactions - transactions where I am the primary mentor
+    myTransactions = transactions.filter(t => t.primary_mentor_id === currentUser.id);
+    myStudents = students.filter(s => s.primary_mentor_id === currentUser.id);
 
-  // Filter TEAM transactions - transactions where I am senior mentor but NOT primary mentor
-  const teamTransactions = transactions.filter(t => 
-    currentUser.app_role === 'senior_mentor' && 
-    t.senior_mentor_id === currentUser.id &&
-    t.primary_mentor_id !== currentUser.id
-  );
+    // Filter TEAM transactions - transactions where I am senior mentor but NOT primary mentor
+    teamTransactions = transactions.filter(t => 
+      currentUser.app_role === 'senior_mentor' && 
+      t.senior_mentor_id === currentUser.id &&
+      t.primary_mentor_id !== currentUser.id
+    );
+  }
 
   // Calculate MY commission
   const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);

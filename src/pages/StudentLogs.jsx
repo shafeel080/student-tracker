@@ -71,11 +71,22 @@ export default function StudentLogs() {
     );
   }
 
+  // Filter logs based on user role
+  const isAssistance = currentUser.app_role === 'assistance';
+  let visibleLogs = logs;
+  
+  // If assistance, only show logs for students under their assigned mentor
+  if (isAssistance && currentUser.assigned_mentor_id) {
+    const mentorStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
+    const mentorStudentIds = new Set(mentorStudents.map(s => s.id));
+    visibleLogs = logs.filter(log => mentorStudentIds.has(log.student_id));
+  }
+  
   // Filter logs by search term
-  let filteredLogs = logs;
+  let filteredLogs = visibleLogs;
   if (searchTerm) {
     const lowerSearch = searchTerm.toLowerCase();
-    filteredLogs = logs.filter(log => 
+    filteredLogs = visibleLogs.filter(log => 
       log.student_name?.toLowerCase().includes(lowerSearch) ||
       log.student_code?.toLowerCase().includes(lowerSearch) ||
       log.email?.toLowerCase().includes(lowerSearch) ||

@@ -1,7 +1,7 @@
 // Utility functions for student access control based on user role
 
 export const canSubmitStudentRequest = (userRole) => {
-  return ['junior_mentor', 'senior_mentor', 'super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(userRole);
+  return ['junior_mentor', 'senior_mentor', 'super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'assistance'].includes(userRole);
 };
 
 export const canEditStudent = (userRole) => {

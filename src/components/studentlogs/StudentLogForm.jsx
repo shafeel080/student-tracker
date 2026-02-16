@@ -107,8 +107,14 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
     seminars_not_attended_reason: '',
     feedback: '',
     testimonial_done: false,
-    google_review: false
-  });
+    google_review: false,
+    subscribed_for_pipscraft: false,
+    pipscraft_subscription_date: '',
+    still_using_pipscraft: false,
+    pipscraft_satisfaction: 'Satisfied',
+    pipscraft_not_satisfied_reason: '',
+    pipscraft_subscribed_agent: ''
+    });
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingPassport, setUploadingPassport] = useState(false);
@@ -187,7 +193,7 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
               <TabsTrigger value="upgrade">Upgrade</TabsTrigger>
               <TabsTrigger value="convocation">Convocation</TabsTrigger>
             </TabsList>
-            <TabsList className="grid grid-cols-7 w-full">
+            <TabsList className="grid grid-cols-7 w-full mb-4">
               <TabsTrigger value="traders">Traders Day</TabsTrigger>
               <TabsTrigger value="livetrade">Live Trade</TabsTrigger>
               <TabsTrigger value="ssf">SSF</TabsTrigger>
@@ -195,6 +201,9 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
               <TabsTrigger value="seminar">Seminar</TabsTrigger>
               <TabsTrigger value="practice">Practice Tracking</TabsTrigger>
               <TabsTrigger value="feedback">Feedback & Review</TabsTrigger>
+            </TabsList>
+            <TabsList className="grid grid-cols-7 w-full">
+              <TabsTrigger value="pipscraft">Pips Craft</TabsTrigger>
             </TabsList>
 
             {/* Contact Status Tab */}
@@ -1051,7 +1060,67 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
                 </div>
               </div>
             </TabsContent>
-          </Tabs>
+
+            <TabsContent value="pipscraft" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={formData.subscribed_for_pipscraft}
+                      onCheckedChange={(checked) => setFormData({...formData, subscribed_for_pipscraft: checked})}
+                    />
+                    Subscribed for Pips Craft
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>When Subscribed for Pipscraft</Label>
+                  <Input
+                    type="date"
+                    value={formData.pipscraft_subscription_date}
+                    onChange={(e) => setFormData({...formData, pipscraft_subscription_date: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={formData.still_using_pipscraft}
+                      onCheckedChange={(checked) => setFormData({...formData, still_using_pipscraft: checked})}
+                    />
+                    Is the Client Still Using the Service
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>Is the Client Satisfied with Service</Label>
+                  <Select value={formData.pipscraft_satisfaction} onValueChange={(v) => setFormData({...formData, pipscraft_satisfaction: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Satisfied">Satisfied</SelectItem>
+                      <SelectItem value="Not Satisfied">Not Satisfied</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>If Not Satisfied, Why</Label>
+                  <Textarea
+                    value={formData.pipscraft_not_satisfied_reason}
+                    onChange={(e) => setFormData({...formData, pipscraft_not_satisfied_reason: e.target.value})}
+                    placeholder="Reason for not being satisfied..."
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pipscraft Subscribed Agent</Label>
+                  <Input
+                    value={formData.pipscraft_subscribed_agent}
+                    onChange={(e) => setFormData({...formData, pipscraft_subscribed_agent: e.target.value})}
+                    placeholder="Agent name"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+                </Tabs>
 
           <DialogFooter className="mt-6">
             <Button type="button" variant="outline" onClick={onClose}>

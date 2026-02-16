@@ -54,6 +54,21 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       return;
     }
 
+    // For assistance users, use their assigned mentor's data
+    let primaryMentorId, primaryMentorName, seniorMentorId, seniorMentorName;
+    
+    if (currentUser.app_role === 'assistance' && currentUser.assigned_mentor_id) {
+      primaryMentorId = currentUser.assigned_mentor_id;
+      primaryMentorName = currentUser.assigned_mentor_name;
+      seniorMentorId = selectedStudent.senior_mentor_id;
+      seniorMentorName = selectedStudent.senior_mentor_name;
+    } else {
+      primaryMentorId = selectedStudent.primary_mentor_id;
+      primaryMentorName = selectedStudent.primary_mentor_name;
+      seniorMentorId = selectedStudent.senior_mentor_id;
+      seniorMentorName = selectedStudent.senior_mentor_name;
+    }
+
     // Important: Don't pass upline_commission_percentage here
     // It will be fetched fresh in the mutation
     const dataToSubmit = {
@@ -62,10 +77,10 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       status: 'PENDING',
       student_name: selectedStudent.full_name,
       student_code: selectedStudent.student_code,
-      primary_mentor_id: selectedStudent.primary_mentor_id,
-      primary_mentor_name: selectedStudent.primary_mentor_name,
-      senior_mentor_id: selectedStudent.senior_mentor_id,
-      senior_mentor_name: selectedStudent.senior_mentor_name,
+      primary_mentor_id: primaryMentorId,
+      primary_mentor_name: primaryMentorName,
+      senior_mentor_id: seniorMentorId,
+      senior_mentor_name: seniorMentorName,
       requested_by_id: currentUser.id,
       requested_by_name: currentUser.full_name,
       requested_at: new Date().toISOString()

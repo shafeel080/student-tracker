@@ -144,7 +144,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/30 border-r border-gray-200 shadow-lg">
+      <aside className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/30 border-r border-gray-200 shadow-lg">
         <div className="flex flex-col flex-grow pt-6 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-6 mb-10">
             <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
@@ -220,7 +220,7 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Mobile header */}
-      <div className="lg:hidden bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+      <div className="md:hidden bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="flex items-center justify-between p-4">
           <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
@@ -286,7 +286,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="md:pl-64">
         <main>{children}</main>
       </div>
     </div>

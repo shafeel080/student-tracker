@@ -92,14 +92,14 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'finance_admin'] },
+    { name: 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'junior_mentor', 'senior_mentor', 'finance_admin'] },
     { name: 'AIInsights', href: createPageUrl('AIInsights'), icon: TrendingUp, roles: ['super_admin', 'broker_admin', 'academic_head'] },
     { name: 'MentorTraining', href: createPageUrl('MentorTraining'), icon: TrendingUp, roles: ['junior_mentor', 'senior_mentor'] },
-    { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Award, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'finance_admin'] },
-    { name: 'MentorPerformance', href: createPageUrl('MentorPerformance'), icon: Award, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'finance_admin'] },
-    { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head', 'academic_admin'] },
-    { name: 'AcademicCounselors', href: createPageUrl('AcademicCounselors'), icon: Users, roles: ['academic_head', 'academic_admin', 'super_admin'] },
-    { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'assistance'] },
+    { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Award, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'junior_mentor', 'senior_mentor', 'finance_admin'] },
+    { name: 'MentorPerformance', href: createPageUrl('MentorPerformance'), icon: Award, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'junior_mentor', 'senior_mentor', 'finance_admin'] },
+    { name: 'Personnel', href: createPageUrl('Personnel'), icon: Users, roles: ['super_admin', 'admin', 'academic_head'] },
+    { name: 'AcademicCounselors', href: createPageUrl('AcademicCounselors'), icon: Users, roles: ['academic_head', 'super_admin'] },
+    { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'junior_mentor', 'senior_mentor', 'assistance'] },
     { name: 'StudentLogs', href: createPageUrl('StudentLogs'), icon: Users, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'assistance'] },
     { name: 'MyStudentRequests', href: createPageUrl('MyStudentRequests'), icon: UserPlus, roles: ['junior_mentor', 'senior_mentor'] },
     { name: 'StudentRequestApprovals', href: createPageUrl('StudentRequestApprovals'), icon: UserPlus, roles: ['academic_head', 'broker_admin'] },

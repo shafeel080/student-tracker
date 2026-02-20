@@ -48,7 +48,19 @@ export default function Personnel() {
 
   const { data: allUsers = [], isLoading } = useQuery({
     queryKey: ['all-users'],
-    queryFn: () => base44.entities.User.list('-created_date', 1000),
+    queryFn: async () => {
+      // Fetch users based on current user's role
+      if (['super_admin'].includes(currentUser?.app_role)) {
+        return base44.entities.User.list('-created_date', 1000);
+      } else {
+        // For other roles, fetch specific role types they can see
+        const roles = ['junior_mentor', 'senior_mentor', 'academic_head', 'academic_admin', 'broker_admin', 'finance_admin', 'assistance'];
+        const usersByRole = await Promise.all(
+          roles.map(role => base44.entities.User.filter({ app_role: role }, '-created_date', 1000))
+        );
+        return usersByRole.flat();
+      }
+    },
     enabled: !!currentUser
   });
 

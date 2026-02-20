@@ -761,6 +761,7 @@ export default function Students() {
                 onCancel={() => setShowAddDialog(false)}
                 isSubmitting={createMutation.isPending}
                 users={users}
+                currentUser={currentUser}
               />
             )}
           </DialogContent>

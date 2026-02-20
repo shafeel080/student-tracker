@@ -75,7 +75,13 @@ export default function Dashboard() {
   const filteredStudents = canViewAllStudents(currentUser.app_role)
     ? students
     : currentUser.app_role === 'academic_admin'
-    ? students.filter(s => s.created_by === currentUser.email)
+    ? (() => {
+        // Academic admin sees students from their approved requests
+        const approvedRequestStudentIds = studentRequests
+          .filter(r => r.requested_by_id === currentUser.id && r.created_student_id)
+          .map(r => r.created_student_id);
+        return students.filter(s => approvedRequestStudentIds.includes(s.id));
+      })()
     : isMentorRole(currentUser.app_role)
     ? students.filter(s => {
         if (currentUser.app_role === 'senior_mentor') {

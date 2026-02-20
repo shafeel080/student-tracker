@@ -216,7 +216,7 @@ export default function Students() {
   // Apply search filter
   let filteredStudents;
   if (isMentor) {
-    const activeStudents = activeTab === 'my' ? myStudents : teamStudents;
+    const activeStudents = activeTab === 'my' ? myStudents : activeTab === 'team' ? teamStudents : openPoolStudents;
     filteredStudents = activeStudents;
     
     if (searchTerm) {

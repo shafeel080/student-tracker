@@ -175,13 +175,17 @@ export default function Students() {
 
   // For mentors: filter students into My, Team, and Open Pool
   // For assistance: show only students of their assigned mentor
+  // For academic_admin: show only students they created
   // For admins: show all students + open pool tab
   let myStudents = [];
   let teamStudents = [];
   let openPoolStudents = [];
   let allStudents = students;
 
-  if (isAssistance && currentUser.assigned_mentor_id) {
+  if (isAcademicAdmin) {
+    // Academic admin sees only students they created
+    allStudents = students.filter(s => s.created_by === currentUser.email);
+  } else if (isAssistance && currentUser.assigned_mentor_id) {
     // Assistance sees only students assigned to their mentor
     allStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
   } else if (isMentor) {

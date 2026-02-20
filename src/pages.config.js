@@ -74,6 +74,7 @@ import TargetsManagement from './pages/TargetsManagement';
 import Tickets from './pages/Tickets';
 import Transactions from './pages/Transactions';
 import RetentionManagement from './pages/RetentionManagement';
+import RetentionDashboard from './pages/RetentionDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -105,6 +106,7 @@ export const PAGES = {
     "Tickets": Tickets,
     "Transactions": Transactions,
     "RetentionManagement": RetentionManagement,
+    "RetentionDashboard": RetentionDashboard,
 }
 
 export const pagesConfig = {

@@ -399,18 +399,31 @@ export default function StudentRequestApprovals() {
               <DialogTitle>Approve Student Request</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <p>Are you sure you want to approve this student registration request?</p>
+              <p>Are you sure you want to approve this student {selectedRequest?.request_type === 'OPEN_POOL_ASSIGNMENT' ? 'assignment' : 'registration'} request?</p>
               {selectedRequest && (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg space-y-2 text-sm border border-blue-200">
-                    <p className="font-semibold text-blue-900">New Request Details:</p>
-                    <p><strong>Name:</strong> {selectedRequest.full_name}</p>
-                    <p><strong>Email:</strong> {selectedRequest.email}</p>
-                    <p><strong>Primary Mentor:</strong> {selectedRequest.requested_primary_mentor_name}</p>
-                    {selectedRequest.requested_senior_mentor_name && (
-                      <p><strong>Senior Mentor:</strong> {selectedRequest.requested_senior_mentor_name}</p>
-                    )}
-                  </div>
+                  {selectedRequest.request_type === 'OPEN_POOL_ASSIGNMENT' && (
+                    <div className="bg-green-50 p-4 rounded-lg space-y-2 text-sm border border-green-200">
+                      <p className="font-semibold text-green-900">Open Pool Assignment:</p>
+                      <p><strong>Student:</strong> {selectedRequest.full_name}</p>
+                      <p><strong>Email:</strong> {selectedRequest.email}</p>
+                      <p><strong>Assign to:</strong> {selectedRequest.requested_primary_mentor_name}</p>
+                      {selectedRequest.requested_senior_mentor_name && (
+                        <p><strong>Senior Mentor:</strong> {selectedRequest.requested_senior_mentor_name}</p>
+                      )}
+                    </div>
+                  )}
+                  {selectedRequest.request_type !== 'OPEN_POOL_ASSIGNMENT' && (
+                    <div className="bg-blue-50 p-4 rounded-lg space-y-2 text-sm border border-blue-200">
+                      <p className="font-semibold text-blue-900">New Request Details:</p>
+                      <p><strong>Name:</strong> {selectedRequest.full_name}</p>
+                      <p><strong>Email:</strong> {selectedRequest.email}</p>
+                      <p><strong>Primary Mentor:</strong> {selectedRequest.requested_primary_mentor_name}</p>
+                      {selectedRequest.requested_senior_mentor_name && (
+                        <p><strong>Senior Mentor:</strong> {selectedRequest.requested_senior_mentor_name}</p>
+                      )}
+                    </div>
+                  )}
                   
                   {duplicateStudent && (
                     <div className="bg-amber-50 p-4 rounded-lg space-y-2 text-sm border border-amber-200">

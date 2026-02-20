@@ -113,15 +113,10 @@ export default function Personnel() {
     );
   }
 
-  const filteredUsers = allUsers.filter(user => {
+  const baseAccessibleUsers = filterPersonnelByRole(currentUser, allUsers);
+
+  const filteredUsers = baseAccessibleUsers.filter(user => {
     const userRole = user.app_role || user.data?.app_role;
-    
-    // Check if user is accessible by current user
-    if (!['super_admin', 'admin'].includes(currentUser.app_role)) {
-      const isAccessibleRole = ['academic_head', 'academic_admin', 'senior_mentor', 'junior_mentor', 'subjunior_mentor', 'assistance'].includes(userRole);
-      if (!isAccessibleRole) return false;
-    }
-    
     const matchesSearch = 
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase());

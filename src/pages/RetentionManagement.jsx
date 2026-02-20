@@ -134,26 +134,30 @@ export default function RetentionManagement() {
               </div>
             </CardContent>
           </Card>
-        ) : pendingAssignments.length > 0 ? (
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
-              <Clock className="h-5 w-5 text-blue-600" />
-              <p className="text-blue-700">{pendingAssignments.length} student{pendingAssignments.length !== 1 ? 's' : ''} awaiting assignment</p>
-            </div>
+        ) : (
+          <>
+            {pendingAssignments.length > 0 && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  <p className="text-blue-700">{pendingAssignments.length} student{pendingAssignments.length !== 1 ? 's' : ''} awaiting assignment</p>
+                </div>
 
-            {pendingAssignments.map((assignment) => (
-              <AssignmentCard
-                key={assignment.id}
-                assignment={assignment}
-                drawAdmins={drawAdmins}
-                onAssign={(drawAdminId, drawAdminName) =>
-                  assignMutation.mutate({ assignmentId: assignment.id, drawAdminId, drawAdminName })
-                }
-                isLoading={assignMutation.isPending}
-              />
-            ))}
-          </div>
-        ) : null}
+                {pendingAssignments.map((assignment) => (
+                  <AssignmentCard
+                    key={assignment.id}
+                    assignment={assignment}
+                    drawAdmins={drawAdmins}
+                    onAssign={(drawAdminId, drawAdminName) =>
+                      assignMutation.mutate({ assignmentId: assignment.id, drawAdminId, drawAdminName })
+                    }
+                    isLoading={assignMutation.isPending}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         {eligibleStudents.length > 0 && (
           <div className="mt-12">

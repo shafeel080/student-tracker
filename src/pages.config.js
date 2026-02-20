@@ -69,10 +69,10 @@ import QuarterClosing from './pages/QuarterClosing';
 import StudentDetail from './pages/StudentDetail';
 import StudentLogs from './pages/StudentLogs';
 import StudentRequestApprovals from './pages/StudentRequestApprovals';
-import Students from './pages/Students';
 import TargetsManagement from './pages/TargetsManagement';
 import Tickets from './pages/Tickets';
 import Transactions from './pages/Transactions';
+import Students from './pages/Students';
 import __Layout from './Layout.jsx';
 
 
@@ -99,10 +99,10 @@ export const PAGES = {
     "StudentDetail": StudentDetail,
     "StudentLogs": StudentLogs,
     "StudentRequestApprovals": StudentRequestApprovals,
-    "Students": Students,
     "TargetsManagement": TargetsManagement,
     "Tickets": Tickets,
     "Transactions": Transactions,
+    "Students": Students,
 }
 
 export const pagesConfig = {

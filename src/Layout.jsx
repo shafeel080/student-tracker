@@ -186,9 +186,10 @@ export default function Layout({ children, currentPageName }) {
               const showBadge = 
                 (item.name === 'FundingRequests' && pendingCounts.fundingRequests > 0) ||
                 (item.name === 'StudentRequestApprovals' && pendingCounts.studentRequests > 0) ||
-                (item.name === 'Tickets' && pendingCounts.tickets > 0);
+                (item.name === 'Tickets' && pendingCounts.tickets > 0) ||
+                (item.name === 'RetentionManagement' && pendingCounts.retention > 0);
 
-              return (
+               return (
                 <Link
                   key={item.name}
                   to={item.href}
@@ -256,7 +257,8 @@ export default function Layout({ children, currentPageName }) {
               const showBadge = 
                 (item.name === 'FundingRequests' && pendingCounts.fundingRequests > 0) ||
                 (item.name === 'StudentRequestApprovals' && pendingCounts.studentRequests > 0) ||
-                (item.name === 'Tickets' && pendingCounts.tickets > 0);
+                (item.name === 'Tickets' && pendingCounts.tickets > 0) ||
+                (item.name === 'RetentionManagement' && pendingCounts.retention > 0);
 
               return (
                 <Link

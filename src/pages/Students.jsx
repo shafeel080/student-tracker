@@ -160,7 +160,8 @@ export default function Students() {
       }
     }
     
-    if (isMentor) {
+    // Mentors and academic_admin submit requests for approval
+    if (isMentor || isAcademicAdmin) {
       createRequestMutation.mutate(formData);
     } else {
       createMutation.mutate(formData);

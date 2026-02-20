@@ -235,7 +235,8 @@ export default function StudentRequestApprovals() {
         primary_mentor_id: selectedRequest.requested_primary_mentor_id,
         primary_mentor_name: selectedRequest.requested_primary_mentor_name,
         senior_mentor_id: selectedRequest.requested_senior_mentor_id,
-        senior_mentor_name: selectedRequest.requested_senior_mentor_name
+        senior_mentor_name: selectedRequest.requested_senior_mentor_name,
+        assignment_status: 'assigned'
       });
 
       // Mark request as transferred

@@ -170,7 +170,7 @@ export default function Students() {
 
   // For mentors: filter students into My, Team, and Open Pool
   // For assistance: show only students of their assigned mentor
-  // For admins: show all students
+  // For admins: show all students + open pool tab
   let myStudents = [];
   let teamStudents = [];
   let openPoolStudents = [];
@@ -191,6 +191,9 @@ export default function Students() {
     );
     
     // Filter OPEN POOL students - students without assigned mentors
+    openPoolStudents = students.filter(s => s.assignment_status === 'open_pool');
+  } else if (isAdmin) {
+    // Admins see open pool students in separate tab
     openPoolStudents = students.filter(s => s.assignment_status === 'open_pool');
   }
 

@@ -53,7 +53,7 @@ export default function TargetsManagement() {
     queryKey: ['users'],
     queryFn: async () => {
       // Fetch users based on current user's role
-      if (['super_admin', 'admin'].includes(currentUser?.app_role)) {
+      if (['super_admin', 'admin', 'academic_head'].includes(currentUser?.app_role)) {
         return base44.entities.User.list();
       } else {
         // For other roles, fetch specific role types they can see

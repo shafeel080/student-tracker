@@ -101,15 +101,6 @@ export default function RetentionManagement() {
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending_assignment');
   
-  // Calculate net deposits for each student from funding transactions
-  const studentNetDeposits = {};
-  fundingTransactions.forEach(tx => {
-    if (tx.status === 'APPROVED') {
-      const amount = tx.type === 'DEPOSIT' ? tx.amount_usd : -tx.amount_usd;
-      studentNetDeposits[tx.student_id] = (studentNetDeposits[tx.student_id] || 0) + amount;
-    }
-  });
-
   // Find students with 25K+ deposit who don't have retention assignments yet
   const eligibleStudents = students.filter(student => {
     const netDeposit = student.net_deposit_usd || studentNetDeposits[student.id] || 0;

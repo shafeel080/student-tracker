@@ -25,7 +25,7 @@ export const filterPersonnelByRole = (currentUser, allUsers) => {
   // Academic Head and Academic Admin see academic staff and mentors
   if (['academic_head', 'academic_admin'].includes(role)) {
     return allUsers.filter(u => 
-      ['academic_head', 'academic_admin', 'senior_mentor', 'junior_mentor'].includes(u.app_role)
+      ['academic_head', 'academic_admin', 'senior_mentor', 'junior_mentor', 'subjunior_mentor', 'assistance'].includes(u.app_role)
     );
   }
   

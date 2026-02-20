@@ -26,6 +26,7 @@ export default function StudentRequestApprovals() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [duplicateStudent, setDuplicateStudent] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [userId, setUserId] = useState('');
 
   const queryClient = useQueryClient();
 

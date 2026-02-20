@@ -73,19 +73,17 @@ export default function RetentionManagement() {
   });
 
   const createRetentionMutation = useMutation({
-    mutationFn: (student) => {
-      const netDeposit = student.net_deposit_usd || studentNetDeposits[student.id] || 0;
-      return base44.entities.RetentionAssignment.create({
+    mutationFn: (student) =>
+      base44.entities.RetentionAssignment.create({
         student_id: student.id,
         student_code: student.student_code,
         student_name: student.full_name,
         primary_mentor_id: student.primary_mentor_id,
         primary_mentor_name: student.primary_mentor_name,
-        net_deposit_usd: netDeposit,
+        net_deposit_usd: student.net_deposit_usd,
         status: 'pending_assignment',
         threshold_crossed_date: new Date().toISOString()
-      });
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['retentionAssignments'] });
     }
@@ -237,28 +235,6 @@ export default function RetentionManagement() {
 function AssignmentCard({ assignment, drawAdmins, onAssign, isLoading }) {
   const [selectedDrawAdmin, setSelectedDrawAdmin] = useState('');
 
-  if (!drawAdmins || drawAdmins.length === 0) {
-    return (
-      <Card className="bg-white border-l-4 border-orange-500">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Student Name</p>
-              <p className="text-lg font-semibold text-gray-900">{assignment.student_name}</p>
-              <p className="text-sm text-gray-600">{assignment.student_code}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Deposit Amount</p>
-              <p className="text-lg font-semibold text-green-600">${assignment.net_deposit_usd?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}</p>
-              <p className="text-sm text-gray-600">Primary Mentor: {assignment.primary_mentor_name}</p>
-            </div>
-            <div className="text-sm text-red-600">No Draw Admins available</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="bg-white border-l-4 border-orange-500">
       <CardContent className="pt-6">
@@ -270,7 +246,7 @@ function AssignmentCard({ assignment, drawAdmins, onAssign, isLoading }) {
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Deposit Amount</p>
-            <p className="text-lg font-semibold text-green-600">${assignment.net_deposit_usd?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}</p>
+            <p className="text-lg font-semibold text-green-600">${assignment.net_deposit_usd.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
             <p className="text-sm text-gray-600">Primary Mentor: {assignment.primary_mentor_name}</p>
           </div>
           <div>

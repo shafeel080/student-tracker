@@ -153,6 +153,7 @@ export default function StudentRequestApprovals() {
             phone: selectedRequest.phone,
             country: selectedRequest.country,
             notes: selectedRequest.notes,
+            user_id: userId || undefined,
             primary_mentor_id: selectedRequest.requested_primary_mentor_id,
             primary_mentor_name: selectedRequest.requested_primary_mentor_name,
             senior_mentor_id: selectedRequest.requested_senior_mentor_id,

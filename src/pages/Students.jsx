@@ -558,7 +558,8 @@ export default function Students() {
                 </TableBody>
               </Table>
             </div>
-          </TabsContent>}
+          </TabsContent>
+          )}
 
           {/* Team Students Tab (Senior Mentors Only) */}
           {isSeniorMentor && (

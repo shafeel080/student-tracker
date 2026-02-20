@@ -562,8 +562,8 @@ export default function Students() {
               </TabsContent>
             )}
 
-          {/* Team Students Tab (Senior Mentors Only) */}
-          {isSeniorMentor && (
+            {/* Team Students Tab (Senior Mentors Only) */}
+            {isSeniorMentor && (
             <TabsContent value="team">
               <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
                 <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-200">

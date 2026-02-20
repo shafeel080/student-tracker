@@ -277,7 +277,7 @@ export default function Personnel() {
                         : '-'}
                     </TableCell>
                     <TableCell>
-                      {user.senior_mentor_name || '-'}
+                      {user.app_role === 'senior_mentor' ? (user.senior_mentor_name || '-') : '-'}
                     </TableCell>
                     <TableCell>
                       {user.assigned_mentor_name || '-'}

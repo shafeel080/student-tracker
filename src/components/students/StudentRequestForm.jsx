@@ -21,12 +21,16 @@ export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, u
 
   useEffect(() => {
     if (currentUser && primaryMentorId === currentUser.id) {
-      // Get senior mentor info for current user
-      const seniorMentor = users.find(u => u.id === currentUser.senior_mentor_id);
-      setSeniorMentorInfo({
-        id: currentUser.senior_mentor_id || null,
-        name: currentUser.senior_mentor_name || seniorMentor?.full_name || null
-      });
+      // Only senior mentors should have senior mentor info (not junior or subjunior)
+      if (currentUser.app_role === 'senior_mentor') {
+        const seniorMentor = users.find(u => u.id === currentUser.senior_mentor_id);
+        setSeniorMentorInfo({
+          id: currentUser.senior_mentor_id || null,
+          name: currentUser.senior_mentor_name || seniorMentor?.full_name || null
+        });
+      } else {
+        setSeniorMentorInfo(null);
+      }
     }
   }, [currentUser, primaryMentorId, users]);
 

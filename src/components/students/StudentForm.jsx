@@ -169,7 +169,7 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
                 <SelectContent>
                   {allMentors.map((mentor) => (
                     <SelectItem key={mentor.id} value={mentor.id}>
-                      {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : 'Senior'})
+                      {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : mentor.app_role === 'subjunior_mentor' ? 'Sub Junior' : 'Senior'})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -182,8 +182,10 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
                 value={
                   (() => {
                     const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
-                    if (primaryMentor?.app_role === 'junior_mentor' && primaryMentor.senior_mentor_name) {
+                    if (primaryMentor?.app_role === 'senior_mentor' && primaryMentor.senior_mentor_name) {
                       return primaryMentor.senior_mentor_name;
+                    } else if (['junior_mentor', 'subjunior_mentor'].includes(primaryMentor?.app_role)) {
+                      return 'None';
                     } else if (primaryMentor?.app_role === 'senior_mentor') {
                       return 'None (Primary is Senior)';
                     }

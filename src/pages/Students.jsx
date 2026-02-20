@@ -626,6 +626,76 @@ export default function Students() {
             </TabsContent>
           )}
 
+          {/* All Students Tab (Admins Only) */}
+          {isAdmin && (
+            <TabsContent value="all">
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                <div className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
+                    <Users className="h-5 w-5 text-blue-600" />
+                    All Students ({displayStudents.length})
+                  </h3>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">Student Code</TableHead>
+                      <TableHead className="font-semibold">Full Name</TableHead>
+                      <TableHead className="font-semibold">Email</TableHead>
+                      <TableHead className="font-semibold">Phone</TableHead>
+                      <TableHead className="font-semibold">Country</TableHead>
+                      <TableHead className="font-semibold">User ID</TableHead>
+                      <TableHead className="font-semibold">Primary Mentor</TableHead>
+                      <TableHead className="font-semibold">Senior Mentor</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Created</TableHead>
+                      <TableHead className="font-semibold text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayStudents.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={11} className="text-center py-8 text-gray-500">
+                          No students found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      displayStudents.map((student) => (
+                        <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="font-mono text-sm font-medium text-blue-600">
+                            {student.student_code}
+                          </TableCell>
+                          <TableCell className="font-medium">{student.full_name}</TableCell>
+                          <TableCell className="text-sm">{student.email}</TableCell>
+                          <TableCell className="text-sm font-mono">{student.phone}</TableCell>
+                          <TableCell className="text-sm">{student.country || '-'}</TableCell>
+                          <TableCell className="text-sm font-mono">{student.user_id || '-'}</TableCell>
+                          <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
+                          <TableCell className="text-sm">{student.senior_mentor_name || '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getStatusColor(student.status)}>
+                              {student.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+          )}
+
           {/* Open Pool Students Tab */}
           <TabsContent value="open_pool">
             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -647,13 +717,13 @@ export default function Students() {
                     <TableHead className="font-semibold">User ID</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="font-semibold">Created</TableHead>
-                    <TableHead className="font-semibold text-right">Actions</TableHead>
+                    {isMentor && <TableHead className="font-semibold text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayStudents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={isMentor ? 9 : 8} className="text-center py-8 text-gray-500">
                         No open pool students available
                       </TableCell>
                     </TableRow>
@@ -676,16 +746,18 @@ export default function Students() {
                         <TableCell className="text-sm">
                           {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            size="sm" 
-                            onClick={() => requestOpenPoolStudentMutation.mutate(student)}
-                            disabled={requestOpenPoolStudentMutation.isPending}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            {requestOpenPoolStudentMutation.isPending ? 'Requesting...' : 'Request Student'}
-                          </Button>
-                        </TableCell>
+                        {isMentor && (
+                          <TableCell className="text-right">
+                            <Button 
+                              size="sm" 
+                              onClick={() => requestOpenPoolStudentMutation.mutate(student)}
+                              disabled={requestOpenPoolStudentMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {requestOpenPoolStudentMutation.isPending ? 'Requesting...' : 'Request Student'}
+                            </Button>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}

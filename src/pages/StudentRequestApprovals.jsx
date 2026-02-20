@@ -348,7 +348,15 @@ export default function StudentRequestApprovals() {
                         <TableCell className="text-sm">{request.phone || '-'}</TableCell>
                         <TableCell className="text-sm">{request.country || '-'}</TableCell>
                         <TableCell className="text-sm">{request.requested_by_name}</TableCell>
-                        <TableCell className="text-sm">{request.requested_primary_mentor_name}</TableCell>
+                        <TableCell className="text-sm">
+                          {request.request_type === 'OPEN_POOL_ASSIGNMENT' ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              Open Pool → {request.requested_primary_mentor_name}
+                            </Badge>
+                          ) : (
+                            request.requested_primary_mentor_name
+                          )}
+                        </TableCell>
                         <TableCell className="text-sm">{request.requested_senior_mentor_name || '-'}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className={getStatusColor(request.status)}>

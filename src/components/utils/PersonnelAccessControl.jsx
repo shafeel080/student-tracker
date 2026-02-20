@@ -13,9 +13,9 @@ export const canAssignRoles = (userRole) => {
 };
 
 export const filterPersonnelByRole = (currentUser, allUsers) => {
-  if (!currentUser || !allUsers) return [];
+  if (!currentUser || !allUsers || allUsers.length === 0) return [];
   
-  const { app_role: role } = currentUser;
+  const role = currentUser?.app_role || currentUser?.data?.app_role;
   
   // Super Admin and Admin see all users
   if (['super_admin', 'admin'].includes(role)) {
@@ -25,7 +25,7 @@ export const filterPersonnelByRole = (currentUser, allUsers) => {
   // Academic Head and Academic Admin see academic staff and mentors
   if (['academic_head', 'academic_admin'].includes(role)) {
     return allUsers.filter(u => {
-      const userRole = u.app_role || u.data?.app_role;
+      const userRole = String(u.app_role || u.data?.app_role || '').toLowerCase();
       return ['academic_head', 'academic_admin', 'senior_mentor', 'junior_mentor', 'subjunior_mentor', 'assistance'].includes(userRole);
     });
   }
@@ -33,7 +33,7 @@ export const filterPersonnelByRole = (currentUser, allUsers) => {
   // Admin Supervisor can only see academic_admin users
   if (role === 'admin_supervisor') {
     return allUsers.filter(u => {
-      const userRole = u.app_role || u.data?.app_role;
+      const userRole = String(u.app_role || u.data?.app_role || '').toLowerCase();
       return userRole === 'academic_admin';
     });
   }

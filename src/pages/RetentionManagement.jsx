@@ -182,7 +182,7 @@ export default function RetentionManagement() {
                       <div>
                         <p className="font-semibold text-gray-900">{student.full_name}</p>
                         <p className="text-sm text-gray-600">Code: {student.student_code}</p>
-                        <p className="text-sm text-green-600 font-medium mt-2">Net Deposit: ${student.net_deposit_usd.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        <p className="text-sm text-green-600 font-medium mt-2">Net Deposit: ${(student.net_deposit_usd || studentNetDeposits[student.id] || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                         {student.primary_mentor_name && (
                           <p className="text-sm text-gray-600 mt-1">Primary Mentor: {student.primary_mentor_name}</p>
                         )}

@@ -237,6 +237,28 @@ export default function RetentionManagement() {
 function AssignmentCard({ assignment, drawAdmins, onAssign, isLoading }) {
   const [selectedDrawAdmin, setSelectedDrawAdmin] = useState('');
 
+  if (!drawAdmins || drawAdmins.length === 0) {
+    return (
+      <Card className="bg-white border-l-4 border-orange-500">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Student Name</p>
+              <p className="text-lg font-semibold text-gray-900">{assignment.student_name}</p>
+              <p className="text-sm text-gray-600">{assignment.student_code}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Deposit Amount</p>
+              <p className="text-lg font-semibold text-green-600">${assignment.net_deposit_usd?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}</p>
+              <p className="text-sm text-gray-600">Primary Mentor: {assignment.primary_mentor_name}</p>
+            </div>
+            <div className="text-sm text-red-600">No Draw Admins available</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="bg-white border-l-4 border-orange-500">
       <CardContent className="pt-6">
@@ -248,7 +270,7 @@ function AssignmentCard({ assignment, drawAdmins, onAssign, isLoading }) {
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Deposit Amount</p>
-            <p className="text-lg font-semibold text-green-600">${assignment.net_deposit_usd.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            <p className="text-lg font-semibold text-green-600">${assignment.net_deposit_usd?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}</p>
             <p className="text-sm text-gray-600">Primary Mentor: {assignment.primary_mentor_name}</p>
           </div>
           <div>

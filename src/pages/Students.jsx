@@ -158,7 +158,7 @@ export default function Students() {
       }
     }
     
-    if (isMentor || isAcademicAdmin) {
+    if (isMentor) {
       createRequestMutation.mutate(formData);
     } else {
       createMutation.mutate(formData);
@@ -858,9 +858,9 @@ export default function Students() {
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{isMentor || isAcademicAdmin ? 'Request New Student' : 'Add New Student'}</DialogTitle>
+              <DialogTitle>{isMentor ? 'Request New Student' : 'Add New Student'}</DialogTitle>
             </DialogHeader>
-            {isMentor || isAcademicAdmin ? (
+            {isMentor ? (
               <StudentRequestForm
                 onSubmit={handleSubmit}
                 onCancel={() => setShowAddDialog(false)}

@@ -240,8 +240,8 @@ export default function Students() {
         s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-  } else if (isAssistance) {
-    // Assistance users see filtered students
+  } else if (isAssistance || isAcademicAdmin) {
+    // Assistance and academic_admin users see filtered students
     filteredStudents = allStudents;
     
     if (searchTerm) {

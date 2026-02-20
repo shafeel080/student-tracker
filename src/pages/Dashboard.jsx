@@ -60,6 +60,12 @@ export default function Dashboard() {
     enabled: !!currentUser
   });
 
+  const { data: studentRequests = [] } = useQuery({
+    queryKey: ['student-requests'],
+    queryFn: () => base44.entities.StudentRequest.list('-created_date'),
+    enabled: !!currentUser && currentUser.app_role === 'academic_admin'
+  });
+
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center h-screen">

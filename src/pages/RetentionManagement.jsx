@@ -24,13 +24,14 @@ export default function RetentionManagement() {
     enabled: !!currentUser
   });
 
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+  const { data: drawAdmins = [] } = useQuery({
+    queryKey: ['drawAdmins'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list();
+      return users.filter(u => u.app_role === 'draw_admin');
+    },
     enabled: !!currentUser
   });
-
-  const drawAdmins = allUsers.filter(u => u.app_role === 'draw_admin' || u.role === 'draw_admin');
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
@@ -42,15 +43,6 @@ export default function RetentionManagement() {
     queryKey: ['fundingTransactions'],
     queryFn: () => base44.entities.FundingTransaction.list(),
     enabled: !!currentUser
-  });
-
-  // Calculate net deposits for each student from funding transactions
-  const studentNetDeposits = {};
-  fundingTransactions.forEach(tx => {
-    if (tx.status === 'APPROVED') {
-      const amount = tx.type === 'DEPOSIT' ? tx.amount_usd : -tx.amount_usd;
-      studentNetDeposits[tx.student_id] = (studentNetDeposits[tx.student_id] || 0) + amount;
-    }
   });
 
   const assignMutation = useMutation({
@@ -101,6 +93,15 @@ export default function RetentionManagement() {
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending_assignment');
   
+  // Calculate net deposits for each student from funding transactions
+  const studentNetDeposits = {};
+  fundingTransactions.forEach(tx => {
+    if (tx.status === 'APPROVED') {
+      const amount = tx.type === 'DEPOSIT' ? tx.amount_usd : -tx.amount_usd;
+      studentNetDeposits[tx.student_id] = (studentNetDeposits[tx.student_id] || 0) + amount;
+    }
+  });
+
   // Find students with 25K+ deposit who don't have retention assignments yet
   const eligibleStudents = students.filter(student => {
     const netDeposit = student.net_deposit_usd || studentNetDeposits[student.id] || 0;
@@ -182,7 +183,7 @@ export default function RetentionManagement() {
                       <div>
                         <p className="font-semibold text-gray-900">{student.full_name}</p>
                         <p className="text-sm text-gray-600">Code: {student.student_code}</p>
-                        <p className="text-sm text-green-600 font-medium mt-2">Net Deposit: ${(student.net_deposit_usd || studentNetDeposits[student.id] || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        <p className="text-sm text-green-600 font-medium mt-2">Net Deposit: ${student.net_deposit_usd.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                         {student.primary_mentor_name && (
                           <p className="text-sm text-gray-600 mt-1">Primary Mentor: {student.primary_mentor_name}</p>
                         )}

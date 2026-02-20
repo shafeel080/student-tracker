@@ -24,14 +24,13 @@ export default function RetentionManagement() {
     enabled: !!currentUser
   });
 
-  const { data: drawAdmins = [] } = useQuery({
-    queryKey: ['drawAdmins'],
-    queryFn: async () => {
-      const users = await base44.entities.User.list();
-      return users.filter(u => u.app_role === 'draw_admin');
-    },
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
     enabled: !!currentUser
   });
+
+  const drawAdmins = allUsers.filter(u => u.app_role === 'draw_admin' || u.role === 'draw_admin');
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],

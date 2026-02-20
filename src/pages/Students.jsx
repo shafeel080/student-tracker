@@ -488,8 +488,8 @@ export default function Students() {
               <TabsTrigger value="open_pool">Delta Open Students</TabsTrigger>
             </TabsList>
 
-            {/* My Students Tab */}
-            <TabsContent value="my">
+            {/* My Students Tab (Mentors Only) */}
+            {isMentor && <TabsContent value="my">
             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
                 <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">

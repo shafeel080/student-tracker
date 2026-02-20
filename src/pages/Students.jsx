@@ -107,6 +107,35 @@ export default function Students() {
     }
   });
 
+  const requestOpenPoolStudentMutation = useMutation({
+    mutationFn: async (student) => {
+      const user = await base44.auth.me();
+      const newRequest = await base44.entities.StudentRequest.create({
+        request_type: 'OPEN_POOL_ASSIGNMENT',
+        existing_student_id: student.id,
+        full_name: student.full_name,
+        email: student.email,
+        phone: student.phone,
+        country: student.country,
+        requested_primary_mentor_id: user.id,
+        requested_primary_mentor_name: user.full_name,
+        requested_senior_mentor_id: user.app_role === 'junior_mentor' ? user.senior_mentor_id : '',
+        requested_senior_mentor_name: user.app_role === 'junior_mentor' ? user.senior_mentor_name : '',
+        requested_by_id: user.id,
+        requested_by_name: user.full_name,
+        requested_at: new Date().toISOString(),
+        status: 'PENDING_ACADEMIC_APPROVAL',
+        notes: `Request to assign open pool student to mentor`
+      });
+      await logAction('request_open_pool_student', 'StudentRequest', newRequest.id, `Requested assignment of open pool student: ${student.full_name}`, null, student);
+      return newRequest;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['student-requests']);
+      toast.success('Student assignment request submitted for approval');
+    }
+  });
+
   const handleSubmit = (formData) => {
     // For assistance users, auto-assign their mentor
     if (currentUser.app_role === 'assistance' && currentUser.assigned_mentor_id) {

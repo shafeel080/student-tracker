@@ -180,6 +180,7 @@ export default function StudentRequestApprovals() {
       queryClient.invalidateQueries(['students']);
       setShowApproveDialog(false);
       setSelectedRequest(null);
+      setUserId('');
     } catch (error) {
       toast.error('Failed to approve request');
       console.error(error);

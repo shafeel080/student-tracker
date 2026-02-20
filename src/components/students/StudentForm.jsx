@@ -51,6 +51,23 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    const isAcademicAdmin = currentUser?.app_role === 'academic_admin';
+    
+    // Academic admin adds to open pool with no mentor
+    if (isAcademicAdmin) {
+      const dataToSubmit = {
+        ...formData,
+        assignment_status: 'open_pool',
+        primary_mentor_id: '',
+        primary_mentor_name: '',
+        senior_mentor_id: '',
+        senior_mentor_name: ''
+      };
+      onSubmit(dataToSubmit);
+      return;
+    }
+    
+    // Regular mentor assignment flow
     const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
     
     // Auto-populate senior_mentor_id if primary mentor is junior
@@ -71,6 +88,7 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
     
     const dataToSubmit = {
       ...formData,
+      assignment_status: 'assigned',
       primary_mentor_name: primaryMentor?.full_name || '',
       senior_mentor_id: finalSeniorMentorId,
       senior_mentor_name: finalSeniorMentorName

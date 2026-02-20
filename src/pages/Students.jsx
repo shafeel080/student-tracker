@@ -161,6 +161,7 @@ export default function Students() {
   const isMentor = ['junior_mentor', 'senior_mentor'].includes(currentUser.app_role);
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
   const isAssistance = currentUser.app_role === 'assistance';
+  const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);
 
   // Get mentor users for bulk import
   const mentorUsers = users.filter(u => 

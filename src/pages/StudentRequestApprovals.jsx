@@ -38,9 +38,13 @@ export default function StudentRequestApprovals() {
     fetchUser();
   }, []);
 
-  const { data: requests = [] } = useQuery({
+  const { data: requests = [], isLoading: requestsLoading } = useQuery({
     queryKey: ['student-requests'],
-    queryFn: () => base44.entities.StudentRequest.list('-requested_at'),
+    queryFn: async () => {
+      const data = await base44.entities.StudentRequest.list('-requested_at');
+      console.log('Fetched student requests:', data);
+      return data;
+    },
     enabled: !!currentUser
   });
 

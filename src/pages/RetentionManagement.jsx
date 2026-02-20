@@ -44,15 +44,6 @@ export default function RetentionManagement() {
     enabled: !!currentUser
   });
 
-  // Calculate net deposits for each student from funding transactions
-  const studentNetDeposits = {};
-  fundingTransactions.forEach(tx => {
-    if (tx.status === 'APPROVED') {
-      const amount = tx.type === 'DEPOSIT' ? tx.amount_usd : -tx.amount_usd;
-      studentNetDeposits[tx.student_id] = (studentNetDeposits[tx.student_id] || 0) + amount;
-    }
-  });
-
   const assignMutation = useMutation({
     mutationFn: ({ assignmentId, drawAdminId, drawAdminName }) =>
       Promise.all([

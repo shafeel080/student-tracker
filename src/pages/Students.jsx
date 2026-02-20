@@ -158,7 +158,7 @@ export default function Students() {
       }
     }
     
-    if (isMentor) {
+    if (isMentor || isAcademicAdmin) {
       createRequestMutation.mutate(formData);
     } else {
       createMutation.mutate(formData);

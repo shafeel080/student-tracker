@@ -243,8 +243,24 @@ export default function Students() {
         s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
+  } else if (isAdmin) {
+    // Admins can switch between all students and open pool
+    if (activeTab === 'open_pool') {
+      filteredStudents = openPoolStudents;
+    } else {
+      filteredStudents = allStudents;
+    }
+    
+    if (searchTerm) {
+      filteredStudents = filteredStudents.filter(s =>
+        s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
   } else {
-    // Admins see all students
+    // Other roles see all students
     filteredStudents = allStudents;
     
     // Apply search filter

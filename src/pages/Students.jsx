@@ -138,11 +138,12 @@ export default function Students() {
     ['junior_mentor', 'senior_mentor'].includes(u.app_role)
   );
 
-  // For mentors: filter students into My and Team
+  // For mentors: filter students into My, Team, and Open Pool
   // For assistance: show only students of their assigned mentor
   // For admins: show all students
   let myStudents = [];
   let teamStudents = [];
+  let openPoolStudents = [];
   let allStudents = students;
 
   if (isAssistance && currentUser.assigned_mentor_id) {
@@ -158,6 +159,9 @@ export default function Students() {
       s.senior_mentor_id === currentUser.id &&
       s.primary_mentor_id !== currentUser.id
     );
+    
+    // Filter OPEN POOL students - students without assigned mentors
+    openPoolStudents = students.filter(s => s.assignment_status === 'open_pool');
   }
 
   // Get unique mentors for filter

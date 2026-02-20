@@ -178,7 +178,7 @@ export default function Students() {
 
   // Get mentor users for bulk import
   const mentorUsers = users.filter(u => 
-    ['junior_mentor', 'senior_mentor'].includes(u.app_role)
+    ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(u.app_role)
   );
 
   // For mentors: filter students into My, Team, and Open Pool

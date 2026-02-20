@@ -440,9 +440,20 @@ export default function StudentRequestApprovals() {
                   )}
                 </div>
               )}
+              
+              {isBrokerAdmin && selectedRequest?.request_type !== 'OPEN_POOL_ASSIGNMENT' && (
+                <div className="space-y-2">
+                  <Label>User ID (from CRM)</Label>
+                  <Input
+                    placeholder="Enter user ID from CRM"
+                    value={userId}
+                    onChange={(e) => setUserId(e.target.value)}
+                  />
+                </div>
+              )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowApproveDialog(false)} disabled={processing}>
+              <Button variant="outline" onClick={() => { setShowApproveDialog(false); setUserId(''); }} disabled={processing}>
                 Cancel
               </Button>
               <Button onClick={confirmApprove} disabled={processing} className="bg-green-600 hover:bg-green-700">

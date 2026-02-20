@@ -72,9 +72,17 @@ export default function StudentRequestApprovals() {
     );
   }
 
-  const targetStatus = isAcademicHead ? 'PENDING_ACADEMIC_APPROVAL' : 'PENDING_BROKER_APPROVAL';
+  // Academic head sees PENDING_ACADEMIC_APPROVAL
+  // Broker admin sees both PENDING_ACADEMIC_APPROVAL and PENDING_BROKER_APPROVAL
   const filteredRequests = requests
-    .filter(r => r.status === targetStatus)
+    .filter(r => {
+      if (isAcademicHead) {
+        return r.status === 'PENDING_ACADEMIC_APPROVAL';
+      } else if (isBrokerAdmin) {
+        return r.status === 'PENDING_ACADEMIC_APPROVAL' || r.status === 'PENDING_BROKER_APPROVAL';
+      }
+      return false;
+    })
     .filter(r => {
       if (!searchTerm) return true;
       const lowerSearch = searchTerm.toLowerCase();

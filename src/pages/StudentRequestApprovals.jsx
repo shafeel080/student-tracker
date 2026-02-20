@@ -144,8 +144,9 @@ export default function StudentRequestApprovals() {
             null, selectedRequest);
           toast.success('Open pool student assigned successfully');
         } else {
-          // Regular new student creation
+          // Regular new student creation (from academic_admin or mentor requests)
           const studentCode = await generateStudentCode(base44);
+          const hasNoMentor = !selectedRequest.requested_primary_mentor_id;
           const newStudent = await base44.entities.Student.create({
             student_code: studentCode,
             full_name: selectedRequest.full_name,
@@ -153,12 +154,12 @@ export default function StudentRequestApprovals() {
             phone: selectedRequest.phone,
             country: selectedRequest.country,
             notes: selectedRequest.notes,
-            user_id: userId || undefined,
-            primary_mentor_id: selectedRequest.requested_primary_mentor_id,
-            primary_mentor_name: selectedRequest.requested_primary_mentor_name,
-            senior_mentor_id: selectedRequest.requested_senior_mentor_id,
-            senior_mentor_name: selectedRequest.requested_senior_mentor_name,
-            assignment_status: 'assigned',
+            user_id: userId || selectedRequest.user_id || undefined,
+            primary_mentor_id: selectedRequest.requested_primary_mentor_id || '',
+            primary_mentor_name: selectedRequest.requested_primary_mentor_name || '',
+            senior_mentor_id: selectedRequest.requested_senior_mentor_id || '',
+            senior_mentor_name: selectedRequest.requested_senior_mentor_name || '',
+            assignment_status: hasNoMentor ? 'open_pool' : 'assigned',
             status: 'ACTIVE'
           });
 

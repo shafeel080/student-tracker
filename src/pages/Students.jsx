@@ -554,9 +554,9 @@ export default function Students() {
                 </TableBody>
               </Table>
             </div>
-          </TabsContent>
+          </TabsContent>}
 
-          {/* Team Students Tab */}
+          {/* Team Students Tab (Senior Mentors Only) */}
           {isSeniorMentor && (
             <TabsContent value="team">
               <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">

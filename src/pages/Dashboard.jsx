@@ -74,6 +74,8 @@ export default function Dashboard() {
   // Filter data based on user role
   const filteredStudents = canViewAllStudents(currentUser.app_role)
     ? students
+    : currentUser.app_role === 'academic_admin'
+    ? students.filter(s => s.created_by === currentUser.email)
     : isMentorRole(currentUser.app_role)
     ? students.filter(s => {
         if (currentUser.app_role === 'senior_mentor') {

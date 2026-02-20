@@ -153,7 +153,7 @@ export default function RetentionManagement() {
               />
             ))}
           </div>
-        )}
+        ) : null}
 
         {eligibleStudents.length > 0 && (
           <div className="mt-12">

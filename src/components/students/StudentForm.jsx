@@ -240,10 +240,10 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
+              {currentUser?.app_role === 'academic_admin' ? 'Submitting...' : 'Saving...'}
             </>
           ) : (
-            student ? 'Update Student' : 'Create Student'
+            currentUser?.app_role === 'academic_admin' ? 'Submit Request' : (student ? 'Update Student' : 'Create Student')
           )}
         </Button>
       </div>

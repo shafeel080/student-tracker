@@ -24,7 +24,8 @@ export default function Layout({ children, currentPageName }) {
   const [pendingCounts, setPendingCounts] = useState({
     fundingRequests: 0,
     studentRequests: 0,
-    tickets: 0
+    tickets: 0,
+    retention: 0
   });
 
   useEffect(() => {
@@ -44,10 +45,11 @@ export default function Layout({ children, currentPageName }) {
       if (!currentUser) return;
 
       try {
-        const [fundingTransactions, studentRequests, tickets] = await Promise.all([
+        const [fundingTransactions, studentRequests, tickets, retentionAssignments] = await Promise.all([
           base44.entities.FundingTransaction.list(),
           base44.entities.StudentRequest.list(),
-          base44.entities.Ticket.list()
+          base44.entities.Ticket.list(),
+          base44.entities.RetentionAssignment.list()
         ]);
 
         const role = currentUser.app_role;
@@ -72,10 +74,17 @@ export default function Layout({ children, currentPageName }) {
           pendingTickets = tickets.filter(t => ['open', 'in_progress'].includes(t.status)).length;
         }
 
+        // Count pending retention assignments
+        let pendingRetention = 0;
+        if (role === 'academic_head') {
+          pendingRetention = retentionAssignments.filter(r => r.status === 'pending_assignment').length;
+        }
+
         setPendingCounts({
           fundingRequests: pendingFunding,
           studentRequests: pendingStudents,
-          tickets: pendingTickets
+          tickets: pendingTickets,
+          retention: pendingRetention
         });
       } catch (error) {
         console.error('Error fetching pending counts:', error);
@@ -103,6 +112,8 @@ export default function Layout({ children, currentPageName }) {
     { name: 'StudentLogs', href: createPageUrl('StudentLogs'), icon: Users, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'subjunior_mentor', 'assistance'] },
     { name: 'MyStudentRequests', href: createPageUrl('MyStudentRequests'), icon: UserPlus, roles: ['junior_mentor', 'senior_mentor'] },
     { name: 'StudentRequestApprovals', href: createPageUrl('StudentRequestApprovals'), icon: UserPlus, roles: ['academic_head', 'broker_admin'] },
+    { name: 'RetentionManagement', href: createPageUrl('RetentionManagement'), icon: Users, roles: ['academic_head'] },
+    { name: 'DrawAdminStudents', href: createPageUrl('DrawAdminStudents'), icon: Users, roles: ['draw_admin'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'junior_mentor', 'senior_mentor'] },
     { name: 'FundingActivities', href: createPageUrl('MyFundingRequests'), icon: DollarSign, roles: ['senior_mentor', 'junior_mentor', 'assistance'] },
     { name: 'FundingRequests', href: createPageUrl('FundingRequests'), icon: DollarSign, roles: ['super_admin', 'broker_admin', 'academic_head'] },

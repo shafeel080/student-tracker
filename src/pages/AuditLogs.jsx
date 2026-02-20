@@ -19,7 +19,7 @@ export default function AuditLogs() {
   useEffect(() => {
     const fetchUser = async () => {
       const user = await base44.auth.me();
-      if (user.app_role !== 'super_admin') {
+      if (!['super_admin', 'admin_supervisor'].includes(user.app_role)) {
         window.location.href = '/';
         return;
       }
@@ -73,6 +73,11 @@ export default function AuditLogs() {
   // User filter
   if (userFilter !== 'all') {
     filteredLogs = filteredLogs.filter(log => log.user_id === userFilter);
+  }
+  
+  // Admin Supervisor can only see logs from academic_admin users
+  if (currentUser.app_role === 'admin_supervisor') {
+    filteredLogs = filteredLogs.filter(log => log.user_role === 'academic_admin');
   }
 
   // Date filter

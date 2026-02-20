@@ -1,7 +1,7 @@
 // Utility functions for personnel/user management access control
 
 export const canViewPersonnel = (userRole) => {
-  return ['super_admin', 'admin', 'academic_head', 'academic_admin'].includes(userRole);
+  return ['super_admin', 'admin', 'academic_head', 'academic_admin', 'admin_supervisor'].includes(userRole);
 };
 
 export const canEditPersonnel = (userRole) => {
@@ -27,6 +27,14 @@ export const filterPersonnelByRole = (currentUser, allUsers) => {
     return allUsers.filter(u => {
       const userRole = u.app_role || u.data?.app_role;
       return ['academic_head', 'academic_admin', 'senior_mentor', 'junior_mentor', 'subjunior_mentor', 'assistance'].includes(userRole);
+    });
+  }
+  
+  // Admin Supervisor can only see academic_admin users
+  if (role === 'admin_supervisor') {
+    return allUsers.filter(u => {
+      const userRole = u.app_role || u.data?.app_role;
+      return userRole === 'academic_admin';
     });
   }
   

@@ -113,14 +113,21 @@ export default function Personnel() {
     );
   }
 
-  const filteredUsers = filterPersonnelByRole(currentUser, allUsers)
-    .filter(user => {
-      const matchesSearch = 
-        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRole = roleFilter === 'all' || user.app_role === roleFilter;
-      return matchesSearch && matchesRole;
-    });
+  const filteredUsers = allUsers.filter(user => {
+    const userRole = user.app_role || user.data?.app_role;
+    
+    // Check if user is accessible by current user
+    if (!['super_admin', 'admin'].includes(currentUser.app_role)) {
+      const isAccessibleRole = ['academic_head', 'academic_admin', 'senior_mentor', 'junior_mentor', 'subjunior_mentor', 'assistance'].includes(userRole);
+      if (!isAccessibleRole) return false;
+    }
+    
+    const matchesSearch = 
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === 'all' || userRole === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   const getRoleBadgeColor = (role) => {
     const colors = {

@@ -33,6 +33,18 @@ export default function RetentionManagement() {
     enabled: !!currentUser
   });
 
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => base44.entities.Student.list(),
+    enabled: !!currentUser
+  });
+
+  const { data: fundingTransactions = [] } = useQuery({
+    queryKey: ['fundingTransactions'],
+    queryFn: () => base44.entities.FundingTransaction.list(),
+    enabled: !!currentUser
+  });
+
   const assignMutation = useMutation({
     mutationFn: ({ assignmentId, drawAdminId, drawAdminName }) =>
       Promise.all([
@@ -60,7 +72,31 @@ export default function RetentionManagement() {
     }
   });
 
+  const createRetentionMutation = useMutation({
+    mutationFn: (student) =>
+      base44.entities.RetentionAssignment.create({
+        student_id: student.id,
+        student_code: student.student_code,
+        student_name: student.full_name,
+        primary_mentor_id: student.primary_mentor_id,
+        primary_mentor_name: student.primary_mentor_name,
+        net_deposit_usd: student.net_deposit_usd,
+        status: 'pending_assignment',
+        threshold_crossed_date: new Date().toISOString()
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['retentionAssignments'] });
+    }
+  });
+
   const pendingAssignments = assignments.filter(a => a.status === 'pending_assignment');
+  
+  // Find students with 25K+ deposit who don't have retention assignments yet
+  const eligibleStudents = students.filter(student => {
+    const hasDeposit = student.net_deposit_usd >= 25000;
+    const alreadyAssigned = assignments.some(a => a.student_id === student.id);
+    return hasDeposit && !alreadyAssigned;
+  });
 
   if (!currentUser) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -119,9 +155,41 @@ export default function RetentionManagement() {
           </div>
         )}
 
-        {assignments.length > pendingAssignments.length && (
+        {eligibleStudents.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Assigned Cases</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Students Eligible for Retention (25K+ Deposit)</h2>
+            <p className="text-gray-600 mb-4">These students have reached the 25K threshold but don't have assignments yet. Click "Create Assignment" to add them.</p>
+            <div className="space-y-4">
+              {eligibleStudents.map((student) => (
+                <Card key={student.id} className="bg-white border-l-4 border-yellow-500">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900">{student.full_name}</p>
+                        <p className="text-sm text-gray-600">Code: {student.student_code}</p>
+                        <p className="text-sm text-green-600 font-medium mt-2">Net Deposit: ${student.net_deposit_usd.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        {student.primary_mentor_name && (
+                          <p className="text-sm text-gray-600 mt-1">Primary Mentor: {student.primary_mentor_name}</p>
+                        )}
+                      </div>
+                      <Button
+                        onClick={() => createRetentionMutation.mutate(student)}
+                        disabled={createRetentionMutation.isPending}
+                        className="bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        {createRetentionMutation.isPending ? 'Creating...' : 'Create Assignment'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {assignments.length > pendingAssignments.length && (
+           <div className="mt-12">
+             <h2 className="text-2xl font-bold text-gray-900 mb-4">Assigned Cases</h2>
             <div className="space-y-4">
               {assignments.filter(a => a.status === 'assigned').map((assignment) => (
                 <Card key={assignment.id}>

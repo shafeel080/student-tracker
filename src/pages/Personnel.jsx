@@ -46,12 +46,19 @@ export default function Personnel() {
     fetchUser();
   }, []);
 
-  const { data: allUsers = [], isLoading } = useQuery({
+  const { data: allUsers = [], isLoading, error } = useQuery({
     queryKey: ['all-users'],
     queryFn: async () => {
-      return base44.entities.User.list('-created_date', 1000);
+      try {
+        const users = await base44.entities.User.list('-created_date', 1000);
+        return Array.isArray(users) ? users : [];
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        return [];
+      }
     },
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    retry: 2
   });
 
   const updateUserMutation = useMutation({

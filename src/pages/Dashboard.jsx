@@ -237,6 +237,19 @@ export default function Dashboard() {
                   trend="Needs review"
                 />
               )}
+              {['academic_head', 'broker_admin'].includes(currentUser.app_role) && (
+                <StatsCard
+                  title="Student Requests"
+                  value={studentRequests.filter(r => 
+                    currentUser.app_role === 'academic_head' 
+                      ? r.status === 'PENDING_ACADEMIC_APPROVAL' 
+                      : ['PENDING_ACADEMIC_APPROVAL', 'PENDING_BROKER_APPROVAL'].includes(r.status)
+                  ).length}
+                  icon={Users}
+                  color="purple"
+                  trend="Needs approval"
+                />
+              )}
             </>
           )}
         </div>

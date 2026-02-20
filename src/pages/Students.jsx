@@ -74,6 +74,12 @@ export default function Students() {
     retry: false
   });
 
+  const { data: studentRequests = [] } = useQuery({
+    queryKey: ['student-requests'],
+    queryFn: () => base44.entities.StudentRequest.list('-created_date'),
+    enabled: !!currentUser && currentUser.app_role === 'academic_admin'
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const studentCode = await generateStudentCode(base44);

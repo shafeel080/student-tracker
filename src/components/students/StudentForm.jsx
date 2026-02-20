@@ -149,43 +149,55 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="primary_mentor">Primary Mentor</Label>
-          <Select
-            value={formData.primary_mentor_id}
-            onValueChange={(value) => setFormData({ ...formData, primary_mentor_id: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Mentor" />
-            </SelectTrigger>
-            <SelectContent>
-              {allMentors.map((mentor) => (
-                <SelectItem key={mentor.id} value={mentor.id}>
-                  {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : 'Senior'})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="senior_mentor">Senior Mentor (Auto-assigned)</Label>
-          <Input
-            value={
-              (() => {
-                const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
-                if (primaryMentor?.app_role === 'junior_mentor' && primaryMentor.senior_mentor_name) {
-                  return primaryMentor.senior_mentor_name;
-                } else if (primaryMentor?.app_role === 'senior_mentor') {
-                  return 'None (Primary is Senior)';
+        {currentUser?.app_role !== 'academic_admin' && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="primary_mentor">Primary Mentor</Label>
+              <Select
+                value={formData.primary_mentor_id}
+                onValueChange={(value) => setFormData({ ...formData, primary_mentor_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Mentor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allMentors.map((mentor) => (
+                    <SelectItem key={mentor.id} value={mentor.id}>
+                      {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : 'Senior'})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="senior_mentor">Senior Mentor (Auto-assigned)</Label>
+              <Input
+                value={
+                  (() => {
+                    const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
+                    if (primaryMentor?.app_role === 'junior_mentor' && primaryMentor.senior_mentor_name) {
+                      return primaryMentor.senior_mentor_name;
+                    } else if (primaryMentor?.app_role === 'senior_mentor') {
+                      return 'None (Primary is Senior)';
+                    }
+                    return 'None';
+                  })()
                 }
-                return 'None';
-              })()
-            }
-            disabled
-            className="bg-gray-50"
-          />
-        </div>
+                disabled
+                className="bg-gray-50"
+              />
+            </div>
+          </>
+        )}
+        
+        {currentUser?.app_role === 'academic_admin' && (
+          <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800 font-medium">
+              This student will be added to "Delta Open Students" pool without mentor assignment.
+            </p>
+          </div>
+        )}
         
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>

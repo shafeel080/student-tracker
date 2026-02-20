@@ -189,8 +189,11 @@ export default function Students() {
   let allStudents = students;
 
   if (isAcademicAdmin) {
-    // Academic admin sees only students they created
-    allStudents = students.filter(s => s.created_by === currentUser.email);
+    // Academic admin sees students they requested (approved requests)
+    const approvedRequestStudentIds = studentRequests
+      .filter(r => r.requested_by_id === currentUser.id && r.created_student_id)
+      .map(r => r.created_student_id);
+    allStudents = students.filter(s => approvedRequestStudentIds.includes(s.id));
   } else if (isAssistance && currentUser.assigned_mentor_id) {
     // Assistance sees only students assigned to their mentor
     allStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);

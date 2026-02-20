@@ -120,33 +120,58 @@ export default function StudentRequestApprovals() {
           `Approved student request for ${selectedRequest.full_name} (Academic)`, null, selectedRequest);
         toast.success('Request approved - forwarded to Broker Admin');
       } else if (isBrokerAdmin) {
-        // Broker admin approval - create student
-        const studentCode = await generateStudentCode(base44);
-        const newStudent = await base44.entities.Student.create({
-          student_code: studentCode,
-          full_name: selectedRequest.full_name,
-          email: selectedRequest.email,
-          phone: selectedRequest.phone,
-          country: selectedRequest.country,
-          notes: selectedRequest.notes,
-          primary_mentor_id: selectedRequest.requested_primary_mentor_id,
-          primary_mentor_name: selectedRequest.requested_primary_mentor_name,
-          senior_mentor_id: selectedRequest.requested_senior_mentor_id,
-          senior_mentor_name: selectedRequest.requested_senior_mentor_name,
-          status: 'ACTIVE'
-        });
+        // Check if this is an open pool assignment
+        if (selectedRequest.request_type === 'OPEN_POOL_ASSIGNMENT' && selectedRequest.existing_student_id) {
+          // Update existing open pool student with mentor assignment
+          await base44.entities.Student.update(selectedRequest.existing_student_id, {
+            primary_mentor_id: selectedRequest.requested_primary_mentor_id,
+            primary_mentor_name: selectedRequest.requested_primary_mentor_name,
+            senior_mentor_id: selectedRequest.requested_senior_mentor_id,
+            senior_mentor_name: selectedRequest.requested_senior_mentor_name,
+            assignment_status: 'assigned'
+          });
 
-        await base44.entities.StudentRequest.update(selectedRequest.id, {
-          status: 'APPROVED',
-          broker_approved_by_id: currentUser.id,
-          broker_approved_by_name: currentUser.full_name,
-          broker_approved_at: new Date().toISOString(),
-          created_student_id: newStudent.id
-        });
+          await base44.entities.StudentRequest.update(selectedRequest.id, {
+            status: 'APPROVED',
+            broker_approved_by_id: currentUser.id,
+            broker_approved_by_name: currentUser.full_name,
+            broker_approved_at: new Date().toISOString()
+          });
 
-        await logAction('create_student', 'Student', newStudent.id, 
-          `Created student from request: ${selectedRequest.full_name}`, null, newStudent);
-        toast.success('Student created successfully');
+          await logAction('assign_open_pool_student', 'Student', selectedRequest.existing_student_id, 
+            `Assigned open pool student ${selectedRequest.full_name} to ${selectedRequest.requested_primary_mentor_name}`, 
+            null, selectedRequest);
+          toast.success('Open pool student assigned successfully');
+        } else {
+          // Regular new student creation
+          const studentCode = await generateStudentCode(base44);
+          const newStudent = await base44.entities.Student.create({
+            student_code: studentCode,
+            full_name: selectedRequest.full_name,
+            email: selectedRequest.email,
+            phone: selectedRequest.phone,
+            country: selectedRequest.country,
+            notes: selectedRequest.notes,
+            primary_mentor_id: selectedRequest.requested_primary_mentor_id,
+            primary_mentor_name: selectedRequest.requested_primary_mentor_name,
+            senior_mentor_id: selectedRequest.requested_senior_mentor_id,
+            senior_mentor_name: selectedRequest.requested_senior_mentor_name,
+            assignment_status: 'assigned',
+            status: 'ACTIVE'
+          });
+
+          await base44.entities.StudentRequest.update(selectedRequest.id, {
+            status: 'APPROVED',
+            broker_approved_by_id: currentUser.id,
+            broker_approved_by_name: currentUser.full_name,
+            broker_approved_at: new Date().toISOString(),
+            created_student_id: newStudent.id
+          });
+
+          await logAction('create_student', 'Student', newStudent.id, 
+            `Created student from request: ${selectedRequest.full_name}`, null, newStudent);
+          toast.success('Student created successfully');
+        }
       }
 
       queryClient.invalidateQueries(['student-requests']);

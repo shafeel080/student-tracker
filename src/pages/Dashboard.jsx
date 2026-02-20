@@ -63,7 +63,7 @@ export default function Dashboard() {
   const { data: studentRequests = [] } = useQuery({
     queryKey: ['student-requests'],
     queryFn: () => base44.entities.StudentRequest.list('-created_date'),
-    enabled: !!currentUser && currentUser.app_role === 'academic_admin'
+    enabled: !!currentUser && ['academic_admin', 'academic_head', 'broker_admin'].includes(currentUser.app_role)
   });
 
   if (!currentUser) {

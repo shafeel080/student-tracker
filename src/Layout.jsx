@@ -115,7 +115,9 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: TrendingUp, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head'] },
     { name: 'Commissions', href: createPageUrl('Commissions'), icon: Award, roles: ['super_admin', 'broker_admin', 'academic_head'] },
     { name: 'Tickets', href: createPageUrl('Tickets'), icon: Ticket, roles: ['super_admin', 'broker_admin', 'senior_mentor', 'junior_mentor'] },
-    { name: 'AuditLogs', href: createPageUrl('AuditLogs'), icon: Shield, roles: ['super_admin', 'admin_supervisor'] }
+    { name: 'AuditLogs', href: createPageUrl('AuditLogs'), icon: Shield, roles: ['super_admin', 'admin_supervisor'] },
+    { name: 'RetentionManagement', href: createPageUrl('RetentionManagement'), icon: Target, roles: ['academic_head'] },
+    { name: 'RetentionDashboard', href: createPageUrl('RetentionDashboard'), icon: TrendingUp, roles: ['draw_admin'] }
   ];
 
   const filteredNavigation = navigation.filter(item => 

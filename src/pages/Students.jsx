@@ -46,6 +46,10 @@ export default function Students() {
     const fetchUser = async () => {
       const user = await base44.auth.me();
       setCurrentUser(user);
+      // Set default tab based on user role
+      if (['super_admin', 'broker_admin', 'academic_head'].includes(user.app_role)) {
+        setActiveTab('all');
+      }
     };
     fetchUser();
   }, []);

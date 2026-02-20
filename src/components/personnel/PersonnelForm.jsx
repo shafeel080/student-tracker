@@ -125,7 +125,7 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
             </Select>
           </div>
 
-          {formData.app_role === 'junior_mentor' && (
+          {formData.app_role === 'senior_mentor' && (
             <div>
               <Label htmlFor="senior_mentor">Senior Mentor</Label>
               <Select

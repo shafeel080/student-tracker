@@ -46,7 +46,8 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
 
   const juniorMentors = users.filter(u => u.app_role === 'junior_mentor');
   const seniorMentors = users.filter(u => u.app_role === 'senior_mentor');
-  const allMentors = [...juniorMentors, ...seniorMentors];
+  const subJuniorMentors = users.filter(u => u.app_role === 'subjunior_mentor');
+  const allMentors = [...juniorMentors, ...seniorMentors, ...subJuniorMentors];
 
   const handleSubmit = (e) => {
     e.preventDefault();

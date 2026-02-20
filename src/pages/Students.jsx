@@ -170,7 +170,7 @@ export default function Students() {
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
   const canCreate = canSubmitStudentRequest(currentUser.app_role);
-  const isMentor = ['junior_mentor', 'senior_mentor'].includes(currentUser.app_role);
+  const isMentor = ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(currentUser.app_role);
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
   const isAssistance = currentUser.app_role === 'assistance';
   const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);

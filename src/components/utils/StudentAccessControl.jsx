@@ -1,7 +1,7 @@
 // Utility functions for student access control based on user role
 
 export const canSubmitStudentRequest = (userRole) => {
-  return ['junior_mentor', 'senior_mentor', 'super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'assistance'].includes(userRole);
+  return ['junior_mentor', 'senior_mentor', 'subjunior_mentor', 'super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'assistance'].includes(userRole);
 };
 
 export const canEditStudent = (userRole) => {
@@ -59,8 +59,8 @@ export const filterStudentsByRole = (students, currentUser, allUsers = []) => {
     return students;
   }
   
-  // Junior Mentor sees only their own students
-  if (role === 'junior_mentor') {
+  // Junior Mentor and Sub Junior Mentor see only their own students
+  if (role === 'junior_mentor' || role === 'subjunior_mentor') {
     return students.filter(s => s.primary_mentor_id === id);
   }
   

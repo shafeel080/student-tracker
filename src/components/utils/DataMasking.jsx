@@ -48,5 +48,5 @@ export const canViewAllStudents = (userRole) => {
 };
 
 export const isMentorRole = (userRole) => {
-  return ['senior_mentor', 'junior_mentor'].includes(userRole);
+  return ['senior_mentor', 'junior_mentor', 'subjunior_mentor'].includes(userRole);
 };

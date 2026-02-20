@@ -73,17 +73,19 @@ export default function RetentionManagement() {
   });
 
   const createRetentionMutation = useMutation({
-    mutationFn: (student) =>
-      base44.entities.RetentionAssignment.create({
+    mutationFn: (student) => {
+      const netDeposit = student.net_deposit_usd || studentNetDeposits[student.id] || 0;
+      return base44.entities.RetentionAssignment.create({
         student_id: student.id,
         student_code: student.student_code,
         student_name: student.full_name,
         primary_mentor_id: student.primary_mentor_id,
         primary_mentor_name: student.primary_mentor_name,
-        net_deposit_usd: student.net_deposit_usd,
+        net_deposit_usd: netDeposit,
         status: 'pending_assignment',
         threshold_crossed_date: new Date().toISOString()
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['retentionAssignments'] });
     }

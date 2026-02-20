@@ -73,6 +73,8 @@ import Students from './pages/Students';
 import TargetsManagement from './pages/TargetsManagement';
 import Tickets from './pages/Tickets';
 import Transactions from './pages/Transactions';
+import RetentionManagement from './pages/RetentionManagement';
+import DrawAdminStudents from './pages/DrawAdminStudents';
 import __Layout from './Layout.jsx';
 
 
@@ -103,6 +105,8 @@ export const PAGES = {
     "TargetsManagement": TargetsManagement,
     "Tickets": Tickets,
     "Transactions": Transactions,
+    "RetentionManagement": RetentionManagement,
+    "DrawAdminStudents": DrawAdminStudents,
 }
 
 export const pagesConfig = {

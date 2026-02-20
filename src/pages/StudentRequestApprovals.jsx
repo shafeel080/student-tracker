@@ -81,9 +81,13 @@ export default function StudentRequestApprovals() {
   const filteredRequests = requests
     .filter(r => {
       if (isAcademicHead) {
-        return r.status === 'PENDING_ACADEMIC_APPROVAL';
+        const match = r.status === 'PENDING_ACADEMIC_APPROVAL';
+        console.log('Academic head filter:', r.full_name, r.status, match);
+        return match;
       } else if (isBrokerAdmin) {
-        return r.status === 'PENDING_ACADEMIC_APPROVAL' || r.status === 'PENDING_BROKER_APPROVAL';
+        const match = r.status === 'PENDING_ACADEMIC_APPROVAL' || r.status === 'PENDING_BROKER_APPROVAL';
+        console.log('Broker admin filter:', r.full_name, r.status, match);
+        return match;
       }
       return false;
     })
@@ -94,6 +98,10 @@ export default function StudentRequestApprovals() {
         r.email?.toLowerCase().includes(lowerSearch) ||
         r.requested_by_name?.toLowerCase().includes(lowerSearch);
     });
+  
+  console.log('Total requests:', requests.length);
+  console.log('Filtered requests for', currentUser.app_role, ':', filteredRequests.length);
+  console.log('Filtered requests:', filteredRequests);
 
   const checkDuplicate = (email) => {
     return students.find(s => s.email?.toLowerCase() === email?.toLowerCase());

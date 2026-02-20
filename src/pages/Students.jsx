@@ -459,11 +459,12 @@ export default function Students() {
         {/* Tabs (only for mentors) OR single table for assistance/admins */}
         {isMentor ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: isSeniorMentor ? '1fr 1fr' : '1fr' }}>
+            <TabsList className="grid w-full max-w-2xl" style={{ gridTemplateColumns: isSeniorMentor ? '1fr 1fr 1fr' : '1fr 1fr' }}>
               <TabsTrigger value="my">My Students</TabsTrigger>
               {isSeniorMentor && (
                 <TabsTrigger value="team">Team Students</TabsTrigger>
               )}
+              <TabsTrigger value="open_pool">Delta Open Students</TabsTrigger>
             </TabsList>
 
             {/* My Students Tab */}

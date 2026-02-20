@@ -67,7 +67,6 @@ import MyStudentRequests from './pages/MyStudentRequests';
 import MyTargets from './pages/MyTargets';
 import Personnel from './pages/Personnel';
 import QuarterClosing from './pages/QuarterClosing';
-import RetentionManagement from './pages/RetentionManagement';
 import StudentDetail from './pages/StudentDetail';
 import StudentLogs from './pages/StudentLogs';
 import StudentRequestApprovals from './pages/StudentRequestApprovals';
@@ -75,6 +74,7 @@ import Students from './pages/Students';
 import TargetsManagement from './pages/TargetsManagement';
 import Tickets from './pages/Tickets';
 import Transactions from './pages/Transactions';
+import RetentionManagement from './pages/RetentionManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -99,7 +99,6 @@ export const PAGES = {
     "MyTargets": MyTargets,
     "Personnel": Personnel,
     "QuarterClosing": QuarterClosing,
-    "RetentionManagement": RetentionManagement,
     "StudentDetail": StudentDetail,
     "StudentLogs": StudentLogs,
     "StudentRequestApprovals": StudentRequestApprovals,
@@ -107,6 +106,7 @@ export const PAGES = {
     "TargetsManagement": TargetsManagement,
     "Tickets": Tickets,
     "Transactions": Transactions,
+    "RetentionManagement": RetentionManagement,
 }
 
 export const pagesConfig = {

@@ -53,15 +53,20 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
     
     const isAcademicAdmin = currentUser?.app_role === 'academic_admin';
     
-    // Academic admin adds to open pool with no mentor
+    // Academic admin creates request (will be approved by academic head and broker admin)
     if (isAcademicAdmin) {
       const dataToSubmit = {
-        ...formData,
-        assignment_status: 'open_pool',
-        primary_mentor_id: '',
-        primary_mentor_name: '',
-        senior_mentor_id: '',
-        senior_mentor_name: ''
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        country: formData.country,
+        user_id: formData.user_id,
+        notes: formData.notes,
+        request_type: 'NEW_ENROLLMENT',
+        requested_primary_mentor_id: '',
+        requested_primary_mentor_name: '',
+        requested_senior_mentor_id: '',
+        requested_senior_mentor_name: ''
       };
       onSubmit(dataToSubmit);
       return;

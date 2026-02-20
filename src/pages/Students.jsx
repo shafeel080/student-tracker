@@ -858,9 +858,9 @@ export default function Students() {
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{isMentor ? 'Request New Student' : 'Add New Student'}</DialogTitle>
+              <DialogTitle>{isMentor || isAcademicAdmin ? 'Request New Student' : 'Add New Student'}</DialogTitle>
             </DialogHeader>
-            {isMentor ? (
+            {isMentor || isAcademicAdmin ? (
               <StudentRequestForm
                 onSubmit={handleSubmit}
                 onCancel={() => setShowAddDialog(false)}

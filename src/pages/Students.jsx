@@ -148,7 +148,7 @@ export default function Students() {
       }
     }
     
-    if (isMentor) {
+    if (isMentor || currentUser.app_role === 'academic_admin') {
       createRequestMutation.mutate(formData);
     } else {
       createMutation.mutate(formData);

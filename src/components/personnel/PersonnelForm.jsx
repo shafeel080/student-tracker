@@ -125,27 +125,6 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
             </Select>
           </div>
 
-          {formData.app_role === 'senior_mentor' && (
-            <div>
-              <Label htmlFor="senior_mentor">Senior Mentor</Label>
-              <Select
-                value={formData.senior_mentor_id}
-                onValueChange={handleSeniorMentorChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select senior mentor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {seniorMentors.map((mentor) => (
-                    <SelectItem key={mentor.id} value={mentor.id}>
-                      {mentor.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           {(formData.app_role === 'junior_mentor' || formData.app_role === 'senior_mentor') && (
             <div>
               <Label htmlFor="commission_rate">Commission Rate (%)</Label>

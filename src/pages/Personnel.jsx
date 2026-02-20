@@ -123,12 +123,12 @@ export default function Personnel() {
   const baseAccessibleUsers = filterPersonnelByRole(currentUser, allUsers);
 
   const filteredUsers = baseAccessibleUsers.filter(user => {
-    const userRole = user.app_role || user.data?.app_role;
-    const matchesSearch = 
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'all' || userRole === roleFilter;
-    return matchesSearch && matchesRole;
+   const userRole = String(user.app_role || user.data?.app_role || '').toLowerCase();
+   const matchesSearch = 
+     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+   const matchesRole = roleFilter === 'all' || userRole === roleFilter;
+   return matchesSearch && matchesRole;
   });
 
   const getRoleBadgeColor = (role) => {

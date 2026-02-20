@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export default function StudentForm({ student, onSubmit, onCancel, isSubmitting, users: propUsers }) {
+export default function StudentForm({ student, onSubmit, onCancel, isSubmitting, users: propUsers, currentUser }) {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -17,6 +17,7 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
     user_id: '',
     primary_mentor_id: '',
     senior_mentor_id: '',
+    assignment_status: 'assigned',
     status: 'ACTIVE',
     notes: ''
   });

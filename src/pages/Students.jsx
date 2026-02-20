@@ -100,12 +100,14 @@ export default function Students() {
   const createRequestMutation = useMutation({
     mutationFn: async (data) => {
       const user = await base44.auth.me();
+      // Academic admin requests skip academic approval and go directly to broker approval
+      const status = user.app_role === 'academic_admin' ? 'PENDING_BROKER_APPROVAL' : 'PENDING_ACADEMIC_APPROVAL';
       const newRequest = await base44.entities.StudentRequest.create({
         ...data,
         requested_by_id: user.id,
         requested_by_name: user.full_name,
         requested_at: new Date().toISOString(),
-        status: 'PENDING_ACADEMIC_APPROVAL'
+        status: status
       });
       await logAction('create_student_request', 'StudentRequest', newRequest.id, `Submitted student request: ${data.full_name}`, null, data);
       return newRequest;

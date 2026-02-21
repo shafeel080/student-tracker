@@ -525,7 +525,7 @@ export default function Students() {
         {/* Tabs for mentors and admins, single table for assistance/others */}
         {isMentor || isAdmin ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-2xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr' : '1fr') : (['academic_head', 'broker_admin'].includes(currentUser.app_role) ? '1fr 1fr' : '1fr') }}>
+            <TabsList className="grid w-full max-w-2xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr' : '1fr') : (['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) ? '1fr 1fr' : '1fr') }}>
               {isMentor && <TabsTrigger value="my">My Students</TabsTrigger>}
               {isSeniorMentor && (
                 <TabsTrigger value="team">Team Students</TabsTrigger>

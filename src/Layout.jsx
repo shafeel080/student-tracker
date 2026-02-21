@@ -111,7 +111,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Students', href: createPageUrl('Students'), icon: Users, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'subjunior_mentor', 'assistance'] },
     { name: 'StudentLogs', href: createPageUrl('StudentLogs'), icon: Users, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'junior_mentor', 'senior_mentor', 'subjunior_mentor', 'assistance'] },
     { name: 'MyStudentRequests', href: createPageUrl('MyStudentRequests'), icon: UserPlus, roles: ['junior_mentor', 'senior_mentor'] },
-    { name: 'StudentRequestApprovals', href: createPageUrl('StudentRequestApprovals'), icon: UserPlus, roles: ['academic_head', 'broker_admin'] },
+    { name: 'StudentRequestApprovals', href: createPageUrl('StudentRequestApprovals'), icon: UserPlus, roles: ['super_admin', 'academic_head', 'broker_admin'] },
     { name: 'RetentionManagement', href: createPageUrl('RetentionManagement'), icon: Users, roles: ['academic_head'] },
     { name: 'DrawAdminStudents', href: createPageUrl('DrawAdminStudents'), icon: Users, roles: ['draw_admin'] },
     { name: 'MT5Accounts', href: createPageUrl('MT5Accounts'), icon: TrendingUp, roles: ['super_admin', 'admin', 'broker_admin', 'academic_head', 'junior_mentor', 'senior_mentor'] },

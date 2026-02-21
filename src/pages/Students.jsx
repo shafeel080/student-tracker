@@ -531,7 +531,7 @@ export default function Students() {
                 <TabsTrigger value="team">Team Students</TabsTrigger>
               )}
               {isAdmin && <TabsTrigger value="all">All Students</TabsTrigger>}
-              {['academic_head', 'broker_admin'].includes(currentUser.app_role) && (
+              {['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) && (
                 <TabsTrigger value="open_pool">Delta Open Students</TabsTrigger>
               )}
             </TabsList>

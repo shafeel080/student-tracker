@@ -77,9 +77,13 @@ export default function StudentRequestApprovals() {
     );
   }
 
-  // Only show PENDING_LEVEL_UPGRADE requests (both roles can approve)
+  // Show PENDING_LEVEL_UPGRADE requests (both roles) and PENDING_BROKER_APPROVAL transfer requests (broker admin only)
   const filteredRequests = requests
-    .filter(r => r.status === 'PENDING_LEVEL_UPGRADE')
+    .filter(r => {
+      if (r.status === 'PENDING_LEVEL_UPGRADE') return true;
+      if (r.status === 'PENDING_BROKER_APPROVAL' && r.request_type === 'TRANSFER' && isBrokerAdmin) return true;
+      return false;
+    })
     .filter(r => {
       if (!searchTerm) return true;
       const lowerSearch = searchTerm.toLowerCase();
@@ -99,13 +103,13 @@ export default function StudentRequestApprovals() {
   const handleApprove = async (request) => {
     setSelectedRequest(request);
     
-    // Check for duplicate
-    const existing = checkDuplicate(request.email);
-    setDuplicateStudent(existing); // Store existing student info for display
-    
-    if (existing && isBrokerAdmin) {
+    // For transfer requests, show transfer dialog directly
+    if (request.request_type === 'TRANSFER' && request.existing_student_id) {
+      const existing = students.find(s => s.id === request.existing_student_id);
+      setDuplicateStudent(existing);
       setShowTransferDialog(true);
     } else {
+      // For level upgrade requests
       setShowApproveDialog(true);
     }
   };
@@ -118,29 +122,31 @@ export default function StudentRequestApprovals() {
   const confirmApprove = async () => {
     setProcessing(true);
     try {
-      // Upgrade student to Level 2
-      await base44.entities.Student.update(selectedRequest.existing_student_id, {
-        student_level: 'LEVEL_2'
-      });
+      if (selectedRequest.request_type === 'LEVEL_UPGRADE') {
+        // Upgrade student to Level 2
+        await base44.entities.Student.update(selectedRequest.existing_student_id, {
+          student_level: 'LEVEL_2'
+        });
 
-      // Mark request as approved
-      await base44.entities.StudentRequest.update(selectedRequest.id, {
-        status: 'APPROVED',
-        level_upgrade_approved_by_id: currentUser.id,
-        level_upgrade_approved_by_name: currentUser.full_name,
-        level_upgrade_approved_at: new Date().toISOString()
-      });
+        // Mark request as approved
+        await base44.entities.StudentRequest.update(selectedRequest.id, {
+          status: 'APPROVED',
+          level_upgrade_approved_by_id: currentUser.id,
+          level_upgrade_approved_by_name: currentUser.full_name,
+          level_upgrade_approved_at: new Date().toISOString()
+        });
 
-      await logAction('approve_level_upgrade', 'Student', selectedRequest.existing_student_id, 
-        `Approved level upgrade for ${selectedRequest.full_name} to Level 2`, null, selectedRequest);
-      toast.success('Student upgraded to Level 2 successfully');
+        await logAction('approve_level_upgrade', 'Student', selectedRequest.existing_student_id, 
+          `Approved level upgrade for ${selectedRequest.full_name} to Level 2`, null, selectedRequest);
+        toast.success('Student upgraded to Level 2 successfully');
+      }
 
       queryClient.invalidateQueries(['student-requests']);
       queryClient.invalidateQueries(['students']);
       setShowApproveDialog(false);
       setSelectedRequest(null);
     } catch (error) {
-      toast.error('Failed to approve upgrade');
+      toast.error('Failed to approve request');
       console.error(error);
     } finally {
       setProcessing(false);
@@ -194,9 +200,9 @@ export default function StudentRequestApprovals() {
       // Mark request as transferred
       await base44.entities.StudentRequest.update(selectedRequest.id, {
         status: 'TRANSFERRED',
-        broker_approved_by_id: currentUser.id,
-        broker_approved_by_name: currentUser.full_name,
-        broker_approved_at: new Date().toISOString(),
+        level_upgrade_approved_by_id: currentUser.id,
+        level_upgrade_approved_by_name: currentUser.full_name,
+        level_upgrade_approved_at: new Date().toISOString(),
         is_transfer: true,
         existing_student_id: duplicateStudent.id,
         previous_mentor_id: duplicateStudent.primary_mentor_id,
@@ -239,10 +245,10 @@ export default function StudentRequestApprovals() {
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-            Student Level Upgrade Approvals
+            Student Request Approvals
           </h1>
           <p className="text-gray-600 mt-2">
-            Review and approve student level upgrade requests from Level 1 to Level 2
+            Review and approve student level upgrades and transfer requests
           </p>
         </div>
 
@@ -262,7 +268,7 @@ export default function StudentRequestApprovals() {
           <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-blue-600" />
-              Pending Level Upgrade Requests ({filteredRequests.length})
+              Pending Requests ({filteredRequests.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -271,11 +277,12 @@ export default function StudentRequestApprovals() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="font-semibold">Requested</TableHead>
+                    <TableHead className="font-semibold">Request Type</TableHead>
                     <TableHead className="font-semibold">Student Name</TableHead>
                     <TableHead className="font-semibold">Email</TableHead>
-                    <TableHead className="font-semibold">Current Level</TableHead>
+                    <TableHead className="font-semibold">Current Mentor</TableHead>
                     <TableHead className="font-semibold">Requested By</TableHead>
-                    <TableHead className="font-semibold">Primary Mentor</TableHead>
+                    <TableHead className="font-semibold">New Mentor</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
@@ -283,52 +290,58 @@ export default function StudentRequestApprovals() {
                 <TableBody>
                   {filteredRequests.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                        No pending level upgrade requests
+                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                        No pending requests
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredRequests.map((request) => (
-                      <TableRow key={request.id} className="hover:bg-gray-50 transition-colors">
-                        <TableCell className="text-sm">
-                          {request.requested_at ? format(new Date(request.requested_at), 'MMM d, yyyy HH:mm') : '-'}
-                        </TableCell>
-                        <TableCell className="font-medium">{request.full_name}</TableCell>
-                        <TableCell className="text-sm">{request.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                            Level 1
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">{request.requested_by_name}</TableCell>
-                        <TableCell className="text-sm">{request.requested_primary_mentor_name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={getStatusColor(request.status)}>
-                            {request.status.replace(/_/g, ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleApprove(request)}
-                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleReject(request)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    filteredRequests.map((request) => {
+                      const existingStudent = request.existing_student_id ? students.find(s => s.id === request.existing_student_id) : null;
+                      return (
+                        <TableRow key={request.id} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="text-sm">
+                            {request.requested_at ? format(new Date(request.requested_at), 'MMM d, yyyy HH:mm') : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={request.request_type === 'TRANSFER' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}>
+                              {request.request_type === 'TRANSFER' ? 'Transfer' : 'Level Upgrade'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-medium">{request.full_name}</TableCell>
+                          <TableCell className="text-sm">{request.email}</TableCell>
+                          <TableCell className="text-sm">
+                            {request.request_type === 'TRANSFER' ? request.previous_mentor_name : existingStudent?.primary_mentor_name || '-'}
+                          </TableCell>
+                          <TableCell className="text-sm">{request.requested_by_name}</TableCell>
+                          <TableCell className="text-sm">{request.requested_primary_mentor_name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getStatusColor(request.status)}>
+                              {request.status.replace(/_/g, ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleApprove(request)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleReject(request)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>

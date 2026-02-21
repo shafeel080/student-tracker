@@ -82,6 +82,12 @@ export default function Students() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      // Check for duplicate email
+      const existingStudent = students.find(s => s.email?.toLowerCase() === data.email?.toLowerCase());
+      if (existingStudent) {
+        throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
+      }
+      
       const studentCode = await generateStudentCode(base44);
       const newStudent = await base44.entities.Student.create({
         ...data,
@@ -94,11 +100,20 @@ export default function Students() {
       queryClient.invalidateQueries(['students']);
       setShowAddDialog(false);
       toast.success('Student created successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create student');
     }
   });
 
   const createRequestMutation = useMutation({
     mutationFn: async (data) => {
+      // Check for duplicate email
+      const existingStudent = students.find(s => s.email?.toLowerCase() === data.email?.toLowerCase());
+      if (existingStudent) {
+        throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
+      }
+      
       const user = await base44.auth.me();
       const studentCode = await generateStudentCode(base44);
       // Create student directly (auto-approved)
@@ -137,6 +152,9 @@ export default function Students() {
       queryClient.invalidateQueries(['students']);
       setShowAddDialog(false);
       toast.success('Student created successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create student');
     }
   });
 

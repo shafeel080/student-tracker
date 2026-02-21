@@ -43,10 +43,8 @@ export default function MyStudentRequests() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'PENDING_ACADEMIC_APPROVAL':
+      case 'PENDING_LEVEL_UPGRADE':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'PENDING_BROKER_APPROVAL':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'APPROVED':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'REJECTED':
@@ -60,8 +58,7 @@ export default function MyStudentRequests() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'PENDING_ACADEMIC_APPROVAL':
-      case 'PENDING_BROKER_APPROVAL':
+      case 'PENDING_LEVEL_UPGRADE':
         return <Clock className="h-4 w-4" />;
       case 'APPROVED':
       case 'TRANSFERRED':
@@ -74,7 +71,7 @@ export default function MyStudentRequests() {
   };
 
   const pendingCount = myRequests.filter(r => 
-    r.status === 'PENDING_ACADEMIC_APPROVAL' || r.status === 'PENDING_BROKER_APPROVAL'
+    r.status === 'PENDING_LEVEL_UPGRADE'
   ).length;
   const approvedCount = myRequests.filter(r => r.status === 'APPROVED' || r.status === 'TRANSFERRED').length;
   const rejectedCount = myRequests.filter(r => r.status === 'REJECTED').length;
@@ -187,8 +184,7 @@ export default function MyStudentRequests() {
                           <Badge variant="outline" className={`${getStatusColor(request.status)} flex items-center gap-1 w-fit`}>
                             {getStatusIcon(request.status)}
                             <span className="text-xs">
-                              {request.status === 'PENDING_ACADEMIC_APPROVAL' ? 'Pending (Academic)' :
-                               request.status === 'PENDING_BROKER_APPROVAL' ? 'Pending (Broker)' :
+                              {request.status === 'PENDING_LEVEL_UPGRADE' ? 'Pending Upgrade' :
                                request.status.replace(/_/g, ' ')}
                             </span>
                           </Badge>
@@ -196,17 +192,20 @@ export default function MyStudentRequests() {
                         <TableCell className="text-sm max-w-xs">
                           {request.status === 'REJECTED' && (
                             <div className="text-red-600">
-                              {request.academic_rejection_reason || request.broker_rejection_reason || 'Rejected'}
+                              {request.level_upgrade_rejection_reason || 'Upgrade rejected'}
                             </div>
                           )}
                           {request.status === 'TRANSFERRED' && (
                             <div className="text-purple-600">Student transferred successfully</div>
                           )}
-                          {request.status === 'APPROVED' && (
-                            <div className="text-green-600">Approved and student created</div>
+                          {request.status === 'APPROVED' && request.request_type === 'LEVEL_UPGRADE' && (
+                            <div className="text-green-600">Upgraded to Level 2</div>
                           )}
-                          {(request.status === 'PENDING_ACADEMIC_APPROVAL' || request.status === 'PENDING_BROKER_APPROVAL') && (
-                            <div className="text-gray-500">Awaiting approval</div>
+                          {request.status === 'APPROVED' && request.request_type !== 'LEVEL_UPGRADE' && (
+                            <div className="text-green-600">Student created</div>
+                          )}
+                          {request.status === 'PENDING_LEVEL_UPGRADE' && (
+                            <div className="text-gray-500">Awaiting upgrade approval</div>
                           )}
                         </TableCell>
                       </TableRow>

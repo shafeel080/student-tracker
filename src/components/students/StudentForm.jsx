@@ -19,6 +19,7 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
     senior_mentor_id: '',
     assignment_status: 'assigned',
     status: 'ACTIVE',
+    student_level: 'LEVEL_1',
     notes: ''
   });
 
@@ -51,27 +52,6 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    const isAcademicAdmin = currentUser?.app_role === 'academic_admin';
-    
-    // Academic admin creates request (will be approved by academic head and broker admin)
-    if (isAcademicAdmin) {
-      const dataToSubmit = {
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone,
-        country: formData.country,
-        user_id: formData.user_id,
-        notes: formData.notes,
-        request_type: 'NEW_ENROLLMENT',
-        requested_primary_mentor_id: '',
-        requested_primary_mentor_name: '',
-        requested_senior_mentor_id: '',
-        requested_senior_mentor_name: ''
-      };
-      onSubmit(dataToSubmit);
-      return;
-    }
     
     // Regular mentor assignment flow
     const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
@@ -155,57 +135,47 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
           />
         </div>
         
-        {currentUser?.app_role !== 'academic_admin' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="primary_mentor">Primary Mentor</Label>
-              <Select
-                value={formData.primary_mentor_id}
-                onValueChange={(value) => setFormData({ ...formData, primary_mentor_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Mentor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allMentors.map((mentor) => (
-                    <SelectItem key={mentor.id} value={mentor.id}>
-                      {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : mentor.app_role === 'subjunior_mentor' ? 'Sub Junior' : 'Senior'})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="senior_mentor">Senior Mentor (Auto-assigned)</Label>
-              <Input
-                value={
-                  (() => {
-                    const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
-                    if (primaryMentor?.app_role === 'senior_mentor' && primaryMentor.senior_mentor_name) {
-                      return primaryMentor.senior_mentor_name;
-                    } else if (['junior_mentor', 'subjunior_mentor'].includes(primaryMentor?.app_role)) {
-                      return 'None';
-                    } else if (primaryMentor?.app_role === 'senior_mentor') {
-                      return 'None (Primary is Senior)';
-                    }
-                    return 'None';
-                  })()
-                }
-                disabled
-                className="bg-gray-50"
-              />
-            </div>
-          </>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="primary_mentor">Primary Mentor</Label>
+          <Select
+            value={formData.primary_mentor_id}
+            onValueChange={(value) => setFormData({ ...formData, primary_mentor_id: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Mentor" />
+            </SelectTrigger>
+            <SelectContent>
+              {allMentors.map((mentor) => (
+                <SelectItem key={mentor.id} value={mentor.id}>
+                  {mentor.full_name} ({mentor.app_role === 'junior_mentor' ? 'Junior' : mentor.app_role === 'subjunior_mentor' ? 'Sub Junior' : 'Senior'})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         
-        {currentUser?.app_role === 'academic_admin' && (
-          <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800 font-medium">
-              This student request will require approval from Academic Head and Broker Admin before being added to the system.
-            </p>
-          </div>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="senior_mentor">Senior Mentor (Auto-assigned)</Label>
+          <Input
+            value={
+              (() => {
+                const primaryMentor = users.find(u => u.id === formData.primary_mentor_id);
+                if (primaryMentor?.app_role === 'senior_mentor' && primaryMentor.senior_mentor_name) {
+                  return primaryMentor.senior_mentor_name;
+                } else if (['junior_mentor', 'subjunior_mentor'].includes(primaryMentor?.app_role)) {
+                  return 'None';
+                } else if (primaryMentor?.app_role === 'senior_mentor') {
+                  return 'None (Primary is Senior)';
+                }
+                return 'None';
+              })()
+            }
+            disabled
+            className="bg-gray-50"
+          />
+        </div>
+        
+
         
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
@@ -219,6 +189,22 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
             <SelectContent>
               <SelectItem value="ACTIVE">Active</SelectItem>
               <SelectItem value="INACTIVE">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="student_level">Student Level</Label>
+          <Select
+            value={formData.student_level}
+            onValueChange={(value) => setFormData({ ...formData, student_level: value })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LEVEL_1">Level 1 (Logs Only)</SelectItem>
+              <SelectItem value="LEVEL_2">Level 2 (Full Access)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -243,10 +229,10 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {currentUser?.app_role === 'academic_admin' ? 'Submitting...' : 'Saving...'}
+              Saving...
             </>
           ) : (
-            currentUser?.app_role === 'academic_admin' ? 'Submit Request' : (student ? 'Update Student' : 'Create Student')
+            student ? 'Update Student' : 'Create Student'
           )}
         </Button>
       </div>

@@ -100,28 +100,60 @@ export default function Students() {
   const createRequestMutation = useMutation({
     mutationFn: async (data) => {
       const user = await base44.auth.me();
-      // All requests start with academic approval
-      const newRequest = await base44.entities.StudentRequest.create({
+      const studentCode = await generateStudentCode(base44);
+      // Create student directly (auto-approved)
+      const newStudent = await base44.entities.Student.create({
+        student_code: studentCode,
+        full_name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+        country: data.country,
+        notes: data.notes,
+        primary_mentor_id: data.requested_primary_mentor_id,
+        primary_mentor_name: data.requested_primary_mentor_name,
+        senior_mentor_id: data.requested_senior_mentor_id,
+        senior_mentor_name: data.requested_senior_mentor_name,
+        assignment_status: 'assigned',
+        status: 'ACTIVE',
+        student_level: 'LEVEL_1'
+      });
+      
+      // Also create a request record for tracking
+      await base44.entities.StudentRequest.create({
         ...data,
+        request_type: 'NEW_ENROLLMENT',
         requested_by_id: user.id,
         requested_by_name: user.full_name,
         requested_at: new Date().toISOString(),
-        status: 'PENDING_ACADEMIC_APPROVAL'
+        status: 'APPROVED',
+        created_student_id: newStudent.id
       });
-      await logAction('create_student_request', 'StudentRequest', newRequest.id, `Submitted student request: ${data.full_name}`, null, data);
-      return newRequest;
+      
+      await logAction('create_student', 'Student', newStudent.id, `Created student: ${data.full_name}`, null, newStudent);
+      return newStudent;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['student-requests']);
+      queryClient.invalidateQueries(['students']);
       setShowAddDialog(false);
-      toast.success('Student request submitted for approval');
+      toast.success('Student created successfully');
     }
   });
 
   const requestOpenPoolStudentMutation = useMutation({
     mutationFn: async (student) => {
       const user = await base44.auth.me();
-      const newRequest = await base44.entities.StudentRequest.create({
+      // Update student directly (auto-approved)
+      await base44.entities.Student.update(student.id, {
+        primary_mentor_id: user.id,
+        primary_mentor_name: user.full_name,
+        senior_mentor_id: user.app_role === 'junior_mentor' ? user.senior_mentor_id : '',
+        senior_mentor_name: user.app_role === 'junior_mentor' ? user.senior_mentor_name : '',
+        assignment_status: 'assigned'
+      });
+      
+      // Create request record for tracking
+      await base44.entities.StudentRequest.create({
         request_type: 'OPEN_POOL_ASSIGNMENT',
         existing_student_id: student.id,
         full_name: student.full_name,
@@ -135,15 +167,16 @@ export default function Students() {
         requested_by_id: user.id,
         requested_by_name: user.full_name,
         requested_at: new Date().toISOString(),
-        status: 'PENDING_ACADEMIC_APPROVAL',
-        notes: `Request to assign open pool student to mentor`
+        status: 'APPROVED',
+        notes: `Assigned open pool student to mentor`
       });
-      await logAction('request_open_pool_student', 'StudentRequest', newRequest.id, `Requested assignment of open pool student: ${student.full_name}`, null, student);
-      return newRequest;
+      
+      await logAction('assign_open_pool_student', 'Student', student.id, `Assigned open pool student: ${student.full_name}`, null, student);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['student-requests']);
-      toast.success('Student assignment request submitted for approval');
+      queryClient.invalidateQueries(['students']);
+      toast.success('Student assigned successfully');
     }
   });
 
@@ -159,8 +192,8 @@ export default function Students() {
       }
     }
     
-    // Mentors and academic_admin submit requests for approval
-    if (isMentor || isAcademicAdmin) {
+    // Mentors create students directly (auto-approved)
+    if (isMentor) {
       createRequestMutation.mutate(formData);
     } else {
       createMutation.mutate(formData);
@@ -174,7 +207,6 @@ export default function Students() {
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
   const isAssistance = currentUser.app_role === 'assistance';
   const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);
-  const isAcademicAdmin = currentUser.app_role === 'academic_admin';
 
   // Get mentor users for bulk import
   const mentorUsers = users.filter(u => 
@@ -190,13 +222,7 @@ export default function Students() {
   let openPoolStudents = [];
   let allStudents = students;
 
-  if (isAcademicAdmin) {
-    // Academic admin sees students they requested (approved requests)
-    const approvedRequestStudentIds = studentRequests
-      .filter(r => r.requested_by_id === currentUser.id && r.created_student_id)
-      .map(r => r.created_student_id);
-    allStudents = students.filter(s => approvedRequestStudentIds.includes(s.id));
-  } else if (isAssistance && currentUser.assigned_mentor_id) {
+  if (isAssistance && currentUser.assigned_mentor_id) {
     // Assistance sees only students assigned to their mentor
     allStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
   } else if (isMentor) {
@@ -251,10 +277,10 @@ export default function Students() {
         s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-  } else if (isAssistance || isAcademicAdmin) {
-    // Assistance and academic_admin users see filtered students
+  } else if (isAssistance) {
+    // Assistance users see filtered students
     filteredStudents = allStudents;
-    
+
     if (searchTerm) {
       filteredStudents = filteredStudents.filter(s =>
         s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -76,21 +76,9 @@ export default function StudentRequestApprovals() {
     );
   }
 
-  // Academic head sees PENDING_ACADEMIC_APPROVAL
-  // Broker admin sees both PENDING_ACADEMIC_APPROVAL and PENDING_BROKER_APPROVAL
+  // Only show PENDING_LEVEL_UPGRADE requests (both roles can approve)
   const filteredRequests = requests
-    .filter(r => {
-      if (isAcademicHead) {
-        const match = r.status === 'PENDING_ACADEMIC_APPROVAL';
-        console.log('Academic head filter:', r.full_name, r.status, match);
-        return match;
-      } else if (isBrokerAdmin) {
-        const match = r.status === 'PENDING_ACADEMIC_APPROVAL' || r.status === 'PENDING_BROKER_APPROVAL';
-        console.log('Broker admin filter:', r.full_name, r.status, match);
-        return match;
-      }
-      return false;
-    })
+    .filter(r => r.status === 'PENDING_LEVEL_UPGRADE')
     .filter(r => {
       if (!searchTerm) return true;
       const lowerSearch = searchTerm.toLowerCase();
@@ -129,81 +117,29 @@ export default function StudentRequestApprovals() {
   const confirmApprove = async () => {
     setProcessing(true);
     try {
-      if (isAcademicHead) {
-        // Academic head approval - move to broker approval
-        await base44.entities.StudentRequest.update(selectedRequest.id, {
-          status: 'PENDING_BROKER_APPROVAL',
-          academic_approved_by_id: currentUser.id,
-          academic_approved_by_name: currentUser.full_name,
-          academic_approved_at: new Date().toISOString()
-        });
-        await logAction('approve_student_request', 'StudentRequest', selectedRequest.id, 
-          `Approved student request for ${selectedRequest.full_name} (Academic)`, null, selectedRequest);
-        toast.success('Request approved - forwarded to Broker Admin');
-      } else if (isBrokerAdmin) {
-        // Check if this is an open pool assignment
-        if (selectedRequest.request_type === 'OPEN_POOL_ASSIGNMENT' && selectedRequest.existing_student_id) {
-          // Update existing open pool student with mentor assignment
-          await base44.entities.Student.update(selectedRequest.existing_student_id, {
-            primary_mentor_id: selectedRequest.requested_primary_mentor_id,
-            primary_mentor_name: selectedRequest.requested_primary_mentor_name,
-            senior_mentor_id: selectedRequest.requested_senior_mentor_id,
-            senior_mentor_name: selectedRequest.requested_senior_mentor_name,
-            assignment_status: 'assigned'
-          });
+      // Upgrade student to Level 2
+      await base44.entities.Student.update(selectedRequest.existing_student_id, {
+        student_level: 'LEVEL_2'
+      });
 
-          await base44.entities.StudentRequest.update(selectedRequest.id, {
-            status: 'APPROVED',
-            broker_approved_by_id: currentUser.id,
-            broker_approved_by_name: currentUser.full_name,
-            broker_approved_at: new Date().toISOString()
-          });
+      // Mark request as approved
+      await base44.entities.StudentRequest.update(selectedRequest.id, {
+        status: 'APPROVED',
+        level_upgrade_approved_by_id: currentUser.id,
+        level_upgrade_approved_by_name: currentUser.full_name,
+        level_upgrade_approved_at: new Date().toISOString()
+      });
 
-          await logAction('assign_open_pool_student', 'Student', selectedRequest.existing_student_id, 
-            `Assigned open pool student ${selectedRequest.full_name} to ${selectedRequest.requested_primary_mentor_name}`, 
-            null, selectedRequest);
-          toast.success('Open pool student assigned successfully');
-        } else {
-          // Regular new student creation (from academic_admin or mentor requests)
-          const studentCode = await generateStudentCode(base44);
-          const hasNoMentor = !selectedRequest.requested_primary_mentor_id;
-          const newStudent = await base44.entities.Student.create({
-            student_code: studentCode,
-            full_name: selectedRequest.full_name,
-            email: selectedRequest.email,
-            phone: selectedRequest.phone,
-            country: selectedRequest.country,
-            notes: selectedRequest.notes,
-            user_id: userId || selectedRequest.user_id || undefined,
-            primary_mentor_id: selectedRequest.requested_primary_mentor_id || '',
-            primary_mentor_name: selectedRequest.requested_primary_mentor_name || '',
-            senior_mentor_id: selectedRequest.requested_senior_mentor_id || '',
-            senior_mentor_name: selectedRequest.requested_senior_mentor_name || '',
-            assignment_status: hasNoMentor ? 'open_pool' : 'assigned',
-            status: 'ACTIVE'
-          });
-
-          await base44.entities.StudentRequest.update(selectedRequest.id, {
-            status: 'APPROVED',
-            broker_approved_by_id: currentUser.id,
-            broker_approved_by_name: currentUser.full_name,
-            broker_approved_at: new Date().toISOString(),
-            created_student_id: newStudent.id
-          });
-
-          await logAction('create_student', 'Student', newStudent.id, 
-            `Created student from request: ${selectedRequest.full_name}`, null, newStudent);
-          toast.success('Student created successfully');
-        }
-      }
+      await logAction('approve_level_upgrade', 'Student', selectedRequest.existing_student_id, 
+        `Approved level upgrade for ${selectedRequest.full_name} to Level 2`, null, selectedRequest);
+      toast.success('Student upgraded to Level 2 successfully');
 
       queryClient.invalidateQueries(['student-requests']);
       queryClient.invalidateQueries(['students']);
       setShowApproveDialog(false);
       setSelectedRequest(null);
-      setUserId('');
     } catch (error) {
-      toast.error('Failed to approve request');
+      toast.error('Failed to approve upgrade');
       console.error(error);
     } finally {
       setProcessing(false);
@@ -218,28 +154,19 @@ export default function StudentRequestApprovals() {
 
     setProcessing(true);
     try {
-      const updateData = {
-        status: 'REJECTED'
-      };
+      await base44.entities.StudentRequest.update(selectedRequest.id, {
+        status: 'REJECTED',
+        level_upgrade_approved_by_id: currentUser.id,
+        level_upgrade_approved_by_name: currentUser.full_name,
+        level_upgrade_approved_at: new Date().toISOString(),
+        level_upgrade_rejection_reason: rejectionReason
+      });
 
-      if (isAcademicHead) {
-        updateData.academic_approved_by_id = currentUser.id;
-        updateData.academic_approved_by_name = currentUser.full_name;
-        updateData.academic_approved_at = new Date().toISOString();
-        updateData.academic_rejection_reason = rejectionReason;
-      } else {
-        updateData.broker_approved_by_id = currentUser.id;
-        updateData.broker_approved_by_name = currentUser.full_name;
-        updateData.broker_approved_at = new Date().toISOString();
-        updateData.broker_rejection_reason = rejectionReason;
-      }
-
-      await base44.entities.StudentRequest.update(selectedRequest.id, updateData);
-      await logAction('reject_student_request', 'StudentRequest', selectedRequest.id, 
-        `Rejected student request for ${selectedRequest.full_name}: ${rejectionReason}`, null, updateData);
+      await logAction('reject_level_upgrade', 'StudentRequest', selectedRequest.id, 
+        `Rejected level upgrade for ${selectedRequest.full_name}: ${rejectionReason}`, null, { reason: rejectionReason });
 
       queryClient.invalidateQueries(['student-requests']);
-      toast.success('Request rejected');
+      toast.success('Upgrade request rejected');
       setShowRejectDialog(false);
       setSelectedRequest(null);
       setRejectionReason('');
@@ -311,10 +238,10 @@ export default function StudentRequestApprovals() {
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-            Student Request Approvals
+            Student Level Upgrade Approvals
           </h1>
           <p className="text-gray-600 mt-2">
-            {isAcademicHead ? 'Review and approve student registration requests' : 'Final approval and student creation'}
+            Review and approve student level upgrade requests from Level 1 to Level 2
           </p>
         </div>
 
@@ -334,7 +261,7 @@ export default function StudentRequestApprovals() {
           <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-blue-600" />
-              Pending Requests ({filteredRequests.length})
+              Pending Level Upgrade Requests ({filteredRequests.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -345,11 +272,9 @@ export default function StudentRequestApprovals() {
                     <TableHead className="font-semibold">Requested</TableHead>
                     <TableHead className="font-semibold">Student Name</TableHead>
                     <TableHead className="font-semibold">Email</TableHead>
-                    <TableHead className="font-semibold">Phone</TableHead>
-                    <TableHead className="font-semibold">Country</TableHead>
+                    <TableHead className="font-semibold">Current Level</TableHead>
                     <TableHead className="font-semibold">Requested By</TableHead>
                     <TableHead className="font-semibold">Primary Mentor</TableHead>
-                    <TableHead className="font-semibold">Senior Mentor</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
@@ -357,8 +282,8 @@ export default function StudentRequestApprovals() {
                 <TableBody>
                   {filteredRequests.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-                        No pending requests
+                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                        No pending level upgrade requests
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -369,19 +294,13 @@ export default function StudentRequestApprovals() {
                         </TableCell>
                         <TableCell className="font-medium">{request.full_name}</TableCell>
                         <TableCell className="text-sm">{request.email}</TableCell>
-                        <TableCell className="text-sm">{request.phone || '-'}</TableCell>
-                        <TableCell className="text-sm">{request.country || '-'}</TableCell>
-                        <TableCell className="text-sm">{request.requested_by_name}</TableCell>
-                        <TableCell className="text-sm">
-                          {request.request_type === 'OPEN_POOL_ASSIGNMENT' ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              Open Pool → {request.requested_primary_mentor_name}
-                            </Badge>
-                          ) : (
-                            request.requested_primary_mentor_name
-                          )}
+                        <TableCell>
+                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                            Level 1
+                          </Badge>
                         </TableCell>
-                        <TableCell className="text-sm">{request.requested_senior_mentor_name || '-'}</TableCell>
+                        <TableCell className="text-sm">{request.requested_by_name}</TableCell>
+                        <TableCell className="text-sm">{request.requested_primary_mentor_name}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className={getStatusColor(request.status)}>
                             {request.status.replace(/_/g, ' ')}
@@ -423,53 +342,15 @@ export default function StudentRequestApprovals() {
               <DialogTitle>Approve Student Request</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <p>Are you sure you want to approve this student {selectedRequest?.request_type === 'OPEN_POOL_ASSIGNMENT' ? 'assignment' : 'registration'} request?</p>
+              <p>Are you sure you want to upgrade this student to Level 2?</p>
               {selectedRequest && (
-                <div className="space-y-4">
-                  {selectedRequest.request_type === 'OPEN_POOL_ASSIGNMENT' && (
-                    <div className="bg-green-50 p-4 rounded-lg space-y-2 text-sm border border-green-200">
-                      <p className="font-semibold text-green-900">Open Pool Assignment:</p>
-                      <p><strong>Student:</strong> {selectedRequest.full_name}</p>
-                      <p><strong>Email:</strong> {selectedRequest.email}</p>
-                      <p><strong>Assign to:</strong> {selectedRequest.requested_primary_mentor_name}</p>
-                      {selectedRequest.requested_senior_mentor_name && (
-                        <p><strong>Senior Mentor:</strong> {selectedRequest.requested_senior_mentor_name}</p>
-                      )}
-                    </div>
-                  )}
-                  {selectedRequest.request_type !== 'OPEN_POOL_ASSIGNMENT' && (
-                    <div className="bg-blue-50 p-4 rounded-lg space-y-2 text-sm border border-blue-200">
-                      <p className="font-semibold text-blue-900">New Request Details:</p>
-                      <p><strong>Name:</strong> {selectedRequest.full_name}</p>
-                      <p><strong>Email:</strong> {selectedRequest.email}</p>
-                      <p><strong>Primary Mentor:</strong> {selectedRequest.requested_primary_mentor_name}</p>
-                      {selectedRequest.requested_senior_mentor_name && (
-                        <p><strong>Senior Mentor:</strong> {selectedRequest.requested_senior_mentor_name}</p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {duplicateStudent && (
-                    <div className="bg-amber-50 p-4 rounded-lg space-y-2 text-sm border border-amber-200">
-                      <p className="font-semibold text-amber-900">⚠️ Current Assignment (Info Only):</p>
-                      <p><strong>Current Primary Mentor:</strong> {duplicateStudent.primary_mentor_name}</p>
-                      {duplicateStudent.senior_mentor_name && (
-                        <p><strong>Current Senior Mentor:</strong> {duplicateStudent.senior_mentor_name}</p>
-                      )}
-                      <p className="text-xs text-amber-700 mt-2">This student already exists in the system</p>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {isBrokerAdmin && selectedRequest?.request_type !== 'OPEN_POOL_ASSIGNMENT' && (
-                <div className="space-y-2">
-                  <Label>User ID (from CRM)</Label>
-                  <Input
-                    placeholder="Enter user ID from CRM"
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)}
-                  />
+                <div className="bg-blue-50 p-4 rounded-lg space-y-2 text-sm border border-blue-200">
+                  <p className="font-semibold text-blue-900">Level Upgrade Request:</p>
+                  <p><strong>Student:</strong> {selectedRequest.full_name}</p>
+                  <p><strong>Email:</strong> {selectedRequest.email}</p>
+                  <p><strong>Current Level:</strong> Level 1 (Logs Only)</p>
+                  <p><strong>Requested Level:</strong> Level 2 (Full Access - Deposits & Withdrawals)</p>
+                  <p><strong>Primary Mentor:</strong> {selectedRequest.requested_primary_mentor_name}</p>
                 </div>
               )}
             </div>

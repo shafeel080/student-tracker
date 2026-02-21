@@ -29,6 +29,9 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
   });
   const [uploading, setUploading] = useState(false);
 
+  const selectedStudent = students.find(s => s.id === formData.student_id);
+  const isLevel1Deposit = formData.type === 'DEPOSIT' && selectedStudent?.student_level === 'LEVEL_1';
+
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -51,6 +54,12 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
     const selectedStudent = students.find(s => s.id === formData.student_id);
     if (!selectedStudent) {
       toast.error('Please select a student');
+      return;
+    }
+
+    // Check if student is Level 1 and trying to deposit
+    if (formData.type === 'DEPOSIT' && selectedStudent.student_level === 'LEVEL_1') {
+      toast.error('Student is Level 1 - not eligible for deposits. Please request level upgrade first.');
       return;
     }
 
@@ -91,6 +100,15 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {isLevel1Deposit && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p className="text-sm font-semibold text-red-800">⚠️ Student Not Eligible for Deposits</p>
+          <p className="text-xs text-red-600 mt-1">
+            This student is Level 1 (Logs Only). Deposit transactions require Level 2 access. 
+            Please request a level upgrade before submitting deposit requests.
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="type">Transaction Type *</Label>
@@ -185,7 +203,7 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
         </Button>
         <Button 
           type="submit" 
-          disabled={isSubmitting || uploading} 
+          disabled={isSubmitting || uploading || isLevel1Deposit} 
           className="bg-blue-600 hover:bg-blue-700"
         >
           {isSubmitting ? (

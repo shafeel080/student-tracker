@@ -51,6 +51,16 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     enabled: !!transaction?.student_id && open
   });
 
+  const { data: student } = useQuery({
+    queryKey: ['student', transaction?.student_id],
+    queryFn: async () => {
+      if (!transaction?.student_id) return null;
+      const students = await base44.entities.Student.list();
+      return students.find(s => s.id === transaction.student_id);
+    },
+    enabled: !!transaction?.student_id && open
+  });
+
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['all-funding-transactions'],
     queryFn: () => base44.entities.FundingTransaction.list(),
@@ -72,6 +82,12 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
   }, [transaction]);
 
   const handleApprove = () => {
+    // Check if student is Level 1 and transaction is a deposit
+    if (transaction.type === 'DEPOSIT' && student?.student_level === 'LEVEL_1') {
+      setTransactionIdError('Cannot approve deposit for Level 1 student. Please upgrade student to Level 2 first.');
+      return;
+    }
+
     if (!formData.transaction_id || formData.transaction_id.trim() === '') {
       setTransactionIdError('Transaction ID is required');
       return;
@@ -110,6 +126,8 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
 
   if (!transaction) return null;
 
+  const isLevel1Deposit = transaction.type === 'DEPOSIT' && student?.student_level === 'LEVEL_1';
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -118,6 +136,21 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
         </DialogHeader>
 
         <div className="space-y-4">
+          {isLevel1Deposit && (
+            <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+              <p className="text-sm font-bold text-red-800 flex items-center gap-2">
+                <span className="text-xl">⚠️</span>
+                Student Not Eligible for Deposit
+              </p>
+              <p className="text-xs text-red-700 mt-2">
+                This student is <strong>Level 1</strong> (Logs Only). Deposit transactions require <strong>Level 2</strong> access.
+              </p>
+              <p className="text-xs text-red-700 mt-1">
+                To approve this deposit, the broker admin must first upgrade the student to Level 2 through the Student Request Approvals page.
+              </p>
+            </div>
+          )}
+          
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
@@ -131,6 +164,12 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
               <div>
                 <span className="text-gray-600">Code:</span>
                 <span className="ml-2 font-mono font-semibold">{transaction.student_code}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Student Level:</span>
+                <span className={`ml-2 font-semibold ${student?.student_level === 'LEVEL_1' ? 'text-yellow-700' : 'text-green-700'}`}>
+                  {student?.student_level || 'Unknown'}
+                </span>
               </div>
             </div>
           </div>
@@ -259,7 +298,9 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
           </Button>
           <Button
             onClick={handleApprove}
-            className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2"
+            disabled={isLevel1Deposit}
+            className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isLevel1Deposit ? 'Cannot approve - Student must be Level 2' : 'Approve transaction'}
           >
             <CheckCircle className="h-4 w-4" />
             Approve

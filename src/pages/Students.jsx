@@ -110,13 +110,43 @@ export default function Students() {
     mutationFn: async (data) => {
       // Check for duplicate email
       const existingStudent = students.find(s => s.email?.toLowerCase() === data.email?.toLowerCase());
+      
       if (existingStudent) {
-        throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
+        // Check if student is already assigned to current mentor
+        if (existingStudent.primary_mentor_id === currentUser.id) {
+          throw new Error('DUPLICATE_OWN_STUDENT');
+        }
+        
+        // Student exists with different mentor - create transfer request
+        await base44.entities.StudentRequest.create({
+          request_type: 'TRANSFER',
+          full_name: data.full_name,
+          email: data.email,
+          phone: data.phone,
+          country: data.country,
+          notes: data.notes,
+          requested_primary_mentor_id: data.requested_primary_mentor_id,
+          requested_primary_mentor_name: data.requested_primary_mentor_name,
+          requested_senior_mentor_id: data.requested_senior_mentor_id,
+          requested_senior_mentor_name: data.requested_senior_mentor_name,
+          requested_by_id: currentUser.id,
+          requested_by_name: currentUser.full_name,
+          requested_at: new Date().toISOString(),
+          status: 'PENDING_BROKER_APPROVAL',
+          is_transfer: true,
+          existing_student_id: existingStudent.id,
+          previous_mentor_id: existingStudent.primary_mentor_id,
+          previous_mentor_name: existingStudent.primary_mentor_name
+        });
+        
+        await logAction('request_student_transfer', 'StudentRequest', existingStudent.id, 
+          `Requested transfer of student ${data.full_name} from ${existingStudent.primary_mentor_name}`, null, data);
+        
+        return { isTransferRequest: true };
       }
       
-      const user = await base44.auth.me();
+      // No duplicate - create student directly
       const studentCode = await generateStudentCode(base44);
-      // Create student directly (auto-approved)
       const newStudent = await base44.entities.Student.create({
         student_code: studentCode,
         full_name: data.full_name,
@@ -137,8 +167,8 @@ export default function Students() {
       await base44.entities.StudentRequest.create({
         ...data,
         request_type: 'NEW_ENROLLMENT',
-        requested_by_id: user.id,
-        requested_by_name: user.full_name,
+        requested_by_id: currentUser.id,
+        requested_by_name: currentUser.full_name,
         requested_at: new Date().toISOString(),
         status: 'APPROVED',
         created_student_id: newStudent.id
@@ -147,14 +177,23 @@ export default function Students() {
       await logAction('create_student', 'Student', newStudent.id, `Created student: ${data.full_name}`, null, newStudent);
       return newStudent;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries(['student-requests']);
       queryClient.invalidateQueries(['students']);
       setShowAddDialog(false);
-      toast.success('Student created successfully');
+      
+      if (result?.isTransferRequest) {
+        toast.success('Transfer request submitted. Awaiting broker admin approval.');
+      } else {
+        toast.success('Student created successfully');
+      }
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create student');
+      if (error.message === 'DUPLICATE_OWN_STUDENT') {
+        toast.error('Student already exists in your student list');
+      } else {
+        toast.error(error.message || 'Failed to create student');
+      }
     }
   });
 

@@ -60,7 +60,8 @@ export default function StudentRequestApprovals() {
 
   const isAcademicHead = currentUser.app_role === 'academic_head';
   const isBrokerAdmin = currentUser.app_role === 'broker_admin';
-  const canApprove = isAcademicHead || isBrokerAdmin;
+  const isSuperAdmin = currentUser.app_role === 'super_admin';
+  const canApprove = isAcademicHead || isBrokerAdmin || isSuperAdmin;
 
   if (!canApprove) {
     return (

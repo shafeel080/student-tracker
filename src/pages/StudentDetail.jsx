@@ -226,6 +226,15 @@ export default function StudentDetail() {
               </div>
               
               <div>
+                <label className="text-sm font-medium text-gray-500">Student Level</label>
+                <p className="mt-1">
+                  <Badge variant="outline" className={displayStudent.student_level === 'LEVEL_2' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'}>
+                    {displayStudent.student_level === 'LEVEL_2' ? 'Level 2' : 'Level 1'}
+                  </Badge>
+                </p>
+              </div>
+              
+              <div>
                 <label className="text-sm font-medium text-gray-500">Created Date</label>
                 <p className="mt-1 text-base text-gray-900">
                   {displayStudent.created_date 

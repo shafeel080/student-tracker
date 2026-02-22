@@ -321,78 +321,48 @@ export default function Students() {
     return null;
   };
 
-  // Apply search filter
-  let filteredStudents;
+  // Get base student list based on role and active tab
+  let baseStudents;
   if (isMentor) {
-    const activeStudents = activeTab === 'my' ? myStudents : activeTab === 'team' ? teamStudents : openPoolStudents;
-    filteredStudents = activeStudents;
-    
-    if (searchTerm) {
-      filteredStudents = activeStudents.filter(s =>
-        s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    baseStudents = activeTab === 'my' ? myStudents : activeTab === 'team' ? teamStudents : openPoolStudents;
   } else if (isAssistance) {
-    // Assistance users see filtered students
-    filteredStudents = allStudents;
-
-    if (searchTerm) {
-      filteredStudents = filteredStudents.filter(s =>
-        s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    baseStudents = allStudents;
   } else if (isAdmin) {
-    // Admins can switch between all students and open pool
-    if (activeTab === 'open_pool') {
-      filteredStudents = openPoolStudents;
-    } else {
-      filteredStudents = allStudents;
-    }
-    
-    if (searchTerm) {
-      filteredStudents = filteredStudents.filter(s =>
-        s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    baseStudents = activeTab === 'open_pool' ? openPoolStudents : allStudents;
   } else {
-    // Other roles see all students
-    filteredStudents = allStudents;
-    
-    // Apply search filter
-    if (searchTerm) {
-      filteredStudents = filteredStudents.filter(s =>
-        s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    baseStudents = allStudents;
+  }
 
-    // Apply mentor filter
-    if (filterMentor !== 'all') {
-      filteredStudents = filteredStudents.filter(s => s.primary_mentor_name === filterMentor);
-    }
+  // Apply all filters to base list
+  let filteredStudents = baseStudents;
 
-    // Apply status filter
-    if (filterStatus !== 'all') {
-      filteredStudents = filteredStudents.filter(s => s.status === filterStatus);
-    }
+  // Apply search filter
+  if (searchTerm) {
+    filteredStudents = filteredStudents.filter(s =>
+      s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.student_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
 
-    // Apply level filter
-    if (filterLevel !== 'all') {
-      filteredStudents = filteredStudents.filter(s => s.student_level === filterLevel);
-    }
+  // Apply mentor filter (only for "all" tab)
+  if (filterMentor !== 'all' && activeTab === 'all') {
+    filteredStudents = filteredStudents.filter(s => s.primary_mentor_name === filterMentor);
+  }
 
-    // Apply date filter
+  // Apply status filter
+  if (filterStatus !== 'all') {
+    filteredStudents = filteredStudents.filter(s => s.status === filterStatus);
+  }
+
+  // Apply level filter
+  if (filterLevel !== 'all') {
+    filteredStudents = filteredStudents.filter(s => s.student_level === filterLevel);
+  }
+
+  // Apply date filter (only for "all" tab)
+  if (activeTab === 'all') {
     const dateRange = getDateRange();
     if (dateRange) {
       filteredStudents = filteredStudents.filter(s => {

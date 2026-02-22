@@ -36,6 +36,7 @@ export default function Students() {
   const [activeTab, setActiveTab] = useState('my');
   const [filterMentor, setFilterMentor] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterLevel, setFilterLevel] = useState('all');
   const [filterDateRange, setFilterDateRange] = useState('all');
   const [customDateFrom, setCustomDateFrom] = useState(null);
   const [customDateTo, setCustomDateTo] = useState(null);
@@ -386,6 +387,11 @@ export default function Students() {
       filteredStudents = filteredStudents.filter(s => s.status === filterStatus);
     }
 
+    // Apply level filter
+    if (filterLevel !== 'all') {
+      filteredStudents = filteredStudents.filter(s => s.student_level === filterLevel);
+    }
+
     // Apply date filter
     const dateRange = getDateRange();
     if (dateRange) {
@@ -496,22 +502,24 @@ export default function Students() {
               </div>
 
               {/* Admin Filters */}
-              {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
+              {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (activeTab === 'all' || activeTab === 'open_pool') && (
                 <>
                   {/* Mentor Filter */}
-                  <Select value={filterMentor} onValueChange={setFilterMentor}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by Mentor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Mentors</SelectItem>
-                      {uniqueMentors.map((mentor) => (
-                        <SelectItem key={mentor} value={mentor}>
-                          {mentor}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {activeTab === 'all' && (
+                    <Select value={filterMentor} onValueChange={setFilterMentor}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by Mentor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Mentors</SelectItem>
+                        {uniqueMentors.map((mentor) => (
+                          <SelectItem key={mentor} value={mentor}>
+                            {mentor}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
                   {/* Status Filter */}
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -525,21 +533,35 @@ export default function Students() {
                     </SelectContent>
                   </Select>
 
-                  {/* Date Filter */}
-                  <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+                  {/* Level Filter */}
+                  <Select value={filterLevel} onValueChange={setFilterLevel}>
                     <SelectTrigger className="w-36">
-                      <SelectValue placeholder="Date Range" />
+                      <SelectValue placeholder="Level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Time</SelectItem>
-                      <SelectItem value="weekly">Last 7 Days</SelectItem>
-                      <SelectItem value="monthly">Last 30 Days</SelectItem>
-                      <SelectItem value="custom">Custom Range</SelectItem>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="LEVEL_1">Level 1</SelectItem>
+                      <SelectItem value="LEVEL_2">Level 2</SelectItem>
                     </SelectContent>
                   </Select>
 
+                  {/* Date Filter */}
+                  {activeTab === 'all' && (
+                    <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+                      <SelectTrigger className="w-36">
+                        <SelectValue placeholder="Date Range" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="weekly">Last 7 Days</SelectItem>
+                        <SelectItem value="monthly">Last 30 Days</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+
                   {/* Custom Date Pickers */}
-                  {filterDateRange === 'custom' && (
+                  {filterDateRange === 'custom' && activeTab === 'all' && (
                     <>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -818,13 +840,13 @@ export default function Students() {
                     <TableHead className="font-semibold">User ID</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="font-semibold">Created</TableHead>
-                    {isMentor && <TableHead className="font-semibold text-right">Actions</TableHead>}
+                    <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayStudents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={isMentor ? 9 : 8} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                         No open pool students available
                       </TableCell>
                     </TableRow>
@@ -847,18 +869,25 @@ export default function Students() {
                         <TableCell className="text-sm">
                           {student.created_date ? format(new Date(student.created_date), 'MMM d, yyyy') : '-'}
                         </TableCell>
-                        {isMentor && (
-                          <TableCell className="text-right">
-                            <Button 
-                              size="sm" 
-                              onClick={() => requestOpenPoolStudentMutation.mutate(student)}
-                              disabled={requestOpenPoolStudentMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              {requestOpenPoolStudentMutation.isPending ? 'Requesting...' : 'Request Student'}
-                            </Button>
-                          </TableCell>
-                        )}
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            {isMentor && (
+                              <Button 
+                                size="sm" 
+                                onClick={() => requestOpenPoolStudentMutation.mutate(student)}
+                                disabled={requestOpenPoolStudentMutation.isPending}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                {requestOpenPoolStudentMutation.isPending ? 'Requesting...' : 'Request Student'}
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}

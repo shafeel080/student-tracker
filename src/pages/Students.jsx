@@ -358,7 +358,7 @@ export default function Students() {
 
   // Apply level filter
   if (filterLevel !== 'all') {
-    filteredStudents = filteredStudents.filter(s => s.student_level === filterLevel);
+    filteredStudents = filteredStudents.filter(s => (s.student_level || 'LEVEL_1') === filterLevel);
   }
 
   // Apply date filter (only for "all" tab)

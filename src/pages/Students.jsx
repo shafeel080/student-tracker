@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import StudentForm from "../components/students/StudentForm";
 import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
-import { Plus, Search, Eye, Users, UserCheck, Upload, Download, Filter } from "lucide-react";
+import { Plus, Search, Eye, Users, UserCheck, Upload, Download, Filter, ArrowUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -40,6 +41,8 @@ export default function Students() {
   const [filterDateRange, setFilterDateRange] = useState('all');
   const [customDateFrom, setCustomDateFrom] = useState(null);
   const [customDateTo, setCustomDateTo] = useState(null);
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [showBulkUpgradeDialog, setShowBulkUpgradeDialog] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -198,6 +201,31 @@ export default function Students() {
     }
   });
 
+  const bulkUpgradeMutation = useMutation({
+    mutationFn: async (studentIds) => {
+      const results = await Promise.all(
+        studentIds.map(id => 
+          base44.entities.Student.update(id, { student_level: 'LEVEL_2' })
+        )
+      );
+      await logAction('bulk_upgrade_student_level', 'Student', null, 
+        `Bulk upgraded ${studentIds.length} students to Level 2`, 
+        null, 
+        { studentIds, newLevel: 'LEVEL_2' }
+      );
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['students']);
+      setSelectedStudentIds([]);
+      setShowBulkUpgradeDialog(false);
+      toast.success('Students upgraded to Level 2 successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to upgrade students');
+    }
+  });
+
   const requestOpenPoolStudentMutation = useMutation({
     mutationFn: async (student) => {
       const user = await base44.auth.me();
@@ -265,6 +293,39 @@ export default function Students() {
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
   const isAssistance = currentUser.app_role === 'assistance';
   const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);
+  const isSuperAdmin = currentUser.app_role === 'super_admin';
+  
+  // Filter selected students to only Level 1
+  const selectedLevel1Students = filteredStudents.filter(s => 
+    selectedStudentIds.includes(s.id) && (s.student_level || 'LEVEL_1') === 'LEVEL_1'
+  );
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      const level1StudentIds = filteredStudents
+        .filter(s => (s.student_level || 'LEVEL_1') === 'LEVEL_1')
+        .map(s => s.id);
+      setSelectedStudentIds(level1StudentIds);
+    } else {
+      setSelectedStudentIds([]);
+    }
+  };
+
+  const handleSelectStudent = (studentId, checked) => {
+    if (checked) {
+      setSelectedStudentIds(prev => [...prev, studentId]);
+    } else {
+      setSelectedStudentIds(prev => prev.filter(id => id !== studentId));
+    }
+  };
+
+  const handleBulkUpgrade = () => {
+    if (selectedLevel1Students.length === 0) {
+      toast.error('No Level 1 students selected');
+      return;
+    }
+    setShowBulkUpgradeDialog(true);
+  };
 
   // Get mentor users for bulk import
   const mentorUsers = users.filter(u => 
@@ -435,6 +496,15 @@ export default function Students() {
         <div className="flex items-center justify-between">
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Students</h1>
           <div className="flex gap-3">
+            {isSuperAdmin && selectedLevel1Students.length > 0 && (
+              <Button 
+                onClick={handleBulkUpgrade}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <ArrowUp className="h-4 w-4 mr-2" />
+                Upgrade {selectedLevel1Students.length} to Level 2
+              </Button>
+            )}
             {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (
               <Button onClick={handleExportStudents} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
                 <Download className="h-4 w-4 mr-2" />
@@ -749,13 +819,22 @@ export default function Students() {
                   <TableBody>
                     {displayStudents.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                        <TableCell colSpan={isSuperAdmin ? 11 : 10} className="text-center py-8 text-gray-500">
                           No students found
                         </TableCell>
                       </TableRow>
                     ) : (
                       displayStudents.map((student) => (
                         <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
+                          {isSuperAdmin && (
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedStudentIds.includes(student.id)}
+                                onCheckedChange={(checked) => handleSelectStudent(student.id, checked)}
+                                disabled={(student.student_level || 'LEVEL_1') !== 'LEVEL_1'}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell className="font-mono text-sm font-medium text-blue-600">
                             {student.student_code}
                           </TableCell>
@@ -968,6 +1047,42 @@ export default function Students() {
           }}
           mentors={mentorUsers}
         />
+
+        {/* Bulk Upgrade Confirmation Dialog */}
+        <Dialog open={showBulkUpgradeDialog} onOpenChange={setShowBulkUpgradeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Bulk Upgrade</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-gray-700">
+                Are you sure you want to upgrade <span className="font-bold">{selectedLevel1Students.length}</span> students from Level 1 to Level 2?
+              </p>
+              <div className="mt-4 max-h-48 overflow-y-auto bg-gray-50 rounded-lg p-3">
+                <p className="text-sm font-semibold mb-2">Students to be upgraded:</p>
+                <ul className="text-sm space-y-1">
+                  {selectedLevel1Students.map(s => (
+                    <li key={s.id} className="text-gray-600">
+                      • {s.student_code} - {s.full_name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowBulkUpgradeDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => bulkUpgradeMutation.mutate(selectedLevel1Students.map(s => s.id))}
+                disabled={bulkUpgradeMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {bulkUpgradeMutation.isPending ? 'Upgrading...' : 'Confirm Upgrade'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

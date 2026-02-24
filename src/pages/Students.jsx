@@ -294,15 +294,10 @@ export default function Students() {
   const isAssistance = currentUser.app_role === 'assistance';
   const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);
   const isSuperAdmin = currentUser.app_role === 'super_admin';
-  
-  // Filter selected students to only Level 1
-  const selectedLevel1Students = filteredStudents.filter(s => 
-    selectedStudentIds.includes(s.id) && (s.student_level || 'LEVEL_1') === 'LEVEL_1'
-  );
 
-  const handleSelectAll = (checked) => {
+  const handleSelectAll = (checked, currentFilteredStudents) => {
     if (checked) {
-      const level1StudentIds = filteredStudents
+      const level1StudentIds = currentFilteredStudents
         .filter(s => (s.student_level || 'LEVEL_1') === 'LEVEL_1')
         .map(s => s.id);
       setSelectedStudentIds(level1StudentIds);
@@ -317,14 +312,6 @@ export default function Students() {
     } else {
       setSelectedStudentIds(prev => prev.filter(id => id !== studentId));
     }
-  };
-
-  const handleBulkUpgrade = () => {
-    if (selectedLevel1Students.length === 0) {
-      toast.error('No Level 1 students selected');
-      return;
-    }
-    setShowBulkUpgradeDialog(true);
   };
 
   // Get mentor users for bulk import
@@ -436,6 +423,19 @@ export default function Students() {
   
   // Apply masking to displayed students
   const displayStudents = filteredStudents.map(s => applyStudentMasking(s, currentUser.app_role));
+  
+  // Filter selected students to only Level 1 (after filteredStudents is defined)
+  const selectedLevel1Students = filteredStudents.filter(s => 
+    selectedStudentIds.includes(s.id) && (s.student_level || 'LEVEL_1') === 'LEVEL_1'
+  );
+
+  const handleBulkUpgrade = () => {
+    if (selectedLevel1Students.length === 0) {
+      toast.error('No Level 1 students selected');
+      return;
+    }
+    setShowBulkUpgradeDialog(true);
+  };
   
   const canEdit = canEditStudent(currentUser.app_role);
   
@@ -810,7 +810,7 @@ export default function Students() {
                             checked={selectedStudentIds.length > 0 && 
                               filteredStudents.filter(s => (s.student_level || 'LEVEL_1') === 'LEVEL_1').length > 0 &&
                               filteredStudents.filter(s => (s.student_level || 'LEVEL_1') === 'LEVEL_1').every(s => selectedStudentIds.includes(s.id))}
-                            onCheckedChange={handleSelectAll}
+                            onCheckedChange={(checked) => handleSelectAll(checked, filteredStudents)}
                           />
                         </TableHead>
                       )}

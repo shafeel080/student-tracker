@@ -804,6 +804,16 @@ export default function Students() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
+                      {isSuperAdmin && (
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedStudentIds.length > 0 && 
+                              filteredStudents.filter(s => (s.student_level || 'LEVEL_1') === 'LEVEL_1').length > 0 &&
+                              filteredStudents.filter(s => (s.student_level || 'LEVEL_1') === 'LEVEL_1').every(s => selectedStudentIds.includes(s.id))}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </TableHead>
+                      )}
                       <TableHead className="font-semibold">Student Code</TableHead>
                       <TableHead className="font-semibold">Full Name</TableHead>
                       <TableHead className="font-semibold">Email</TableHead>

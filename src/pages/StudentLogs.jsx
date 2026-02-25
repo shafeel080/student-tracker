@@ -35,10 +35,14 @@ export default function StudentLogs() {
     enabled: !!currentUser
   });
 
+  // Define mentor roles
+  const mentorAppRoles = ['junior_mentor', 'senior_mentor', 'subjunior_mentor', 'assistance'];
+  const isMentorRole = currentUser && mentorAppRoles.includes(currentUser.app_role);
+
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list(),
-    enabled: !!currentUser
+    enabled: !!currentUser && isMentorRole
   });
 
   const createMutation = useMutation({
@@ -72,14 +76,26 @@ export default function StudentLogs() {
   }
 
   // Filter logs based on user role
-  const isAssistance = currentUser.app_role === 'assistance';
   let visibleLogs = logs;
   
-  // If assistance, only show logs for students under their assigned mentor
-  if (isAssistance && currentUser.assigned_mentor_id) {
-    const mentorStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
-    const mentorStudentIds = new Set(mentorStudents.map(s => s.id));
-    visibleLogs = logs.filter(log => mentorStudentIds.has(log.student_id));
+  // If current user is a mentor, filter logs to only show their students' logs
+  if (isMentorRole) {
+    const mentoredStudentIds = new Set();
+    students.forEach(student => {
+      if (student.primary_mentor_id === currentUser.id || student.senior_mentor_id === currentUser.id) {
+        mentoredStudentIds.add(student.id);
+      }
+    });
+    // For 'assistance' role, also consider assigned_mentor_id if it exists
+    if (currentUser.app_role === 'assistance' && currentUser.assigned_mentor_id) {
+      students.forEach(student => {
+        if (student.primary_mentor_id === currentUser.assigned_mentor_id || student.senior_mentor_id === currentUser.assigned_mentor_id) {
+          mentoredStudentIds.add(student.id);
+        }
+      });
+    }
+
+    visibleLogs = logs.filter(log => mentoredStudentIds.has(log.student_id));
   }
   
   // Filter logs by search term

@@ -116,6 +116,7 @@ export default function QuarterClosing() {
       netDeposit,
       bufferCarriedIn,
       ...commission,
+      commissionRate,
       isClosed: false
     };
   });

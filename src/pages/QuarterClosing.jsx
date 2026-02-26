@@ -132,6 +132,7 @@ export default function QuarterClosing() {
       end_date,
       net_deposit_usd: mentorInfo.netDeposit,
       gross_commission_usd: mentorInfo.gross_commission_usd,
+      commission_rate: mentorInfo.commissionRate,
       commission_release_usd: mentorInfo.commission_release_usd,
       commission_buffer_usd: mentorInfo.commission_buffer_usd,
       buffer_carried_in_usd: mentorInfo.bufferCarriedIn,

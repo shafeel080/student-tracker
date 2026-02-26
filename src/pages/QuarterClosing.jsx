@@ -244,7 +244,7 @@ export default function QuarterClosing() {
                     <TableHead className="font-semibold">Mentor</TableHead>
                     <TableHead className="font-semibold">Net Deposit</TableHead>
                     <TableHead className="font-semibold">Buffer In</TableHead>
-                    <TableHead className="font-semibold">Gross (4%)</TableHead>
+                    <TableHead className="font-semibold">Gross</TableHead>
                     <TableHead className="font-semibold">Release (75%)</TableHead>
                     <TableHead className="font-semibold">Buffer (25%)</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -263,6 +263,9 @@ export default function QuarterClosing() {
                       </TableCell>
                       <TableCell className="font-semibold">
                         ${data.isClosed ? data.ledger.gross_commission_usd.toFixed(2) : data.gross_commission_usd.toFixed(2)}
+                        <span className="text-xs text-gray-400 ml-1">
+                          ({data.isClosed ? (data.ledger.commission_rate ?? 4) : data.commissionRate}%)
+                        </span>
                       </TableCell>
                       <TableCell className="text-emerald-600 font-semibold">
                         ${data.isClosed ? data.ledger.commission_release_usd.toFixed(2) : data.commission_release_usd.toFixed(2)}

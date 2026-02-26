@@ -107,7 +107,9 @@ export default function QuarterClosing() {
     const prevLedger = ledgers.find(l => l.mentor_id === mentor.id && l.quarter === prevQuarterLabel);
     const bufferCarriedIn = prevLedger?.commission_buffer_usd || 0;
 
-    const commission = calculateQuarterCommission(netDeposit, bufferCarriedIn);
+    // Use mentor's individual commission rate (default 4%)
+    const commissionRate = mentor.commission_rate ?? 4;
+    const commission = calculateQuarterCommission(netDeposit, bufferCarriedIn, commissionRate);
 
     return {
       mentor,

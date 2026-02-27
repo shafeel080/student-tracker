@@ -106,11 +106,17 @@ export default function StudentRequestApprovals() {
   const handleApprove = async (request) => {
     setSelectedRequest(request);
     
-    // For transfer requests, show transfer dialog directly
     if (request.request_type === 'TRANSFER' && request.existing_student_id) {
       const existing = students.find(s => s.id === request.existing_student_id);
       setDuplicateStudent(existing);
-      setShowTransferDialog(true);
+
+      if (request.status === 'PENDING_ACADEMIC_APPROVAL') {
+        // Academic head forwards to broker admin
+        setShowAcademicApproveDialog(true);
+      } else {
+        // Broker admin does the actual transfer
+        setShowTransferDialog(true);
+      }
     } else {
       // For level upgrade requests
       setShowApproveDialog(true);

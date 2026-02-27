@@ -121,7 +121,7 @@ export default function Students() {
           throw new Error('DUPLICATE_OWN_STUDENT');
         }
         
-        // Student exists with different mentor - create transfer request
+        // Student exists with different mentor - create transfer request (goes to academic head first)
         await base44.entities.StudentRequest.create({
           request_type: 'TRANSFER',
           full_name: data.full_name,
@@ -136,7 +136,7 @@ export default function Students() {
           requested_by_id: currentUser.id,
           requested_by_name: currentUser.full_name,
           requested_at: new Date().toISOString(),
-          status: 'PENDING_BROKER_APPROVAL',
+          status: 'PENDING_ACADEMIC_APPROVAL',
           is_transfer: true,
           existing_student_id: existingStudent.id,
           previous_mentor_id: existingStudent.primary_mentor_id,

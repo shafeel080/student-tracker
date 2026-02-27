@@ -187,7 +187,7 @@ export default function Students() {
       setShowAddDialog(false);
       
       if (result?.isTransferRequest) {
-        toast.success('Transfer request submitted. Awaiting broker admin approval.');
+        toast.success('Transfer request submitted. Awaiting academic head approval.');
       } else {
         toast.success('Student created successfully');
       }

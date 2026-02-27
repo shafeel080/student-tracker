@@ -23,6 +23,7 @@ export default function StudentRequestApprovals() {
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showAcademicApproveDialog, setShowAcademicApproveDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [duplicateStudent, setDuplicateStudent] = useState(null);
   const [processing, setProcessing] = useState(false);

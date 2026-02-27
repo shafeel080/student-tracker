@@ -77,11 +77,11 @@ export default function StudentRequestApprovals() {
     );
   }
 
-  // Show PENDING_LEVEL_UPGRADE requests (both roles) and PENDING_BROKER_APPROVAL transfer requests (broker admin only)
+  // Show PENDING_LEVEL_UPGRADE requests (both roles) and PENDING_BROKER_APPROVAL transfer requests (broker admin and academic head)
   const filteredRequests = requests
     .filter(r => {
       if (r.status === 'PENDING_LEVEL_UPGRADE') return true;
-      if (r.status === 'PENDING_BROKER_APPROVAL' && r.request_type === 'TRANSFER' && isBrokerAdmin) return true;
+      if (r.status === 'PENDING_BROKER_APPROVAL' && r.request_type === 'TRANSFER' && (isBrokerAdmin || isAcademicHead || isSuperAdmin)) return true;
       return false;
     })
     .filter(r => {

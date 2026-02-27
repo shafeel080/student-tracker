@@ -445,6 +445,40 @@ export default function StudentRequestApprovals() {
           </DialogContent>
         </Dialog>
 
+        {/* Academic Head Approve Transfer Dialog */}
+        <Dialog open={showAcademicApproveDialog} onOpenChange={setShowAcademicApproveDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Approve Transfer Request</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p>Approving this will forward the transfer request to <strong>Broker Admin</strong> for final approval.</p>
+              {duplicateStudent && selectedRequest && (
+                <div className="space-y-3">
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                    <p className="font-semibold text-gray-900">Student:</p>
+                    <p><strong>Name:</strong> {duplicateStudent.full_name}</p>
+                    <p><strong>Current Mentor:</strong> {duplicateStudent.primary_mentor_name}</p>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg space-y-2 text-sm">
+                    <p className="font-semibold text-gray-900">Requested By:</p>
+                    <p><strong>Mentor:</strong> {selectedRequest.requested_by_name}</p>
+                    <p><strong>New Primary Mentor:</strong> {selectedRequest.requested_primary_mentor_name}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAcademicApproveDialog(false)} disabled={processing}>
+                Cancel
+              </Button>
+              <Button onClick={confirmAcademicApprove} disabled={processing} className="bg-blue-600 hover:bg-blue-700">
+                {processing ? 'Processing...' : 'Approve & Forward to Broker Admin'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Transfer Dialog */}
         <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
           <DialogContent>

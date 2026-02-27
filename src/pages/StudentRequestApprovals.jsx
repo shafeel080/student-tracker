@@ -195,6 +195,33 @@ export default function StudentRequestApprovals() {
     }
   };
 
+  const confirmAcademicApprove = async () => {
+    setProcessing(true);
+    try {
+      // Forward to broker admin
+      await base44.entities.StudentRequest.update(selectedRequest.id, {
+        status: 'PENDING_BROKER_APPROVAL',
+        level_upgrade_approved_by_id: currentUser.id,
+        level_upgrade_approved_by_name: currentUser.full_name,
+        level_upgrade_approved_at: new Date().toISOString()
+      });
+
+      await logAction('approve_transfer_request', 'StudentRequest', selectedRequest.id,
+        `Academic head approved transfer request for ${selectedRequest.full_name}, forwarded to Broker Admin`, null, selectedRequest);
+
+      queryClient.invalidateQueries(['student-requests']);
+      toast.success('Transfer request approved and forwarded to Broker Admin');
+      setShowAcademicApproveDialog(false);
+      setSelectedRequest(null);
+      setDuplicateStudent(null);
+    } catch (error) {
+      toast.error('Failed to approve request');
+      console.error(error);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const confirmTransfer = async () => {
     setProcessing(true);
     try {

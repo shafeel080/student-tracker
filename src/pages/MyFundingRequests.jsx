@@ -232,7 +232,7 @@ export default function MyFundingRequests() {
           {/* My Funding Requests Tab */}
           <TabsContent value="my" className="space-y-6">
             {/* Commission Summary - hidden for assistance role */}
-            {!isAssistance && <Card className="border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+            {!isAssistance && (<Card className="border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader className="border-b border-blue-100">
                 <CardTitle className="text-xl font-semibold flex items-center gap-2">
                   <Award className="h-5 w-5 text-blue-600" />

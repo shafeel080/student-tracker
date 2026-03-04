@@ -282,7 +282,7 @@ export default function MyFundingRequests() {
                   </div>
                 </div>
               </CardContent>
-            </Card>}
+            </Card>)}
 
             {/* Transactions Table */}
             <Card className="border-gray-200">

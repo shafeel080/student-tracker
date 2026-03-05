@@ -16,6 +16,8 @@ import {
         Shield,
         UserPlus
       } from 'lucide-react';
+import ImpersonationBanner from './components/utils/ImpersonationBanner';
+import { getEffectiveUser, isImpersonating } from './components/utils/ImpersonationContext';
 import { Button } from '@/components/ui/button';
 
 export default function Layout({ children, currentPageName }) {

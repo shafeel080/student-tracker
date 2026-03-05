@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Upload } from "lucide-react";
 import SearchableStudentSelect from '../common/SearchableStudentSelect';
+import { detectChanges, getTabsFromChanges } from './StudentLogHistoryUtils';
 import { toast } from "sonner";
 
 export default function StudentLogForm({ log, students, open, onClose, onSubmit, isSubmitting }) {

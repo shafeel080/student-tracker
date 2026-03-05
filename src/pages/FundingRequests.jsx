@@ -221,17 +221,29 @@ export default function FundingRequests() {
 
     setIsBulkProcessing(true);
     try {
-      const updatePromises = selectedPendingIds.map(id => {
+      const updatePromises = selectedPendingIds.map(async (id) => {
         const transaction = transactions.find(t => t.id === id);
-        return base44.entities.FundingTransaction.update(id, {
+        await base44.entities.FundingTransaction.update(id, {
           status: 'APPROVED',
           approved_by_id: currentUser.id,
           approved_by_name: currentUser.full_name,
           approved_at: new Date().toISOString()
-        }).then(() => 
-          logAction('approve_funding_transaction', 'FundingTransaction', id, 
-            `Bulk approved transaction for ${transaction?.student_name}`, null, { status: 'APPROVED' })
-        );
+        });
+        await logAction('approve_funding_transaction', 'FundingTransaction', id, 
+          `Bulk approved transaction for ${transaction?.student_name}`, null, { status: 'APPROVED' });
+        
+        // Auto-upgrade Level 1 student to Level 2 on first approved deposit
+        if (transaction?.type === 'DEPOSIT') {
+          const student = students.find(s => s.id === transaction.student_id);
+          if (student?.student_level === 'LEVEL_1') {
+            const prevApproved = transactions.filter(
+              t => t.student_id === transaction.student_id && t.type === 'DEPOSIT' && t.status === 'APPROVED' && t.id !== id
+            );
+            if (prevApproved.length === 0) {
+              await base44.entities.Student.update(transaction.student_id, { student_level: 'LEVEL_2' });
+            }
+          }
+        }
       });
 
       await Promise.all(updatePromises);

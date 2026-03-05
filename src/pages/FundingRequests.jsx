@@ -672,7 +672,6 @@ export default function FundingRequests() {
                   ) : (
                     filteredTransactions.map((transaction) => {
                       const student = students.find(s => s.id === transaction.student_id);
-                      const isLevel1Deposit = transaction.type === 'DEPOSIT' && student?.student_level === 'LEVEL_1';
                       
                       return (
                       <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
@@ -723,20 +722,15 @@ export default function FundingRequests() {
                           {transaction.student_code}
                         </TableCell>
                         <TableCell>
-                          {student?.student_level === 'LEVEL_1' ? (
-                            <div className="flex items-center gap-1">
-                              <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                                Level 1
-                              </Badge>
-                              {isLevel1Deposit && (
-                                <span className="text-xs text-red-600 font-semibold">⚠️ Not Eligible</span>
-                              )}
-                            </div>
-                          ) : (
-                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                              Level 2
-                            </Badge>
-                          )}
+                         {student?.student_level === 'LEVEL_1' ? (
+                           <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                             Level 1
+                           </Badge>
+                         ) : (
+                           <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                             Level 2
+                           </Badge>
+                         )}
                         </TableCell>
                         <TableCell className="text-sm">{transaction.primary_mentor_name}</TableCell>
                         <TableCell className="font-mono text-sm">
@@ -783,8 +777,7 @@ export default function FundingRequests() {
                                 variant="ghost"
                                 onClick={() => handleProcess(transaction)}
                                 className="h-8 w-8 p-0"
-                                title={isLevel1Deposit ? 'Student must be upgraded to Level 2 before approving deposit' : 'Process transaction'}
-                              >
+                                >
                                 <Edit className="h-4 w-4" />
                               </Button>
                             )}

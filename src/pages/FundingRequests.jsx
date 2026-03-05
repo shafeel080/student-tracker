@@ -78,6 +78,7 @@ export default function FundingRequests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['funding-transactions']);
+      queryClient.invalidateQueries(['students']);
       setShowProcessDialog(false);
       setSelectedTransaction(null);
       toast.success('Transaction processed successfully');

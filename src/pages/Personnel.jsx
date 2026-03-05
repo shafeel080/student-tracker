@@ -292,17 +292,31 @@ export default function Personnel() {
                     <TableCell>
                       {new Date(user.created_date).toLocaleDateString()}
                     </TableCell>
-                    {canEditPersonnel(currentUser.app_role) && (
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(user)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    )}
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {canEditPersonnel(currentUser.app_role) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(user)}
+                            title="Edit user"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {currentUser.app_role === 'super_admin' && !isImpersonating() && user.app_role !== 'super_admin' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleImpersonate(user)}
+                            title={`View portal as ${user.full_name}`}
+                            className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                          >
+                            <LogIn className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}

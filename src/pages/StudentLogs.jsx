@@ -333,7 +333,7 @@ export default function StudentLogs() {
         {(showAddDialog || showEditDialog) && (
           <StudentLogForm
             log={selectedLog}
-            students={students}
+            students={availableStudentsForForm}
             open={showAddDialog || showEditDialog}
             onClose={() => {
               setShowAddDialog(false);

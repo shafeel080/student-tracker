@@ -130,8 +130,6 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
 
   if (!transaction) return null;
 
-  const isLevel1Deposit = transaction.type === 'DEPOSIT' && student?.student_level === 'LEVEL_1';
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -140,21 +138,6 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
         </DialogHeader>
 
         <div className="space-y-4">
-          {isLevel1Deposit && (
-            <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-              <p className="text-sm font-bold text-red-800 flex items-center gap-2">
-                <span className="text-xl">⚠️</span>
-                Student Not Eligible for Deposit
-              </p>
-              <p className="text-xs text-red-700 mt-2">
-                This student is <strong>Level 1</strong> (Logs Only). Deposit transactions require <strong>Level 2</strong> access.
-              </p>
-              <p className="text-xs text-red-700 mt-1">
-                To approve this deposit, the broker admin must first upgrade the student to Level 2 through the Student Request Approvals page.
-              </p>
-            </div>
-          )}
-          
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
@@ -302,9 +285,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
           </Button>
           <Button
             onClick={handleApprove}
-            disabled={isLevel1Deposit}
-            className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            title={isLevel1Deposit ? 'Cannot approve - Student must be Level 2' : 'Approve transaction'}
+            className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2"
           >
             <CheckCircle className="h-4 w-4" />
             Approve

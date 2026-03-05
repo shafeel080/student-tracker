@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import StudentLogForm from "../components/studentlogs/StudentLogForm";
 import StudentLogDetails from "../components/studentlogs/StudentLogDetails";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 
 export default function StudentLogs() {
   const [currentUser, setCurrentUser] = useState(null);

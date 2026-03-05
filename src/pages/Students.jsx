@@ -24,6 +24,7 @@ import {
   applyStudentMasking,
   generateStudentCode
 } from "../components/utils/StudentAccessControl";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
 import { format } from "date-fns";

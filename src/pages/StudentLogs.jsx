@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import StudentLogForm from "../components/studentlogs/StudentLogForm";
 import StudentLogDetails from "../components/studentlogs/StudentLogDetails";
 import { getEffectiveUser } from "../components/utils/ImpersonationContext";
+import { detectChanges, getTabsFromChanges } from "../components/studentlogs/StudentLogHistoryUtils";
 
 export default function StudentLogs() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -48,7 +49,25 @@ export default function StudentLogs() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.StudentLog.create(data),
+    mutationFn: async (data) => {
+      const newLog = await base44.entities.StudentLog.create(data);
+      // Record history entry for creation
+      await base44.entities.StudentLogHistory.create({
+        student_log_id: newLog.id,
+        student_id: data.student_id,
+        student_code: data.student_code,
+        student_name: data.student_name,
+        updated_by_id: currentUser.id,
+        updated_by_name: currentUser.full_name,
+        updated_by_role: currentUser.app_role,
+        action_type: 'created',
+        tab_section: 'All',
+        fields_changed: JSON.stringify([]),
+        contact_history_snapshot: data.contact_history || '',
+        entry_timestamp: new Date().toISOString()
+      });
+      return newLog;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['student-logs']);
       setShowAddDialog(false);
@@ -57,7 +76,30 @@ export default function StudentLogs() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.StudentLog.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const oldLog = logs.find(l => l.id === id);
+      const updatedLog = await base44.entities.StudentLog.update(id, data);
+      // Detect changes and record history
+      const changes = detectChanges(oldLog, data);
+      const tabSection = getTabsFromChanges(changes);
+      if (changes.length > 0 || data.contact_history !== oldLog?.contact_history) {
+        await base44.entities.StudentLogHistory.create({
+          student_log_id: id,
+          student_id: data.student_id,
+          student_code: data.student_code,
+          student_name: data.student_name,
+          updated_by_id: currentUser.id,
+          updated_by_name: currentUser.full_name,
+          updated_by_role: currentUser.app_role,
+          action_type: 'updated',
+          tab_section: tabSection || 'General',
+          fields_changed: JSON.stringify(changes),
+          contact_history_snapshot: data.contact_history || '',
+          entry_timestamp: new Date().toISOString()
+        });
+      }
+      return updatedLog;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['student-logs']);
       setShowEditDialog(false);

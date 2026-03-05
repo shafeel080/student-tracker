@@ -166,7 +166,7 @@ export default function StudentLogHistoryPage() {
 
   const { data: allEntries = [] } = useQuery({
     queryKey: ['student-log-history'],
-    queryFn: () => base44.entities.StudentLogHistory.list('-entry_timestamp'),
+    queryFn: () => base44.entities.StudentLogHistory.list('-created_date'),
     enabled: !!currentUser
   });
 

@@ -70,13 +70,13 @@ import QuarterClosing from './pages/QuarterClosing';
 import Reports from './pages/Reports';
 import RetentionManagement from './pages/RetentionManagement';
 import StudentDetail from './pages/StudentDetail';
+import StudentLogHistoryPage from './pages/StudentLogHistoryPage';
 import StudentLogs from './pages/StudentLogs';
 import StudentRequestApprovals from './pages/StudentRequestApprovals';
 import Students from './pages/Students';
 import TargetsManagement from './pages/TargetsManagement';
 import Tickets from './pages/Tickets';
 import Transactions from './pages/Transactions';
-import StudentLogHistoryPage from './pages/StudentLogHistoryPage';
 import __Layout from './Layout.jsx';
 
 
@@ -104,13 +104,13 @@ export const PAGES = {
     "Reports": Reports,
     "RetentionManagement": RetentionManagement,
     "StudentDetail": StudentDetail,
+    "StudentLogHistoryPage": StudentLogHistoryPage,
     "StudentLogs": StudentLogs,
     "StudentRequestApprovals": StudentRequestApprovals,
     "Students": Students,
     "TargetsManagement": TargetsManagement,
     "Tickets": Tickets,
     "Transactions": Transactions,
-    "StudentLogHistoryPage": StudentLogHistoryPage,
 }
 
 export const pagesConfig = {

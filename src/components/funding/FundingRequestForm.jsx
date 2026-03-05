@@ -204,7 +204,7 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
         </Button>
         <Button 
           type="submit" 
-          disabled={isSubmitting || uploading || isLevel1Deposit} 
+          disabled={isSubmitting || uploading || isLevel1Student} 
           className="bg-blue-600 hover:bg-blue-700"
         >
           {isSubmitting ? (

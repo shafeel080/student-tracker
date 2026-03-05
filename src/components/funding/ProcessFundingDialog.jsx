@@ -105,6 +105,16 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
       mt5_login: formData.mt5_account_id ? (selectedMT5Account?.mt5_login || formData.mt5_login) : formData.mt5_login,
       status: 'APPROVED'
     };
+
+    // Auto-upgrade student from Level 1 to Level 2 on first approved deposit
+    if (transaction.type === 'DEPOSIT' && student?.student_level === 'LEVEL_1') {
+      const previousApprovedDeposits = allTransactions.filter(
+        t => t.student_id === transaction.student_id && t.type === 'DEPOSIT' && t.status === 'APPROVED' && t.id !== transaction.id
+      );
+      if (previousApprovedDeposits.length === 0) {
+        await base44.entities.Student.update(transaction.student_id, { student_level: 'LEVEL_2' });
+      }
+    }
     
     onProcess(updatedData);
   };

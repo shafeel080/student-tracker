@@ -101,12 +101,12 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {isLevel1Deposit && (
+      {isLevel1Student && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-          <p className="text-sm font-semibold text-red-800">⚠️ Student Not Eligible for Deposits</p>
+          <p className="text-sm font-semibold text-red-800">⚠️ Student Not Eligible for Funding Requests</p>
           <p className="text-xs text-red-600 mt-1">
-            This student is Level 1 (Logs Only). Deposit transactions require Level 2 access. 
-            Please request a level upgrade before submitting deposit requests.
+            This student is Level 1 (Logs Only). Funding requests require Level 2 access. 
+            Please request a level upgrade before submitting deposit or withdrawal requests.
           </p>
         </div>
       )}

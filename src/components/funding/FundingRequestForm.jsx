@@ -56,12 +56,6 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       return;
     }
 
-    // Check if student is Level 1 - cannot do deposits or withdrawals
-    if (selectedStudent.student_level === 'LEVEL_1') {
-      toast.error('Student is Level 1 - not eligible for funding requests. Please request a level upgrade first.');
-      return;
-    }
-
     // For assistance users, use their assigned mentor's data
     let primaryMentorId, primaryMentorName, seniorMentorId, seniorMentorName;
     
@@ -99,15 +93,6 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {isLevel1Student && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-          <p className="text-sm font-semibold text-red-800">⚠️ Student Not Eligible for Funding Requests</p>
-          <p className="text-xs text-red-600 mt-1">
-            This student is Level 1 (Logs Only). Funding requests require Level 2 access. 
-            Please request a level upgrade before submitting deposit or withdrawal requests.
-          </p>
-        </div>
-      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="type">Transaction Type *</Label>
@@ -202,7 +187,7 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
         </Button>
         <Button 
           type="submit" 
-          disabled={isSubmitting || uploading || isLevel1Student} 
+          disabled={isSubmitting || uploading} 
           className="bg-blue-600 hover:bg-blue-700"
         >
           {isSubmitting ? (

@@ -44,7 +44,7 @@ export default function StudentLogs() {
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list(),
-    enabled: !!currentUser && isMentorRole
+    enabled: !!currentUser
   });
 
   const createMutation = useMutation({

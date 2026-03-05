@@ -19,11 +19,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Users, Shield } from 'lucide-react';
+import { Search, Edit, Users, Shield, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import PersonnelForm from '../components/personnel/PersonnelForm';
 import { canViewPersonnel, canEditPersonnel, filterPersonnelByRole } from '../components/utils/PersonnelAccessControl';
 import { logAction } from '../components/utils/AuditLogger';
+import { startImpersonation, isImpersonating } from '../components/utils/ImpersonationContext';
 
 export default function Personnel() {
   const [currentUser, setCurrentUser] = useState(null);

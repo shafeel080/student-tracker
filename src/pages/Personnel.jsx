@@ -253,7 +253,7 @@ export default function Personnel() {
                 <TableHead>Senior Mentor</TableHead>
                 <TableHead>Assigned Mentor</TableHead>
                 <TableHead>Joined</TableHead>
-                {canEditPersonnel(currentUser.app_role) && <TableHead>Actions</TableHead>}
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

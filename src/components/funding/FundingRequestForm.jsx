@@ -58,9 +58,9 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       return;
     }
 
-    // Check if student is Level 1 and trying to deposit
-    if (formData.type === 'DEPOSIT' && selectedStudent.student_level === 'LEVEL_1') {
-      toast.error('Student is Level 1 - not eligible for deposits. Please request level upgrade first.');
+    // Check if student is Level 1 - cannot do deposits or withdrawals
+    if (selectedStudent.student_level === 'LEVEL_1') {
+      toast.error('Student is Level 1 - not eligible for funding requests. Please request a level upgrade first.');
       return;
     }
 

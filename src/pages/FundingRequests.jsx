@@ -249,6 +249,7 @@ export default function FundingRequests() {
 
       await Promise.all(updatePromises);
       queryClient.invalidateQueries(['funding-transactions']);
+      queryClient.invalidateQueries(['students']);
       setSelectedIds([]);
       toast.success(`Successfully approved ${selectedPendingIds.length} transactions`);
     } catch (error) {

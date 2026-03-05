@@ -210,21 +210,13 @@ export default function StudentLogForm({ log, students, open, onClose, onSubmit,
             {/* Contact Status Tab */}
             <TabsContent value="contact" className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Select Student</Label>
-                  <Select value={formData.student_id} onValueChange={handleStudentChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select student" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {students.map(student => (
-                        <SelectItem key={student.id} value={student.id}>
-                          {student.student_code} - {student.full_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <SearchableStudentSelect
+                  students={students}
+                  value={formData.student_id}
+                  onValueChange={handleStudentChange}
+                  label="Select Student"
+                  required
+                />
                 <div className="space-y-2">
                   <Label>Followup Priority</Label>
                   <Select value={formData.followup_priority} onValueChange={(v) => setFormData({...formData, followup_priority: v})}>

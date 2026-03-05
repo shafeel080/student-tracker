@@ -77,6 +77,20 @@ export default function StudentLogs() {
     );
   }
 
+  // Filter students available in the form based on role
+  const isAdminRole = currentUser && ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(currentUser.app_role);
+  
+  let availableStudentsForForm = students;
+  if (!isAdminRole && currentUser) {
+    if (currentUser.app_role === 'assistance' && currentUser.assigned_mentor_id) {
+      availableStudentsForForm = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
+    } else if (isMentorRole) {
+      availableStudentsForForm = students.filter(s => 
+        s.primary_mentor_id === currentUser.id || s.senior_mentor_id === currentUser.id
+      );
+    }
+  }
+
   // Filter logs based on user role
   let visibleLogs = logs;
   

@@ -98,6 +98,13 @@ export default function Personnel() {
     setEditingUser(null);
   };
 
+  const handleImpersonate = async (targetUser) => {
+    await logAction('other', 'User', targetUser.id, 
+      `Super admin started impersonating user: ${targetUser.full_name} (${targetUser.app_role})`, 
+      null, { impersonated_user: targetUser.full_name, impersonated_role: targetUser.app_role });
+    startImpersonation(targetUser, currentUser);
+  };
+
   if (!currentUser || isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">

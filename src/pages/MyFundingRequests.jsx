@@ -301,7 +301,7 @@ export default function MyFundingRequests() {
                         <TableHead className="font-semibold">Code</TableHead>
                         <TableHead className="font-semibold">MT5 Login</TableHead>
                         <TableHead className="font-semibold">Amount</TableHead>
-                        <TableHead className="font-semibold">Commission</TableHead>
+                        {!isAssistance && <TableHead className="font-semibold">Commission</TableHead>}
                         <TableHead className="font-semibold">Payment Method</TableHead>
                         <TableHead className="font-semibold">Screenshot</TableHead>
                       </TableRow>

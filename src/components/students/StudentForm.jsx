@@ -193,21 +193,7 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
           </Select>
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="student_level">Student Level</Label>
-          <Select
-            value={formData.student_level}
-            onValueChange={(value) => setFormData({ ...formData, student_level: value })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="LEVEL_1">Level 1 (Logs Only)</SelectItem>
-              <SelectItem value="LEVEL_2">Level 2 (Full Access)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+
       </div>
       
       <div className="space-y-2">

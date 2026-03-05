@@ -49,7 +49,8 @@ export default function Students() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
+      const realUser = await base44.auth.me();
+      const user = getEffectiveUser(realUser);
       setCurrentUser(user);
       // Set default tab based on user role
       if (['super_admin', 'broker_admin', 'academic_head'].includes(user.app_role)) {

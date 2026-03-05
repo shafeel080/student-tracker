@@ -24,7 +24,8 @@ export default function StudentLogs() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
+      const realUser = await base44.auth.me();
+      const user = getEffectiveUser(realUser);
       setCurrentUser(user);
     };
     fetchUser();

@@ -81,13 +81,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     }
   }, [transaction]);
 
-  const handleApprove = () => {
-    // Check if student is Level 1 and transaction is a deposit
-    if (transaction.type === 'DEPOSIT' && student?.student_level === 'LEVEL_1') {
-      setTransactionIdError('Cannot approve deposit for Level 1 student. Please upgrade student to Level 2 first.');
-      return;
-    }
-
+  const handleApprove = async () => {
     if (!formData.transaction_id || formData.transaction_id.trim() === '') {
       setTransactionIdError('Transaction ID is required');
       return;

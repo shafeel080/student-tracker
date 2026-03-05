@@ -30,8 +30,6 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
   const [uploading, setUploading] = useState(false);
 
   const selectedStudent = students.find(s => s.id === formData.student_id);
-  const isLevel1Student = selectedStudent?.student_level === 'LEVEL_1';
-  const isLevel1Deposit = formData.type === 'DEPOSIT' && isLevel1Student;
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];

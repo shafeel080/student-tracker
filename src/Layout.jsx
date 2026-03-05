@@ -150,6 +150,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ImpersonationBanner />
       <style>{`
         :root {
           --color-primary: 30 58 138;

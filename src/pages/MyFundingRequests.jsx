@@ -359,11 +359,13 @@ export default function MyFundingRequests() {
                             <TableCell className="font-semibold text-gray-900">
                               ${transaction.amount_usd?.toFixed(2)}
                             </TableCell>
-                            <TableCell className={`font-semibold ${commissionEarned >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {transaction.status === 'APPROVED' 
-                                ? `$${commissionEarned.toFixed(2)}` 
-                                : '-'}
-                            </TableCell>
+                            {!isAssistance && (
+                              <TableCell className={`font-semibold ${commissionEarned >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {transaction.status === 'APPROVED' 
+                                  ? `$${commissionEarned.toFixed(2)}` 
+                                  : '-'}
+                              </TableCell>
+                            )}
                             <TableCell className="text-sm">{transaction.payment_method}</TableCell>
                             <TableCell>
                               {transaction.screenshot_url ? (

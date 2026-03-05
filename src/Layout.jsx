@@ -33,8 +33,9 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
+        const realUser = await base44.auth.me();
+        const effectiveUser = getEffectiveUser(realUser);
+        setCurrentUser(effectiveUser);
       } catch (error) {
         base44.auth.redirectToLogin();
       }

@@ -50,7 +50,7 @@ export default function Dashboard() {
 
   const { data: fundingTransactions = [] } = useQuery({
     queryKey: ['funding-transactions'],
-    queryFn: () => base44.entities.FundingTransaction.list('-requested_at', 50),
+    queryFn: () => base44.entities.FundingTransaction.list('-requested_at', 9999),
     enabled: !!currentUser
   });
 

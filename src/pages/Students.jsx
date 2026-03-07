@@ -88,10 +88,12 @@ export default function Students() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      // Check for duplicate email
-      const existingStudent = students.find(s => s.email?.toLowerCase() === data.email?.toLowerCase());
-      if (existingStudent) {
-        throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
+      // Only hard-block duplicate emails for super_admin and admin
+      if (['super_admin', 'admin'].includes(currentUser.app_role)) {
+        const existingStudent = students.find(s => s.email?.toLowerCase() === data.email?.toLowerCase());
+        if (existingStudent) {
+          throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
+        }
       }
       
       const studentCode = await generateStudentCode(base44);

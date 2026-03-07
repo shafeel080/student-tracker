@@ -47,16 +47,11 @@ export default function Personnel() {
     fetchUser();
   }, []);
 
-  const { data: allUsers = [], isLoading, error } = useQuery({
+  const { data: allUsers = [], isLoading } = useQuery({
     queryKey: ['all-users'],
     queryFn: async () => {
-      try {
-        const users = await base44.entities.User.list('-created_date', 1000);
-        return Array.isArray(users) ? users : [];
-      } catch (err) {
-        console.error('Error fetching users:', err);
-        return [];
-      }
+      const response = await base44.functions.invoke('getAllUsers', {});
+      return response.data?.users || [];
     },
     enabled: !!currentUser,
     retry: 2

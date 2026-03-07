@@ -114,8 +114,19 @@ export default function Students() {
 
   const createRequestMutation = useMutation({
     mutationFn: async (data) => {
-      // Check for duplicate email
+      // Check for duplicate email across all students
       const existingStudent = students.find(s => s.email?.toLowerCase() === data.email?.toLowerCase());
+      
+      // Block if student already exists (regardless of mentor assignment)
+      if (existingStudent && existingStudent.primary_mentor_id !== currentUser.id) {
+        throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
+      }
+      if (existingStudent && existingStudent.primary_mentor_id === currentUser.id) {
+        throw new Error('DUPLICATE_OWN_STUDENT');
+      }
+
+      // Re-declare for the original logic below (now effectively unreachable if duplicate found)
+      const existingStudentCheck = existingStudent;
       
       if (existingStudent) {
         // Check if student is already assigned to current mentor

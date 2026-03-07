@@ -27,7 +27,7 @@ export default function StudentForm({ student, onSubmit, onCancel, isSubmitting,
     queryKey: ['users'],
     queryFn: async () => {
       try {
-        const r = await base44.functions.getAllUsers(); return r.users || [];
+        const r = await base44.functions.invoke('getAllUsers', {}); return r.data?.users || [];
       } catch (error) {
         console.warn('Unable to fetch users:', error);
         return [];

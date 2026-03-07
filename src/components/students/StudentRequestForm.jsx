@@ -39,12 +39,17 @@ export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, u
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const allStudents = await base44.entities.Student.list();
-    const duplicate = allStudents.find(s => s.email?.toLowerCase() === formData.email?.toLowerCase());
-    if (duplicate) {
-      toast.error("A student with this email already exists");
-      return;
+    try {
+      const allStudents = await base44.entities.Student.list();
+      const duplicate = allStudents.find(s => s.email?.toLowerCase() === formData.email?.toLowerCase());
+      if (duplicate) {
+        setEmailError("A student with this email already exists");
+        return;
+      }
+    } catch (err) {
+      // fall through to submit if check fails
     }
+    setEmailError('');
     onSubmit({
       ...formData,
       requested_primary_mentor_id: primaryMentorId,

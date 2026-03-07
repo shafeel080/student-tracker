@@ -5,11 +5,11 @@ export const canViewPersonnel = (userRole) => {
 };
 
 export const canEditPersonnel = (userRole) => {
-  return ['super_admin', 'admin'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin'].includes(userRole);
 };
 
 export const canAssignRoles = (userRole) => {
-  return ['super_admin', 'admin'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin'].includes(userRole);
 };
 
 export const filterPersonnelByRole = (currentUser, allUsers) => {

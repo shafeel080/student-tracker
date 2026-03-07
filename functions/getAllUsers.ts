@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const users = await base44.asServiceRole.entities.User.list('-created_date', 1000);
+    const users = await base44.asServiceRole.entities.User.list('-created_date', 200);
     return Response.json({ users: Array.isArray(users) ? users : [] });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

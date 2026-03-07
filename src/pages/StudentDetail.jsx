@@ -45,7 +45,7 @@ export default function StudentDetail() {
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: async () => { const r = await base44.functions.getAllUsers(); return r.users || []; },
+    queryFn: async () => { const r = await base44.functions.invoke('getAllUsers', {}); return r.data?.users || []; },
     enabled: !!currentUser
   });
 

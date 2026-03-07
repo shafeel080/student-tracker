@@ -62,10 +62,10 @@ export default function TransactionTable({ transactions, currentUser, onApprove,
                 </TableCell>
                 <TableCell className="font-medium">{transaction.student_name}</TableCell>
                 <TableCell className="text-sm">{transaction.mentor_name}</TableCell>
-                <TableCell className="font-semibold">${transaction.amount?.toFixed(2)}</TableCell>
+                <TableCell className="font-semibold">${(transaction.amount_usd ?? transaction.amount)?.toFixed(2)}</TableCell>
                 <TableCell className="text-sm">
-                  {transaction.request_date 
-                    ? format(new Date(transaction.request_date), 'MMM d, yyyy HH:mm')
+                  {(transaction.requested_at || transaction.request_date)
+                    ? format(new Date(transaction.requested_at || transaction.request_date), 'MMM d, yyyy HH:mm')
                     : '-'}
                 </TableCell>
                 <TableCell>

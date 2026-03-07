@@ -114,52 +114,13 @@ export default function Students() {
 
   const createRequestMutation = useMutation({
     mutationFn: async (data) => {
-      // Check for duplicate email across all students
+      // Check for duplicate email — block for all roles
       const existingStudent = students.find(s => s.email?.toLowerCase() === data.email?.toLowerCase());
-      
-      // Block if student already exists (regardless of mentor assignment)
-      if (existingStudent && existingStudent.primary_mentor_id !== currentUser.id) {
-        throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
-      }
-      if (existingStudent && existingStudent.primary_mentor_id === currentUser.id) {
-        throw new Error('DUPLICATE_OWN_STUDENT');
-      }
-
-      // Re-declare for the original logic below (now effectively unreachable if duplicate found)
-      const existingStudentCheck = existingStudent;
-      
       if (existingStudent) {
-        // Check if student is already assigned to current mentor
         if (existingStudent.primary_mentor_id === currentUser.id) {
           throw new Error('DUPLICATE_OWN_STUDENT');
         }
-        
-        // Student exists with different mentor - create transfer request (goes to academic head first)
-        await base44.entities.StudentRequest.create({
-          request_type: 'TRANSFER',
-          full_name: data.full_name,
-          email: data.email,
-          phone: data.phone,
-          country: data.country,
-          notes: data.notes,
-          requested_primary_mentor_id: data.requested_primary_mentor_id,
-          requested_primary_mentor_name: data.requested_primary_mentor_name,
-          requested_senior_mentor_id: data.requested_senior_mentor_id,
-          requested_senior_mentor_name: data.requested_senior_mentor_name,
-          requested_by_id: currentUser.id,
-          requested_by_name: currentUser.full_name,
-          requested_at: new Date().toISOString(),
-          status: 'PENDING_ACADEMIC_APPROVAL',
-          is_transfer: true,
-          existing_student_id: existingStudent.id,
-          previous_mentor_id: existingStudent.primary_mentor_id,
-          previous_mentor_name: existingStudent.primary_mentor_name
-        });
-        
-        await logAction('request_student_transfer', 'StudentRequest', existingStudent.id, 
-          `Requested transfer of student ${data.full_name} from ${existingStudent.primary_mentor_name}`, null, data);
-        
-        return { isTransferRequest: true };
+        throw new Error(`A student with email ${data.email} already exists (${existingStudent.student_code} - ${existingStudent.full_name})`);
       }
       
       // No duplicate - create student directly

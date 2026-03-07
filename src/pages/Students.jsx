@@ -69,8 +69,8 @@ export default function Students() {
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const result = await base44.functions.getAllUsers();
-      return result.users || [];
+      const result = await base44.functions.invoke('getAllUsers', {});
+      return result.data?.users || [];
     },
     enabled: !!currentUser,
     retry: false

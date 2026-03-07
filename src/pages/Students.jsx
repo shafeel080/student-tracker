@@ -69,12 +69,8 @@ export default function Students() {
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      try {
-        return await base44.entities.User.list();
-      } catch (error) {
-        console.warn('Unable to fetch users, using limited data:', error);
-        return [];
-      }
+      const result = await base44.functions.invoke('getAllUsers');
+      return result.data?.users || [];
     },
     enabled: !!currentUser,
     retry: false

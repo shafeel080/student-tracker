@@ -76,10 +76,11 @@ export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, u
         <Input
           type="email"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setEmailError(''); }}
           required
           placeholder="student@example.com"
         />
+        {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
       </div>
 
       <div className="space-y-2">

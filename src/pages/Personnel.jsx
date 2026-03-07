@@ -59,9 +59,9 @@ export default function Personnel() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, userData }) => {
-      const result = await base44.entities.User.update(userId, userData);
+      const response = await base44.functions.invoke('updateUser', { userId, userData });
       await logAction('update_user', 'User', userId, `Updated user: ${userData.full_name}`, null, userData);
-      return result;
+      return response.data?.user;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-users'] });

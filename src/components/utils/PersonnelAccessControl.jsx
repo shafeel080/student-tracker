@@ -1,7 +1,7 @@
 // Utility functions for personnel/user management access control
 
 export const canViewPersonnel = (userRole) => {
-  return ['super_admin', 'admin', 'academic_head', 'academic_admin', 'admin_supervisor'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'admin_supervisor'].includes(userRole);
 };
 
 export const canEditPersonnel = (userRole) => {
@@ -17,8 +17,8 @@ export const filterPersonnelByRole = (currentUser, allUsers) => {
   
   const role = currentUser?.app_role || currentUser?.data?.app_role;
   
-  // Super Admin and Admin see all users
-  if (['super_admin', 'admin'].includes(role)) {
+  // Super Admin, Admin, and Broker Admin see all users
+  if (['super_admin', 'admin', 'broker_admin'].includes(role)) {
     return allUsers;
   }
   

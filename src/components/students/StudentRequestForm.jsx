@@ -20,6 +20,7 @@ export default function StudentRequestForm({ onSubmit, onCancel, isSubmitting, u
   // Auto-assign current user as primary mentor
   const [primaryMentorId, setPrimaryMentorId] = useState(currentUser?.id || '');
   const [seniorMentorInfo, setSeniorMentorInfo] = useState(null);
+  const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     if (currentUser && primaryMentorId === currentUser.id) {

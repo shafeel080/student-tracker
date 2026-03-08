@@ -15,7 +15,7 @@ import { TAB_COLORS } from "../components/studentlogs/StudentLogHistoryUtils";
 import SearchableStudentSelect from "../components/common/SearchableStudentSelect";
 
 const ADMIN_ROLES = ['super_admin', 'academic_head', 'academic_admin', 'admin_supervisor'];
-const ALL_TABS = ['Contact', 'Basic Info', 'Payment', 'Induction', 'Academic', 'Upgrade', 'Convocation', 'Traders Day', 'Live Trade', 'SSF', 'Rejoining', 'Seminar', 'Practice Tracking', 'Feedback & Review', 'Pips Craft'];
+const ALL_TABS = ['Contact', 'Basic Info', 'Payment', 'Induction', 'Academic', 'Upgrade', 'Convocation', 'Traders Day', 'Live Trade', 'SSF', 'Rejoining', 'Seminar', 'Practice Tracking', 'Feedback & Review', 'Pips Craft', 'Trading'];
 const ALL_ROLES = ['super_admin', 'academic_head', 'academic_admin', 'admin_supervisor', 'junior_mentor', 'senior_mentor', 'subjunior_mentor', 'assistance', 'broker_admin'];
 
 function FieldChangesDetail({ fieldsChanged }) {

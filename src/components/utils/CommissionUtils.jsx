@@ -42,17 +42,22 @@ export const calculateQuarterlyNetDepositAndCommission = (transactions, currentU
     isWithinCurrentQuarter(t.requested_at, currentDate)
   );
   
-  // Calculate net deposit
-  const totalDeposits = relevantTransactions
-    .filter(t => t.type === 'DEPOSIT')
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-  
-  const totalWithdrawals = relevantTransactions
-    .filter(t => t.type === 'WITHDRAWAL')
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-  
-  const netDepositUsd = totalDeposits - totalWithdrawals;
-  
+  // Calculate net deposit with per-student floor (0) and cap ($25,000)
+  const MAX_NET_DEPOSIT_PER_STUDENT = 25000;
+  const studentNetDeposits = {};
+  relevantTransactions.forEach(t => {
+    const studentId = t.student_id;
+    if (!studentNetDeposits[studentId]) studentNetDeposits[studentId] = 0;
+    if (t.type === 'DEPOSIT') studentNetDeposits[studentId] += (t.amount_usd || 0);
+    else if (t.type === 'WITHDRAWAL') studentNetDeposits[studentId] -= (t.amount_usd || 0);
+  });
+
+  let netDepositUsd = 0;
+  Object.values(studentNetDeposits).forEach(studentNet => {
+    const capped = Math.min(studentNet, MAX_NET_DEPOSIT_PER_STUDENT);
+    netDepositUsd += Math.max(capped, 0);
+  });
+
   // Calculate commission (4% of net deposit)
   const grossCommissionUsd = netDepositUsd * 0.04;
   

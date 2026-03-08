@@ -1,4 +1,4 @@
-s// Maps field names to their tab/section
+// Maps field names to their tab/section
 export const FIELD_TAB_MAP = {
   // Contact
   followup_priority: 'Contact',

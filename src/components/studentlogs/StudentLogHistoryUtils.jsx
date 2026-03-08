@@ -1,4 +1,4 @@
-// Maps field names to their tab/section
+s// Maps field names to their tab/section
 export const FIELD_TAB_MAP = {
   // Contact
   followup_priority: 'Contact',
@@ -85,14 +85,14 @@ export const FIELD_TAB_MAP = {
   live_trades_attended_count: 'Live Trade',
   last_attended_live_trade: 'Live Trade',
 
-  // SSF
-  trading_status: 'SSF',
-  current_broker: 'SSF',
-  assets_traded: 'SSF',
-  current_profit_loss: 'SSF',
-  potential_to_deposit: 'SSF',
-  easy_to_convince: 'SSF',
-  total_loss_from_trading: 'SSF',
+  // Trading
+  trading_status: 'Trading',
+  current_broker: 'Trading',
+  assets_traded: 'Trading',
+  current_profit_loss: 'Trading',
+  potential_to_deposit: 'Trading',
+  easy_to_convince: 'Trading',
+  total_loss_from_trading: 'Trading',
 
   // Rejoining
   rejoining_response: 'Rejoining',
@@ -162,6 +162,7 @@ export const TAB_COLORS = {
   'Traders Day': 'bg-teal-100 text-teal-800',
   'Live Trade': 'bg-cyan-100 text-cyan-800',
   'SSF': 'bg-red-100 text-red-800',
+  'Trading': 'bg-orange-100 text-orange-800',
   'Rejoining': 'bg-amber-100 text-amber-800',
   'Seminar': 'bg-lime-100 text-lime-800',
   'Practice Tracking': 'bg-violet-100 text-violet-800',

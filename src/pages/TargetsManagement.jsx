@@ -52,18 +52,9 @@ export default function TargetsManagement() {
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      // Fetch users based on current user's role
-      if (['super_admin', 'admin', 'academic_head'].includes(currentUser?.app_role)) {
-        return base44.entities.User.list();
-      } else {
-        // For other roles, fetch specific role types they can see
-        const roles = ['junior_mentor', 'senior_mentor', 'academic_head', 'academic_admin', 'broker_admin', 'finance_admin'];
-        const usersByRole = await Promise.all(
-          roles.map(role => base44.entities.User.filter({ app_role: role }))
-        );
-        return usersByRole.flat();
-      }
-    },
+            const r = await base44.functions.invoke('getAllUsers', {});
+                  return r.data?.users || [];
+                      },
     enabled: !!currentUser
   });
 

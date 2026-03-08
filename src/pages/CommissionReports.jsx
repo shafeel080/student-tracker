@@ -44,7 +44,7 @@ export default function CommissionReports() {
 
   const { data: rawLedgers = [], isLoading: ledgersLoading } = useQuery({
     queryKey: ['commission-ledgers'],
-    queryFn: () => base44.entities.CommissionLedger.list('-year', '-quarter_number'),
+    queryFn: () => base44.entities.CommissionLedger.list('-year', 500),
     enabled: !!currentUser,
     refetchOnMount: 'always'
   });
@@ -60,7 +60,7 @@ export default function CommissionReports() {
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: async () => { const r = await base44.functions.invoke('getAllUsers', {}); return r.data?.users || []; },
     enabled: !!currentUser
   });
 

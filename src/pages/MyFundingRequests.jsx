@@ -321,8 +321,8 @@ export default function MyFundingRequests() {
 
                           if (transaction.status === 'APPROVED') {
                             commissionEarned = transaction.type === 'DEPOSIT' 
-                              ? txAmount * commissionRate 
-                              : -txAmount * commissionRate;
+                              ? Math.min(txAmount, 25000) * commissionRate 
+                              : 0;
                           }
 
                           return (
@@ -488,8 +488,8 @@ export default function MyFundingRequests() {
 
                             if (transaction.status === 'APPROVED') {
                               uplineCommission = transaction.type === 'DEPOSIT' 
-                                ? txAmount * uplinePercentage 
-                                : -txAmount * uplinePercentage;
+                                ? Math.min(txAmount, 25000) * uplinePercentage 
+                                : 0;
                             }
 
                             return (

@@ -289,7 +289,7 @@ export default function Personnel() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        {canEditPersonnel(currentUser.app_role) && (
+                        {['super_admin', 'academic_head'].includes(currentUser.app_role) && (
                           <Button
                             variant="ghost"
                             size="sm"

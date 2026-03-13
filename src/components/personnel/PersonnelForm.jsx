@@ -117,10 +117,13 @@ export default function PersonnelForm({ user, onSubmit, onClose, allUsers }) {
                 <SelectItem value="broker_admin">Broker Admin</SelectItem>
                 <SelectItem value="academic_head">Academic Head</SelectItem>
                 <SelectItem value="academic_admin">Academic Admin</SelectItem>
+                <SelectItem value="admin_supervisor">Admin Supervisor</SelectItem>
                 <SelectItem value="senior_mentor">Senior Mentor</SelectItem>
                 <SelectItem value="junior_mentor">Junior Mentor</SelectItem>
+                <SelectItem value="subjunior_mentor">Sub Junior Mentor</SelectItem>
                 <SelectItem value="finance_admin">Finance Admin</SelectItem>
                 <SelectItem value="assistance">Assistance</SelectItem>
+                <SelectItem value="draw_admin">Draw Admin</SelectItem>
               </SelectContent>
             </Select>
           </div>

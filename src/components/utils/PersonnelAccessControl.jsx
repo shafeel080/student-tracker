@@ -5,7 +5,7 @@ export const canViewPersonnel = (userRole) => {
 };
 
 export const canEditPersonnel = (userRole) => {
-  return ['super_admin', 'admin', 'broker_admin'].includes(userRole);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head'].includes(userRole);
 };
 
 export const canAssignRoles = (userRole) => {

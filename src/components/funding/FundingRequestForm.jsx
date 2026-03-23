@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import ReferralRequestPopup from './ReferralRequestPopup';
+import CoManageSearchModal from './CoManageSearchModal';
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import SearchableStudentSelect from '../common/SearchableStudentSelect';
 
@@ -19,7 +20,7 @@ const PAYMENT_METHODS = [
   'Other'
 ];
 
-export default function FundingRequestForm({ students, currentUser, onSubmit, onCancel, isSubmitting }) {
+export default function FundingRequestForm({ students, allStudents = [], currentUser, onSubmit, onCancel, isSubmitting }) {
   const [formData, setFormData] = useState({
     type: 'DEPOSIT',
     student_id: '',
@@ -30,16 +31,13 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
   });
   const [uploading, setUploading] = useState(false);
   const [referralStudent, setReferralStudent] = useState(null);
+  const [showCoManageModal, setShowCoManageModal] = useState(false);
 
   const isMentor = ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(currentUser?.app_role);
 
-  const selectedStudent = students.find(s => s.id === formData.student_id);
-
   const handleStudentSelect = (studentId) => {
     const student = students.find(s => s.id === studentId);
-    // Intercept: if mentor selects a student they don't own
     if (isMentor && student && student.primary_mentor_id !== currentUser.id) {
-      // Check if already co-managed by current user
       let alreadyCoManaged = false;
       if (student.co_mentors_details) {
         try {
@@ -49,7 +47,7 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       }
       if (!alreadyCoManaged) {
         setReferralStudent(student);
-        return; // Don't set student in form
+        return;
       }
     }
     setFormData(prev => ({ ...prev, student_id: studentId }));
@@ -80,9 +78,7 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       return;
     }
 
-    // For assistance users, use their assigned mentor's data
     let primaryMentorId, primaryMentorName, seniorMentorId, seniorMentorName;
-    
     if (currentUser.app_role === 'assistance' && currentUser.assigned_mentor_id) {
       primaryMentorId = currentUser.assigned_mentor_id;
       primaryMentorName = currentUser.assigned_mentor_name;
@@ -95,8 +91,6 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       seniorMentorName = selectedStudent.senior_mentor_name;
     }
 
-    // Important: Don't pass upline_commission_percentage here
-    // It will be fetched fresh in the mutation
     const dataToSubmit = {
       ...formData,
       amount_usd: parseFloat(formData.amount_usd),
@@ -109,130 +103,154 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       senior_mentor_name: seniorMentorName,
       requested_by_id: currentUser.id,
       requested_by_name: currentUser.full_name,
-      requested_at: new Date().toISOString()
+      requested_at: new Date().toISOString(),
+      initiating_mentor_id: currentUser.id,
+      initiating_mentor_name: currentUser.full_name
     };
 
-    onSubmit({ ...dataToSubmit, initiating_mentor_id: currentUser.id, initiating_mentor_name: currentUser.full_name });
-    };
+    onSubmit(dataToSubmit);
+  };
 
-    return (
+  return (
     <>
-    {referralStudent && (
-      <ReferralRequestPopup
-        student={referralStudent}
-        currentUser={currentUser}
-        onClose={() => setReferralStudent(null)}
-      />
-    )}
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="type">Transaction Type *</Label>
-          <Select
-            value={formData.type}
-            onValueChange={(value) => setFormData({ ...formData, type: value })}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="DEPOSIT">Deposit</SelectItem>
-              <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <SearchableStudentSelect
-          students={students}
-          value={formData.student_id}
-          onValueChange={handleStudentSelect}
-          label="Student"
-          required
+      {showCoManageModal && (
+        <CoManageSearchModal
+          allStudents={allStudents}
+          currentUser={currentUser}
+          onSelectStudent={(student) => {
+            setShowCoManageModal(false);
+            setReferralStudent(student);
+          }}
+          onClose={() => setShowCoManageModal(false)}
         />
-
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount (USD) *</Label>
-          <Input
-            id="amount"
-            type="number"
-            step="0.01"
-            min="0.01"
-            value={formData.amount_usd}
-            onChange={(e) => setFormData({ ...formData, amount_usd: e.target.value })}
-            placeholder="0.00"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="payment_method">Payment Method *</Label>
-          <Select
-            value={formData.payment_method}
-            onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select payment method" />
-            </SelectTrigger>
-            <SelectContent>
-              {PAYMENT_METHODS.map((method) => (
-                <SelectItem key={method} value={method}>
-                  {method}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="mt5_login">MT5 Login (Optional)</Label>
-          <Input
-            id="mt5_login"
-            value={formData.mt5_login}
-            onChange={(e) => setFormData({ ...formData, mt5_login: e.target.value })}
-            placeholder="Enter MT5 login"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="screenshot">Screenshot (Optional)</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="screenshot"
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload}
-              disabled={uploading}
-            />
-            {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+      )}
+      {referralStudent && (
+        <ReferralRequestPopup
+          student={referralStudent}
+          currentUser={currentUser}
+          onClose={() => setReferralStudent(null)}
+        />
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="type">Transaction Type *</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => setFormData({ ...formData, type: value })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          {formData.screenshot_url && (
-            <p className="text-xs text-green-600">✓ Screenshot uploaded</p>
-          )}
-        </div>
-      </div>
 
-      <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button 
-          type="submit" 
-          disabled={isSubmitting || uploading} 
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            'Submit Request'
-          )}
-        </Button>
-      </div>
-    </form>
+          <div className="space-y-1">
+            <SearchableStudentSelect
+              students={students}
+              value={formData.student_id}
+              onValueChange={handleStudentSelect}
+              label="Student"
+              required
+            />
+            {isMentor && (
+              <button
+                type="button"
+                onClick={() => setShowCoManageModal(true)}
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                Looking for a client managed by another mentor? → Request Co-Management
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount (USD) *</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={formData.amount_usd}
+              onChange={(e) => setFormData({ ...formData, amount_usd: e.target.value })}
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payment_method">Payment Method *</Label>
+            <Select
+              value={formData.payment_method}
+              onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHODS.map((method) => (
+                  <SelectItem key={method} value={method}>
+                    {method}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="mt5_login">MT5 Login (Optional)</Label>
+            <Input
+              id="mt5_login"
+              value={formData.mt5_login}
+              onChange={(e) => setFormData({ ...formData, mt5_login: e.target.value })}
+              placeholder="Enter MT5 login"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="screenshot">Screenshot (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="screenshot"
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                disabled={uploading}
+              />
+              {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+            </div>
+            {formData.screenshot_url && (
+              <p className="text-xs text-green-600">✓ Screenshot uploaded</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting || uploading}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Request'
+            )}
+          </Button>
+        </div>
+      </form>
     </>
   );
 }

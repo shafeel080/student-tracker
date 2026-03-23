@@ -923,6 +923,7 @@ export default function Students() {
         const myNet = student.co_mentors_details?.find(cm => cm.mentor_id === currentUser?.id)?.net_deposit_contribution_usd || 0;
         const primaryNet = student.co_mentors_details?.find(cm => cm.mentor_id === student.senior_mentor_id)?.net_deposit_contribution_usd || 0;
         const combined = student.co_mentors_details?.reduce((sum, cm) => sum + (cm.net_deposit_contribution_usd || 0), 0) || 0;
+        const myEntry = student.co_mentors_details?.find(cm => cm.mentor_id === currentUser?.id);
                         return (
                           <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="font-medium">{student.full_name}</TableCell>

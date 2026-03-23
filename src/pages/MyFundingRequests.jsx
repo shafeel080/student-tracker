@@ -556,6 +556,7 @@ export default function MyFundingRequests() {
             </DialogHeader>
             <FundingRequestForm
               students={myStudents}
+              allStudents={students}
               currentUser={currentUser}
               onSubmit={(data) => createMutation.mutate(data)}
               onCancel={() => setShowAddDialog(false)}

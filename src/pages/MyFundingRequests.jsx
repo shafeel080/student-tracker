@@ -110,7 +110,14 @@ export default function MyFundingRequests() {
   } else {
     // Filter MY transactions - transactions where I am the primary mentor
     myTransactions = transactions.filter(t => t.primary_mentor_id === currentUser.id);
-    myStudents = students.filter(s => s.primary_mentor_id === currentUser.id);
+    myStudents = students.filter(s => {
+      if (s.primary_mentor_id === currentUser.id) return true;
+      if (!s.co_mentors_details) return false;
+      try {
+        const co = JSON.parse(s.co_mentors_details);
+        return Array.isArray(co) && co.some(m => m.mentor_id === currentUser.id);
+      } catch (_) { return false; }
+    });
 
     // Filter TEAM transactions - transactions where I am senior mentor but NOT primary mentor
     teamTransactions = transactions.filter(t => 

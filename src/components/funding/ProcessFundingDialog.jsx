@@ -115,7 +115,22 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
         await base44.entities.Student.update(transaction.student_id, { student_level: 'LEVEL_2' });
       }
     }
-    
+    // Update co_mentors_details for co-managed client deposits
+    if (transaction.type === 'DEPOSIT' && transaction.initiating_mentor_id) {
+      try {
+        const studentRecords = await base44.entities.Student.list();
+        const student = studentRecords.find(s => s.id === transaction.student_id);
+        if (student && student.co_mentors_details && student.co_mentors_details.length > 0) {
+          const updatedCoMentors = student.co_mentors_details.map(cm => {
+            if (cm.mentor_id === transaction.initiating_mentor_id) {
+              return { ...cm, net_deposit_contribution_usd: (cm.net_deposit_contribution_usd || 0) + (formData.amount_usd || transaction.amount_usd || 0) };
+            }
+            return cm;
+          });
+          await base44.entities.Student.update(transaction.student_id, { co_mentors_details: updatedCoMentors });
+        }
+      } catch (err) { console.error('Failed to update co_mentors_details:', err); }
+    }
     onProcess(updatedData);
   };
 

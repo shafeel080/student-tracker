@@ -920,10 +920,13 @@ export default function Students() {
                       </TableRow>
                     ) : (
                       coManagedStudents.map((student) => {
-        const myNet = student.co_mentors_details?.find(cm => cm.mentor_id === currentUser?.id)?.net_deposit_contribution_usd || 0;
-        const primaryNet = student.co_mentors_details?.find(cm => cm.mentor_id === student.senior_mentor_id)?.net_deposit_contribution_usd || 0;
-        const combined = student.co_mentors_details?.reduce((sum, cm) => sum + (cm.net_deposit_contribution_usd || 0), 0) || 0;
-        const myEntry = student.co_mentors_details?.find(cm => cm.mentor_id === currentUser?.id);
+        const _coMentors = Array.isArray(student.co_mentors_details)
+          ? student.co_mentors_details
+          : (() => { try { return JSON.parse(student.co_mentors_details || '[]'); } catch(_) { return []; } })();
+        const myNet = _coMentors.find(cm => cm.mentor_id === currentUser?.id)?.net_deposit_contribution_usd || 0;
+        const primaryNet = _coMentors.find(cm => cm.mentor_id === student.senior_mentor_id)?.net_deposit_contribution_usd || 0;
+        const combined = _coMentors.reduce((sum, cm) => sum + (cm.net_deposit_contribution_usd || 0), 0) || 0;
+        const myEntry = _coMentors.find(cm => cm.mentor_id === currentUser?.id);
                         return (
                           <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="font-medium">{student.full_name}</TableCell>

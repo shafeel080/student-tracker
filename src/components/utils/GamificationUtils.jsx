@@ -16,13 +16,13 @@ export const calculateMentorPoints = (mentorId, transactions, settings) => {
   const minDepositForStudent = settings.find(s => s.setting_key === 'min_deposit_for_student_points')?.setting_value || 500;
 
   // Filter approved transactions for this mentor
-const mentorTransactions = transactions.filter(t => {
-    if (t.status !== 'APPROVED') return false;
-    // If initiating_mentor_id is set, commission goes to that mentor
-    if (t.initiating_mentor_id) return t.initiating_mentor_id === mentorId;
-    // Otherwise, credit goes to the primary mentor (legacy behavior)
-    return t.primary_mentor_id === mentorId;
-  });
+  const mentorTransactions = transactions.filter(t =>
+    t.status === 'APPROVED' &&
+    (
+      (t.initiating_mentor_id && t.initiating_mentor_id === mentorId) ||
+      (!t.initiating_mentor_id && t.primary_mentor_id === mentorId)
+    )
+  );
 
   // Calculate net deposit
   const deposits = mentorTransactions.filter(t => t.type === 'DEPOSIT')

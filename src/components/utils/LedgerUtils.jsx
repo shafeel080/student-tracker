@@ -38,7 +38,9 @@ export const calculateQuarterNetDeposit = (mentorId, startDate, endDate, transac
   
   const relevantTransactions = transactions.filter(t => {
     if (t.status !== 'APPROVED') return false;
-    if (t.primary_mentor_id !== mentorId) return false;
+    // Use initiating_mentor_id if present (co-managed), else fall back to primary_mentor_id
+    const attributedMentorId = t.initiating_mentor_id || t.primary_mentor_id;
+    if (attributedMentorId !== mentorId) return false;
     
     const requestedDate = new Date(t.requested_at);
     return requestedDate >= start && requestedDate <= end;

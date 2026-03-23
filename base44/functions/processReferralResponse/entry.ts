@@ -27,24 +27,50 @@ Deno.serve(async (req) => {
     if (action === 'approve') {
       // Add initiating mentor to student's co_mentors_details
       const students = await base44.asServiceRole.entities.Student.filter({ id: referral.student_id });
+      let student = null;
       if (students.length > 0) {
-        const student = students[0];
+        student = students[0];
         let coMentors = [];
         if (student.co_mentors_details) {
           try { coMentors = JSON.parse(student.co_mentors_details); } catch (_) { /* ignore */ }
         }
-
         coMentors.push({
           mentor_id: referral.initiating_mentor_id,
           mentor_name: referral.initiating_mentor_name,
           net_deposit_contribution_usd: 0,
           since: new Date().toISOString()
         });
-
         await base44.asServiceRole.entities.Student.update(student.id, {
           co_mentors_details: JSON.stringify(coMentors)
         });
       }
+
+      // Create FundingTransaction so it enters the normal admin approval queue
+      const initiatingUser = await base44.asServiceRole.entities.User.filter({ id: referral.initiating_mentor_id });
+      const iUser = initiatingUser.length > 0 ? initiatingUser[0] : null;
+
+      await base44.asServiceRole.entities.FundingTransaction.create({
+        type: referral.transaction_type || 'DEPOSIT',
+        status: 'PENDING',
+        student_id: referral.student_id,
+        student_name: referral.student_name,
+        student_code: referral.student_code,
+        primary_mentor_id: student ? student.primary_mentor_id : referral.receiving_mentor_id,
+        primary_mentor_name: student ? student.primary_mentor_name : referral.receiving_mentor_name,
+        senior_mentor_id: student ? student.senior_mentor_id : null,
+        senior_mentor_name: student ? student.senior_mentor_name : null,
+        initiating_mentor_id: referral.initiating_mentor_id,
+        initiating_mentor_name: referral.initiating_mentor_name,
+        upline_commission_percentage: iUser ? (parseFloat(iUser.upline_commission_percentage) || 0) : 0,
+        amount_usd: parseFloat(referral.requested_deposit_amount) || 0,
+        payment_method: referral.payment_method || '',
+        mt5_login: referral.mt5_login || '',
+        screenshot_url: referral.screenshot_url || '',
+        notes: referral.notes || '',
+        requested_by_id: referral.initiating_mentor_id,
+        requested_by_name: referral.initiating_mentor_name,
+        requested_at: new Date().toISOString()
+      });
 
       await base44.asServiceRole.entities.MentorReferral.update(referral_id, {
         status: 'approved',
@@ -61,12 +87,12 @@ Deno.serve(async (req) => {
         entity_type: 'MentorReferral',
         entity_id: referral_id,
         details: JSON.stringify({
-          message: `Referral APPROVED by ${user.full_name}. ${referral.initiating_mentor_name} added as co-mentor for student ${referral.student_name}.`
+          message: `Referral APPROVED by ${user.full_name}. ${referral.initiating_mentor_name} added as co-mentor for student ${referral.student_name}. FundingTransaction created for broker approval.`
         }),
         success: true
       });
 
-      return Response.json({ success: true, message: 'Referral approved. Student is now co-managed.' });
+      return Response.json({ success: true, message: 'Referral approved. FundingTransaction created for admin review.' });
 
     } else if (action === 'reject') {
       if (!rejection_reason) {

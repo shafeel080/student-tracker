@@ -80,7 +80,9 @@ export default async function generateQuarterlyLedgers({ entities }) {
     
     const relevantTransactions = allTransactions.filter(t => {
       if (t.status !== 'APPROVED') return false;
-      if (t.primary_mentor_id !== mentor.id) return false;
+      // Use initiating_mentor_id if present (co-managed), else fall back to primary_mentor_id
+      const attributedMentorId = t.initiating_mentor_id || t.primary_mentor_id;
+      if (attributedMentorId !== mentor.id) return false;
       
       const requestedDate = new Date(t.requested_at);
       return requestedDate >= start && requestedDate <= end;

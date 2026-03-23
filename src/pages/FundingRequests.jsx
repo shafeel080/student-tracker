@@ -149,7 +149,11 @@ export default function FundingRequests() {
     filteredTransactions = filteredTransactions.filter(t => t.type === filterType);
   }
   if (filterMentor !== 'all') {
-    filteredTransactions = filteredTransactions.filter(t => t.primary_mentor_name === filterMentor);
+    filteredTransactions = filteredTransactions.filter(t => {
+      const initiatingName = t.initiating_mentor_name;
+      const primaryName = t.primary_mentor_name;
+      return initiatingName ? initiatingName === filterMentor : primaryName === filterMentor;
+    });
   }
   if (filterPaymentMethod !== 'all') {
     filteredTransactions = filteredTransactions.filter(t => t.payment_method === filterPaymentMethod);

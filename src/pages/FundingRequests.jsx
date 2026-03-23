@@ -185,6 +185,8 @@ export default function FundingRequests() {
   const handleProcessSubmit = (formData) => {
     const updatedData = {
       ...formData,
+      initiating_mentor_id: selectedTransaction.initiating_mentor_id || currentUser.id,
+      initiating_mentor_name: selectedTransaction.initiating_mentor_name || currentUser.full_name,
       approved_by_id: currentUser.id,
       approved_by_name: currentUser.full_name,
       approved_at: new Date().toISOString()

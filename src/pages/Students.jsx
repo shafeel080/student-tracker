@@ -920,13 +920,9 @@ export default function Students() {
                       </TableRow>
                     ) : (
                       coManagedStudents.map((student) => {
-                        let myEntry = null;
-                        let coMentors = [];
-                        try { coMentors = JSON.parse(student.co_mentors_details || '[]'); } catch (_) {}
-                        myEntry = coMentors.find(m => m.mentor_id === currentUser.id);
-                        const myNet = myEntry?.net_deposit_contribution_usd || 0;
-                        const combined = student.net_deposit_usd || 0;
-                        const primaryNet = Math.max(0, combined - myNet);
+        const myNet = student.co_mentors_details?.find(cm => cm.mentor_id === currentUser?.id)?.net_deposit_contribution_usd || 0;
+        const primaryNet = student.co_mentors_details?.find(cm => cm.mentor_id === student.senior_mentor_id)?.net_deposit_contribution_usd || 0;
+        const combined = student.co_mentors_details?.reduce((sum, cm) => sum + (cm.net_deposit_contribution_usd || 0), 0) || 0;
                         return (
                           <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="font-medium">{student.full_name}</TableCell>

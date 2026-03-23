@@ -425,8 +425,9 @@ export default function MyFundingRequests() {
                             </TableRow>
                             );
                             })}
-                            </>)
-                    </TableBody>
+                            </>
+                            )}
+                            </TableBody>
                   </Table>
                 </div>
               </CardContent>

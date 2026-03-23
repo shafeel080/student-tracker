@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import StudentForm from "../components/students/StudentForm";
 import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
-import { Plus, Search, Eye, Users, UserCheck, Upload, Download, Filter, ArrowUp } from "lucide-react";
+import { Plus, Search, Eye, Users, UserCheck, Upload, Download, Filter, ArrowUp, Share2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -80,6 +80,12 @@ export default function Students() {
     queryKey: ['student-requests'],
     queryFn: () => base44.entities.StudentRequest.list('-created_date'),
     enabled: !!currentUser && currentUser.app_role === 'academic_admin'
+  });
+
+  const { data: allStudentsForCoManaged = [] } = useQuery({
+    queryKey: ['all-students-co-managed'],
+    queryFn: () => base44.entities.Student.list('-created_date'),
+    enabled: !!currentUser && isMentorRole(currentUser?.app_role)
   });
 
   const createMutation = useMutation({
@@ -258,12 +264,26 @@ export default function Students() {
 
   if (!currentUser) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
+  // Must be defined before query usage above — hoisted via function declaration
+  function isMentorRole(role) {
+    return ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(role);
+  }
+
   const canCreate = canSubmitStudentRequest(currentUser.app_role);
   const isMentor = ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(currentUser.app_role);
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
   const isAssistance = currentUser.app_role === 'assistance';
   const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);
   const isSuperAdmin = currentUser.app_role === 'super_admin';
+
+  // Co-managed students: where current user appears in co_mentors_details
+  const coManagedStudents = isMentor ? (allStudentsForCoManaged.length ? allStudentsForCoManaged : students).filter(s => {
+    if (!s.co_mentors_details) return false;
+    try {
+      const co = JSON.parse(s.co_mentors_details);
+      return Array.isArray(co) && co.some(m => m.mentor_id === currentUser.id);
+    } catch (_) { return false; }
+  }) : [];
 
   const handleSelectAll = (checked, currentFilteredStudents) => {
     if (checked) {
@@ -614,10 +634,14 @@ export default function Students() {
         {/* Tabs for mentors and admins, single table for assistance/others */}
         {isMentor || isAdmin ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-2xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr' : '1fr') : (['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) ? '1fr 1fr' : '1fr') }}>
+            <TabsList className="grid w-full max-w-3xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr 1fr' : '1fr 1fr') : (['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) ? '1fr 1fr' : '1fr') }}>
               {isMentor && <TabsTrigger value="my">My Students</TabsTrigger>}
-              {isSeniorMentor && (
-                <TabsTrigger value="team">Team Students</TabsTrigger>
+              {isSeniorMentor && <TabsTrigger value="team">Team Students</TabsTrigger>}
+              {isMentor && (
+                <TabsTrigger value="co_managed" className="flex items-center gap-1">
+                  <Share2 className="h-3.5 w-3.5" />
+                  Co-Managed ({coManagedStudents.length})
+                </TabsTrigger>
               )}
               {isAdmin && <TabsTrigger value="all">All Students</TabsTrigger>}
               {['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) && (
@@ -841,6 +865,74 @@ export default function Students() {
                           </TableCell>
                         </TableRow>
                       ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Co-Managed Clients Tab */}
+          {isMentor && (
+            <TabsContent value="co_managed">
+              <div className="rounded-xl border border-purple-200 bg-white overflow-hidden">
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-200">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
+                    <Share2 className="h-5 w-5 text-purple-600" />
+                    Co-Managed Clients ({coManagedStudents.length})
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">Clients where you are a co-mentor. Commission is attributed to your deposits only.</p>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">Client Name</TableHead>
+                      <TableHead className="font-semibold">Code</TableHead>
+                      <TableHead className="font-semibold">Primary Mentor</TableHead>
+                      <TableHead className="font-semibold">My Net Deposits</TableHead>
+                      <TableHead className="font-semibold">Primary Net Deposits</TableHead>
+                      <TableHead className="font-semibold">Combined Total</TableHead>
+                      <TableHead className="font-semibold">Co-Mentor Since</TableHead>
+                      <TableHead className="font-semibold text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {coManagedStudents.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                          No co-managed clients yet. Send a referral request from a Fund Request to get started.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      coManagedStudents.map((student) => {
+                        let myEntry = null;
+                        let coMentors = [];
+                        try { coMentors = JSON.parse(student.co_mentors_details || '[]'); } catch (_) {}
+                        myEntry = coMentors.find(m => m.mentor_id === currentUser.id);
+                        const myNet = myEntry?.net_deposit_contribution_usd || 0;
+                        const combined = student.net_deposit_usd || 0;
+                        const primaryNet = Math.max(0, combined - myNet);
+                        return (
+                          <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
+                            <TableCell className="font-medium">{student.full_name}</TableCell>
+                            <TableCell className="font-mono text-sm text-blue-600">{student.student_code || '-'}</TableCell>
+                            <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
+                            <TableCell className="text-sm font-semibold text-green-700">${myNet.toLocaleString()}</TableCell>
+                            <TableCell className="text-sm text-gray-600">${primaryNet.toLocaleString()}</TableCell>
+                            <TableCell className="text-sm font-semibold">${combined.toLocaleString()}</TableCell>
+                            <TableCell className="text-sm text-gray-500">
+                              {myEntry?.since ? format(new Date(myEntry.since), 'MMM d, yyyy') : '-'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Link to={createPageUrl('StudentDetail') + '?id=' + student.id}>
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>

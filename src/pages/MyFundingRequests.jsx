@@ -366,6 +366,7 @@ export default function MyFundingRequests() {
                          </TableRow>
                        ))}
                        {myTransactions.map((transaction) => {
+                        const commissionEarned = transaction.commission_amount || 0;
                          return (
                          <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="text-sm">

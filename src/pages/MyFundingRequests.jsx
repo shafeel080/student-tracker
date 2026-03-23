@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Award, Wallet, Eye, Users } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Award, Wallet, Eye, Users, Clock } from "lucide-react";
 import FundingRequestForm from "../components/funding/FundingRequestForm";
 import { 
   canCreateFundingTransaction,
@@ -53,6 +53,15 @@ export default function MyFundingRequests() {
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
     enabled: false // Disabled to avoid 403 errors
+  });
+
+  const { data: pendingReferrals = [] } = useQuery({
+    queryKey: ['my-pending-referrals'],
+    queryFn: async () => {
+      const all = await base44.entities.MentorReferral.list('-created_at');
+      return all.filter(r => r.initiating_mentor_id === currentUser?.id && r.status === 'pending');
+    },
+    enabled: !!currentUser
   });
 
   const createMutation = useMutation({
@@ -195,6 +204,8 @@ export default function MyFundingRequests() {
   const canCreate = canCreateFundingTransaction(currentUser.app_role);
   const isSeniorMentor = currentUser.app_role === 'senior_mentor';
 
+  const getReferralStatusColor = () => 'bg-orange-100 text-orange-800 border-orange-200';
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
@@ -314,26 +325,49 @@ export default function MyFundingRequests() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {myTransactions.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-                            No funding requests yet
-                          </TableCell>
-                        </TableRow>
+                      {myTransactions.length === 0 && pendingReferrals.length === 0 ? (
+                       <TableRow>
+                         <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                           No funding requests yet
+                         </TableCell>
+                       </TableRow>
                       ) : (
-                        myTransactions.map((transaction) => {
-                          const txAmount = transaction.amount_usd || 0;
-                          const commissionRate = 0.04;
-                          let commissionEarned = 0;
-
-                          if (transaction.status === 'APPROVED') {
-                            commissionEarned = transaction.type === 'DEPOSIT' 
-                              ? Math.min(txAmount, 25000) * commissionRate 
-                              : 0;
-                          }
-
-                          return (
-                          <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
+                       <>
+                       {pendingReferrals.map((referral) => (
+                         <TableRow key={`ref-${referral.id}`} className="hover:bg-orange-50 bg-orange-50/40 transition-colors">
+                           <TableCell className="text-sm">
+                             {referral.created_at ? format(new Date(referral.created_at), 'MMM d, yyyy HH:mm') : '-'}
+                           </TableCell>
+                           <TableCell>
+                             <div className="flex items-center gap-2">
+                               <TrendingUp className="h-4 w-4 text-blue-600" />
+                               <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">DEPOSIT</Badge>
+                             </div>
+                           </TableCell>
+                           <TableCell>
+                             <Badge variant="outline" className={getReferralStatusColor()}>
+                               <Clock className="h-3 w-3 mr-1" />
+                               Pending Co-Mgmt Approval
+                             </Badge>
+                           </TableCell>
+                           <TableCell className="font-medium">{referral.student_name}</TableCell>
+                           <TableCell className="font-mono text-sm text-blue-600">{referral.student_code || '-'}</TableCell>
+                           <TableCell className="font-mono text-sm">{referral.mt5_login || '-'}</TableCell>
+                           <TableCell className="font-semibold text-gray-900">${parseFloat(referral.requested_deposit_amount || 0).toFixed(2)}</TableCell>
+                           {!isAssistance && <TableCell className="text-gray-400">-</TableCell>}
+                           <TableCell className="text-sm">{referral.payment_method || '-'}</TableCell>
+                           <TableCell>
+                             {referral.screenshot_url ? (
+                               <a href={referral.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                 <Eye className="h-4 w-4" />
+                               </a>
+                             ) : '-'}
+                           </TableCell>
+                         </TableRow>
+                       ))}
+                       {myTransactions.map((transaction) => {
+                         return (
+                         <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="text-sm">
                               {transaction.requested_at
                                 ? format(new Date(transaction.requested_at), 'MMM d, yyyy HH:mm')
@@ -390,8 +424,8 @@ export default function MyFundingRequests() {
                             </TableCell>
                             </TableRow>
                             );
-                            })
-                            )}
+                            })}
+                            </>)
                     </TableBody>
                   </Table>
                 </div>

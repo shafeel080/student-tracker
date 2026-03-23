@@ -90,6 +90,8 @@ export default function FundingRequests() {
       const user = await base44.auth.me();
       const result = await base44.entities.FundingTransaction.create({
         ...data,
+        initiating_mentor_id: data.initiating_mentor_id || user.id,
+        initiating_mentor_name: data.initiating_mentor_name || user.full_name,
         requested_by_id: user.id,
         requested_by_name: user.full_name,
         requested_at: new Date().toISOString()
@@ -109,6 +111,8 @@ export default function FundingRequests() {
       const user = await base44.auth.me();
       const transactionsWithMeta = transactions.map(t => ({
         ...t,
+        initiating_mentor_id: t.initiating_mentor_id || user.id,
+        initiating_mentor_name: t.initiating_mentor_name || user.full_name,
         requested_by_id: user.id,
         requested_by_name: user.full_name,
         requested_at: new Date().toISOString()

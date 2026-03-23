@@ -276,12 +276,21 @@ export default function Students() {
   const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);
   const isSuperAdmin = currentUser.app_role === 'super_admin';
 
-  // Co-managed students: where current user appears in co_mentors_details
+  // Co-managed students: where current user appears in co_mentors_details (mentors)
   const coManagedStudents = isMentor ? (allStudentsForCoManaged.length ? allStudentsForCoManaged : students).filter(s => {
     if (!s.co_mentors_details) return false;
     try {
       const co = JSON.parse(s.co_mentors_details);
       return Array.isArray(co) && co.some(m => m.mentor_id === currentUser.id);
+    } catch (_) { return false; }
+  }) : [];
+
+  // All co-managed students for admin view
+  const allCoManagedStudents = isAdmin ? students.filter(s => {
+    if (!s.co_mentors_details) return false;
+    try {
+      const co = JSON.parse(s.co_mentors_details);
+      return Array.isArray(co) && co.length > 0;
     } catch (_) { return false; }
   }) : [];
 
@@ -634,7 +643,7 @@ export default function Students() {
         {/* Tabs for mentors and admins, single table for assistance/others */}
         {isMentor || isAdmin ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-3xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr 1fr' : '1fr 1fr') : (['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) ? '1fr 1fr' : '1fr') }}>
+            <TabsList className="grid w-full max-w-4xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr 1fr' : '1fr 1fr') : (['broker_admin', 'super_admin'].includes(currentUser.app_role) ? '1fr 1fr 1fr' : (currentUser.app_role === 'academic_head' ? '1fr 1fr' : '1fr')) }}>
               {isMentor && <TabsTrigger value="my">My Students</TabsTrigger>}
               {isSeniorMentor && <TabsTrigger value="team">Team Students</TabsTrigger>}
               {isMentor && (
@@ -646,6 +655,12 @@ export default function Students() {
               {isAdmin && <TabsTrigger value="all">All Students</TabsTrigger>}
               {['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) && (
                 <TabsTrigger value="open_pool">Delta Open Students</TabsTrigger>
+              )}
+              {['broker_admin', 'super_admin'].includes(currentUser.app_role) && (
+                <TabsTrigger value="admin_co_managed" className="flex items-center gap-1">
+                  <Share2 className="h-3.5 w-3.5" />
+                  Co-Managed ({allCoManagedStudents.length})
+                </TabsTrigger>
               )}
             </TabsList>
 
@@ -1016,6 +1031,74 @@ export default function Students() {
               </Table>
             </div>
           </TabsContent>
+
+          {/* Admin Co-Managed Tab */}
+          {['broker_admin', 'super_admin'].includes(currentUser.app_role) && (
+            <TabsContent value="admin_co_managed">
+              <div className="rounded-xl border border-purple-200 bg-white overflow-hidden">
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-200">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
+                    <Share2 className="h-5 w-5 text-purple-600" />
+                    Co-Managed Clients ({allCoManagedStudents.length})
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">All co-managed client relationships across all mentors</p>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">Client Name</TableHead>
+                      <TableHead className="font-semibold">Code</TableHead>
+                      <TableHead className="font-semibold">Primary Mentor</TableHead>
+                      <TableHead className="font-semibold">Co-Mentor</TableHead>
+                      <TableHead className="font-semibold">Primary Net Deposits</TableHead>
+                      <TableHead className="font-semibold">Co-Mentor Net Deposits</TableHead>
+                      <TableHead className="font-semibold">Combined Total</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Co-Mentor Since</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {allCoManagedStudents.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                          No co-managed clients found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      allCoManagedStudents.flatMap((student) => {
+                        let coMentors = [];
+                        try { coMentors = JSON.parse(student.co_mentors_details || '[]'); } catch (_) {}
+                        return coMentors.map((co, idx) => {
+                          const combined = student.net_deposit_usd || 0;
+                          const coNet = co.net_deposit_contribution_usd || 0;
+                          const primaryNet = Math.max(0, combined - coNet);
+                          return (
+                            <TableRow key={`${student.id}-${idx}`} className="hover:bg-gray-50 transition-colors">
+                              <TableCell className="font-medium">{student.full_name}</TableCell>
+                              <TableCell className="font-mono text-sm text-blue-600">{student.student_code || '-'}</TableCell>
+                              <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
+                              <TableCell className="text-sm font-medium text-purple-700">{co.mentor_name}</TableCell>
+                              <TableCell className="text-sm text-gray-700">${primaryNet.toLocaleString()}</TableCell>
+                              <TableCell className="text-sm font-semibold text-green-700">${coNet.toLocaleString()}</TableCell>
+                              <TableCell className="text-sm font-semibold">${combined.toLocaleString()}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={getStatusColor(student.status)}>
+                                  {student.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-sm text-gray-500">
+                                {co.since ? format(new Date(co.since), 'MMM d, yyyy') : '-'}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        });
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+          )}
           </Tabs>
         ) : (
           /* Admin view - all students in one table */

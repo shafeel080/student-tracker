@@ -6,20 +6,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Users, Send } from "lucide-react";
+import { Users, Send, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { toast } from "sonner";
+
+const PAYMENT_METHODS = ['AED TRANSFER','UPI','CARD PAYMENT','USDT','INR TRANSFER','Cash deposit','Other'];
 
 export default function ReferralRequestPopup({ student, currentUser, onClose }) {
   const [depositAmount, setDepositAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [mt5Login, setMt5Login] = useState('');
+  const [screenshotUrl, setScreenshotUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setScreenshotUrl(file_url);
+    } catch (_) {
+      toast.error('Failed to upload screenshot');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!depositAmount || parseFloat(depositAmount) <= 0) {
       toast.error('Please enter a valid deposit amount');
       return;
     }
-
+    if (!paymentMethod) {
+      toast.error('Please select a payment method');
+      return;
+    }
     setSubmitting(true);
     try {
       await base44.functions.invoke('createReferralRequest', {
@@ -29,6 +54,9 @@ export default function ReferralRequestPopup({ student, currentUser, onClose }) 
         receiving_mentor_id: student.primary_mentor_id,
         receiving_mentor_name: student.primary_mentor_name,
         requested_deposit_amount: parseFloat(depositAmount),
+        payment_method: paymentMethod,
+        mt5_login: mt5Login,
+        screenshot_url: screenshotUrl,
         notes
       });
 
@@ -66,7 +94,7 @@ export default function ReferralRequestPopup({ student, currentUser, onClose }) 
           </div>
 
           <div className="space-y-2">
-            <Label>Intended Deposit Amount (USD) *</Label>
+            <Label>Amount (USD) *</Label>
             <Input
               type="number"
               step="0.01"
@@ -75,6 +103,38 @@ export default function ReferralRequestPopup({ student, currentUser, onClose }) 
               onChange={(e) => setDepositAmount(e.target.value)}
               placeholder="0.00"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Payment Method *</Label>
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHODS.map((m) => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>MT5 Login (Optional)</Label>
+            <Input
+              value={mt5Login}
+              onChange={(e) => setMt5Login(e.target.value)}
+              placeholder="Enter MT5 login"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Screenshot (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input type="file" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
+              {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+            </div>
+            {screenshotUrl && <p className="text-xs text-green-600">✓ Screenshot uploaded</p>}
           </div>
 
           <div className="space-y-2">

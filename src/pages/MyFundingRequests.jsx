@@ -393,28 +393,26 @@ export default function MyFundingRequests() {
                                 </Badge>
                               </TableCell>
                               <TableCell className="font-medium">{transaction.student_name}</TableCell>
-                              <TableCell className="font-mono text-sm text-blue-600">
-                                {transaction.student_code}
-                              </TableCell>
-                              <TableCell className="font-medium text-purple-600">
-                                {transaction.primary_mentor_name}
-                              </TableCell>
-                              <TableCell className="font-mono text-sm">
-                                {transaction.mt5_login || '-'}
-                              </TableCell>
-                              <TableCell className="font-semibold text-gray-900">
-                                ${transaction.amount_usd?.toFixed(2)}
-                              </TableCell>
-                              <TableCell className={`font-semibold ${uplineCommission >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {transaction.status === 'APPROVED' 
-                                  ? `$${uplineCommission.toFixed(2)} (${transaction.upline_commission_percentage || 0}%)` 
-                                  : '-'}
-                              </TableCell>
-                              <TableCell className="text-sm">{transaction.payment_method}</TableCell>
-                              </TableRow>
-                              );
-                              })
+                              <TableCell className="font-mono text-sm text-blue-600">{transaction.student_code}</TableCell>
+                              <TableCell className="font-mono text-sm">{transaction.mt5_login || '-'}</TableCell>
+                              <TableCell className="font-semibold text-gray-900">${transaction.amount_usd?.toFixed(2)}</TableCell>
+                              {!isAssistance && (
+                                <TableCell className={`font-semibold ${commissionEarned >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {transaction.status === 'APPROVED' ? `$${commissionEarned.toFixed(2)}` : '-'}
+                                </TableCell>
                               )}
+                              <TableCell className="text-sm">{transaction.payment_method}</TableCell>
+                              <TableCell>
+                                {transaction.screenshot_url ? (
+                                  <a href={transaction.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                    <Eye className="h-4 w-4" />
+                                  </a>
+                                ) : '-'}
+                              </TableCell>
+                            </TableRow>
+                         );
+                       })}
+                       </>)
                       </TableBody>
                     </Table>
                   </div>

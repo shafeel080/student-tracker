@@ -117,13 +117,16 @@ export default function MyFundingRequests() {
     myStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
     teamTransactions = [];
   } else {
-    // Filter MY transactions - transactions where I am the primary mentor
-    myTransactions = transactions.filter(t => t.primary_mentor_id === currentUser.id);
+    // Filter MY transactions - by initiating_mentor_id (co-managed support), fallback to primary_mentor_id for legacy
+    myTransactions = transactions.filter(t =>
+      (t.initiating_mentor_id && t.initiating_mentor_id === currentUser.id) ||
+      (!t.initiating_mentor_id && t.primary_mentor_id === currentUser.id)
+    );
     myStudents = students.filter(s => {
       if (s.primary_mentor_id === currentUser.id) return true;
       if (!s.co_mentors_details) return false;
       try {
-        const co = JSON.parse(s.co_mentors_details);
+        const co = Array.isArray(s.co_mentors_details) ? s.co_mentors_details : JSON.parse(s.co_mentors_details);
         return Array.isArray(co) && co.some(m => m.mentor_id === currentUser.id);
       } catch (_) { return false; }
     });

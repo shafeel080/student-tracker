@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReferralRequestPopup from './ReferralRequestPopup';
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,8 +29,31 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
     screenshot_url: ''
   });
   const [uploading, setUploading] = useState(false);
+  const [referralStudent, setReferralStudent] = useState(null);
+
+  const isMentor = ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(currentUser?.app_role);
 
   const selectedStudent = students.find(s => s.id === formData.student_id);
+
+  const handleStudentSelect = (studentId) => {
+    const student = students.find(s => s.id === studentId);
+    // Intercept: if mentor selects a student they don't own
+    if (isMentor && student && student.primary_mentor_id !== currentUser.id) {
+      // Check if already co-managed by current user
+      let alreadyCoManaged = false;
+      if (student.co_mentors_details) {
+        try {
+          const co = JSON.parse(student.co_mentors_details);
+          alreadyCoManaged = Array.isArray(co) && co.some(m => m.mentor_id === currentUser.id);
+        } catch (_) {}
+      }
+      if (!alreadyCoManaged) {
+        setReferralStudent(student);
+        return; // Don't set student in form
+      }
+    }
+    setFormData(prev => ({ ...prev, student_id: studentId }));
+  };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -88,10 +112,18 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
       requested_at: new Date().toISOString()
     };
 
-    onSubmit(dataToSubmit);
-  };
+    onSubmit({ ...dataToSubmit, initiating_mentor_id: currentUser.id, initiating_mentor_name: currentUser.full_name });
+    };
 
-  return (
+    return (
+    <>
+    {referralStudent && (
+      <ReferralRequestPopup
+        student={referralStudent}
+        currentUser={currentUser}
+        onClose={() => setReferralStudent(null)}
+      />
+    )}
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -114,7 +146,7 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
         <SearchableStudentSelect
           students={students}
           value={formData.student_id}
-          onValueChange={(value) => setFormData({ ...formData, student_id: value })}
+          onValueChange={handleStudentSelect}
           label="Student"
           required
         />
@@ -201,5 +233,6 @@ export default function FundingRequestForm({ students, currentUser, onSubmit, on
         </Button>
       </div>
     </form>
+    </>
   );
 }

@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, UserPlus, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Search, UserPlus, Clock, CheckCircle, XCircle, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import { format } from "date-fns";
 
 export default function MyStudentRequests() {
@@ -20,11 +26,41 @@ export default function MyStudentRequests() {
     fetchUser();
   }, []);
 
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedReferral, setSelectedReferral] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const queryClient = useQueryClient();
+
   const { data: requests = [] } = useQuery({
     queryKey: ['my-student-requests'],
     queryFn: () => base44.entities.StudentRequest.list('-requested_at'),
     enabled: !!currentUser
   });
+
+  const { data: incomingReferrals = [] } = useQuery({
+    queryKey: ['incoming-referrals'],
+    queryFn: () => base44.entities.MentorReferral.list('-created_at'),
+    enabled: !!currentUser
+  });
+
+  const respondReferralMutation = useMutation({
+    mutationFn: async ({ referral_id, action, rejection_reason }) => {
+      const res = await base44.functions.invoke('processReferralResponse', { referral_id, action, rejection_reason });
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['incoming-referrals']);
+      toast.success(variables.action === 'approve' ? 'Referral approved! Student is now co-managed.' : 'Referral rejected.');
+      setRejectDialogOpen(false);
+      setSelectedReferral(null);
+      setRejectionReason('');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.error || 'Failed to process referral');
+    }
+  });
+
+  const pendingIncoming = incomingReferrals.filter(r => r.receiving_mentor_id === currentUser?.id && r.status === 'pending');
 
   if (!currentUser) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -70,9 +106,7 @@ export default function MyStudentRequests() {
     }
   };
 
-  const pendingCount = myRequests.filter(r => 
-    r.status === 'PENDING_LEVEL_UPGRADE'
-  ).length;
+  const pendingCount = myRequests.filter(r => r.status === 'PENDING_LEVEL_UPGRADE').length;
   const approvedCount = myRequests.filter(r => r.status === 'APPROVED' || r.status === 'TRANSFERRED').length;
   const rejectedCount = myRequests.filter(r => r.status === 'REJECTED').length;
 
@@ -84,6 +118,59 @@ export default function MyStudentRequests() {
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">My Student Requests</h1>
           <p className="text-gray-600 mt-2">Track the status of your student registration requests</p>
         </div>
+
+        {/* Referral Inbox */}
+        {pendingIncoming.length > 0 && (
+          <Card className="border-purple-200 bg-purple-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2 text-purple-800">
+                <Share2 className="h-4 w-4" />
+                Co-Management Referral Requests ({pendingIncoming.length} pending)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-purple-100/50">
+                    <TableHead className="font-semibold">Student</TableHead>
+                    <TableHead className="font-semibold">From Mentor</TableHead>
+                    <TableHead className="font-semibold">Deposit Amount</TableHead>
+                    <TableHead className="font-semibold">Notes</TableHead>
+                    <TableHead className="font-semibold">Requested</TableHead>
+                    <TableHead className="font-semibold text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingIncoming.map((ref) => (
+                    <TableRow key={ref.id} className="bg-white">
+                      <TableCell className="font-medium">{ref.student_name} <span className="text-xs text-gray-400 font-mono">{ref.student_code}</span></TableCell>
+                      <TableCell className="text-sm text-blue-700 font-medium">{ref.initiating_mentor_name}</TableCell>
+                      <TableCell className="text-sm font-semibold text-green-700">${(ref.requested_deposit_amount || 0).toLocaleString()}</TableCell>
+                      <TableCell className="text-sm text-gray-600 max-w-xs truncate">{ref.notes || '-'}</TableCell>
+                      <TableCell className="text-sm">{ref.created_at ? format(new Date(ref.created_at), 'MMM d, yyyy') : '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700"
+                            onClick={() => respondReferralMutation.mutate({ referral_id: ref.id, action: 'approve' })}
+                            disabled={respondReferralMutation.isPending}
+                          >
+                            <CheckCircle className="h-3.5 w-3.5 mr-1" /> Approve
+                          </Button>
+                          <Button size="sm" variant="destructive"
+                            onClick={() => { setSelectedReferral(ref); setRejectDialogOpen(true); }}
+                            disabled={respondReferralMutation.isPending}
+                          >
+                            <XCircle className="h-3.5 w-3.5 mr-1" /> Reject
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -216,6 +303,36 @@ export default function MyStudentRequests() {
             </div>
           </CardContent>
         </Card>
+        {/* Reject Referral Dialog */}
+        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Reject Referral Request</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                Rejecting referral from <strong>{selectedReferral?.initiating_mentor_name}</strong> for student <strong>{selectedReferral?.student_name}</strong>.
+              </p>
+              <div className="space-y-2">
+                <Label>Rejection Reason *</Label>
+                <Textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Enter reason for rejection..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
+              <Button variant="destructive" disabled={!rejectionReason.trim() || respondReferralMutation.isPending}
+                onClick={() => respondReferralMutation.mutate({ referral_id: selectedReferral?.id, action: 'reject', rejection_reason: rejectionReason })}
+              >
+                {respondReferralMutation.isPending ? 'Rejecting...' : 'Confirm Reject'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

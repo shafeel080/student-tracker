@@ -36,11 +36,14 @@ export const calculateQuarterlyNetDepositAndCommission = (transactions, currentU
   }
   
   // Filter transactions for current quarter, APPROVED status, and current mentor
-  const relevantTransactions = transactions.filter(t => 
-    t.status === 'APPROVED' &&
-    t.primary_mentor_id === currentUser.id &&
-    isWithinCurrentQuarter(t.requested_at, currentDate)
-  );
+  const relevantTransactions = transactions.filter(t => {
+    if (t.status !== 'APPROVED') return false;
+    if (!isWithinCurrentQuarter(t.requested_at, currentDate)) return false;
+    // If initiating_mentor_id is set, commission goes to that mentor
+    if (t.initiating_mentor_id) return t.initiating_mentor_id === currentUser.id;
+    // Otherwise, credit goes to the primary mentor (legacy behavior)
+    return t.primary_mentor_id === currentUser.id;
+  });
   
   // Calculate net deposit with per-student floor (0) and cap ($25,000)
   const MAX_NET_DEPOSIT_PER_STUDENT = 25000;

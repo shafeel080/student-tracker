@@ -13,6 +13,9 @@ Deno.serve(async (req) => {
       receiving_mentor_id,
       receiving_mentor_name,
       requested_deposit_amount,
+      payment_method,
+      mt5_login,
+      screenshot_url,
       notes
     } = await req.json();
 
@@ -49,6 +52,10 @@ Deno.serve(async (req) => {
       receiving_mentor_id,
       receiving_mentor_name,
       requested_deposit_amount: parseFloat(requested_deposit_amount) || 0,
+      transaction_type: 'DEPOSIT',
+      payment_method: payment_method || '',
+      mt5_login: mt5_login || '',
+      screenshot_url: screenshot_url || '',
       notes: notes || '',
       status: 'pending',
       created_at: new Date().toISOString()

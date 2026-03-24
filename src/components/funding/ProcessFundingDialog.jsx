@@ -144,17 +144,8 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
       }
     }
 
-    // For withdrawals: call processWithdrawal to handle co-mentor proportional deductions
-    if (transaction.type === 'WITHDRAWAL') {
-      try {
-        await base44.functions.invoke('processWithdrawal', {
-          student_id: transaction.student_id,
-          withdrawal_amount: formData.amount_usd || transaction.amount_usd
-        });
-      } catch (err) {
-        console.error('processWithdrawal failed:', err);
-      }
-    }
+    // Withdrawal deductions for co-managed clients are handled via CoManageCalculator tool
+    // No additional processing needed here
 
     onProcess(updatedData);
   };

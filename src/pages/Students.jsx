@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import StudentForm from "../components/students/StudentForm";
 import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
+import CoManageCalculator from "../components/students/CoManageCalculator";
 import { Plus, Search, Eye, Users, UserCheck, Upload, Download, Filter, ArrowUp, Share2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -645,7 +646,7 @@ export default function Students() {
         {/* Tabs for mentors and admins, single table for assistance/others */}
         {isMentor || isAdmin ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-4xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr 1fr' : '1fr 1fr') : (['broker_admin', 'super_admin'].includes(currentUser.app_role) ? '1fr 1fr 1fr' : (currentUser.app_role === 'academic_head' ? '1fr 1fr' : '1fr')) }}>
+            <TabsList className="grid w-full max-w-5xl" style={{ gridTemplateColumns: isMentor ? (isSeniorMentor ? '1fr 1fr 1fr 1fr' : '1fr 1fr 1fr') : (['broker_admin', 'super_admin'].includes(currentUser.app_role) ? '1fr 1fr 1fr 1fr' : (currentUser.app_role === 'academic_head' ? '1fr 1fr' : '1fr')) }}>
               {isMentor && <TabsTrigger value="my">My Students</TabsTrigger>}
               {isSeniorMentor && <TabsTrigger value="team">Team Students</TabsTrigger>}
               {isMentor && (
@@ -653,6 +654,9 @@ export default function Students() {
                   <Share2 className="h-3.5 w-3.5" />
                   Co-Managed ({coManagedStudents.length})
                 </TabsTrigger>
+              )}
+              {['broker_admin', 'super_admin'].includes(currentUser.app_role) && isMentor && (
+                <TabsTrigger value="co_manage_calculator">Calculator</TabsTrigger>
               )}
               {isAdmin && <TabsTrigger value="all">All Students</TabsTrigger>}
               {['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) && (
@@ -953,6 +957,15 @@ export default function Students() {
                     )}
                   </TableBody>
                 </Table>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Co-Manage Calculator Tab */}
+          {['broker_admin', 'super_admin'].includes(currentUser.app_role) && isMentor && (
+            <TabsContent value="co_manage_calculator">
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden p-6">
+                <CoManageCalculator students={students} coManagedStudents={coManagedStudents} />
               </div>
             </TabsContent>
           )}

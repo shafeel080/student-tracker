@@ -65,16 +65,14 @@ Deno.serve(async (req) => {
     });
 
     // Primary mentor share (for logging only)
-    const coMentorTotal = coMentors.reduce((sum, m) => sum + (m.net_deposit_contribution_usd || 0), 0);
-    const primaryMentorNet = Math.max(0, totalCombined - coMentorTotal);
-    const primaryShare = totalCombined > 0 ? amount * (primaryMentorNet / totalCombined) : 0;
+    const primaryShare = totalCombined > 0 ? amount * (0 / totalCombined) : 0;
     calculationDetails.push({
       mentor_id: student.primary_mentor_id,
       mentor_name: student.primary_mentor_name,
       role: 'primary_mentor',
-      original_net_usd: primaryMentorNet,
+      original_net_usd: 0,
       withdrawal_share_usd: primaryShare,
-      new_net_usd: Math.max(0, primaryMentorNet - primaryShare)
+      new_net_usd: 0
     });
 
     // Update student with recalculated co-mentor contributions

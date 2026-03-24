@@ -965,7 +965,10 @@ export default function Students() {
           {['broker_admin', 'super_admin'].includes(currentUser.app_role) && (
             <TabsContent value="co_manage_calculator">
               <div className="rounded-xl border border-gray-200 bg-white overflow-hidden p-6">
-                <CoManageCalculator students={students} coManagedStudents={coManagedStudents} />
+                <CoManageCalculator students={students} coManagedStudents={students.filter(s => {
+                  if (!s.co_mentors_details) return false;
+                  try { return Array.isArray(JSON.parse(typeof s.co_mentors_details === 'string' ? s.co_mentors_details : JSON.stringify(s.co_mentors_details))) && JSON.parse(typeof s.co_mentors_details === 'string' ? s.co_mentors_details : JSON.stringify(s.co_mentors_details)).length > 0; } catch (_) { return false; }
+                })} />
               </div>
             </TabsContent>
           )}

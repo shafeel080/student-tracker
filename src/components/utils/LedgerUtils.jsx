@@ -36,40 +36,27 @@ export const calculateQuarterNetDeposit = (mentorId, startDate, endDate, transac
   const end = new Date(endDate);
   end.setHours(23, 59, 59, 999);
   
-  const relevantTransactions = transactions.filter(t => {
-    if (t.status !== 'APPROVED') return false;
-    // Use initiating_mentor_id if present (co-managed), else fall back to primary_mentor_id
-    const attributedMentorId = t.initiating_mentor_id || t.primary_mentor_id;
-    if (attributedMentorId !== mentorId) return false;
-    
+  const mentorFilter = t =>
+    t.initiating_mentor_id ? t.initiating_mentor_id === mentorId : t.primary_mentor_id === mentorId;
+
+  const dateFilter = t => {
     const requestedDate = new Date(t.requested_at);
     return requestedDate >= start && requestedDate <= end;
-  });
-  
-  // Group transactions by student
-  const studentNetDeposits = {};
-  
-  relevantTransactions.forEach(t => {
-    const studentId = t.student_id;
-    if (!studentNetDeposits[studentId]) {
-      studentNetDeposits[studentId] = 0;
-    }
-    
-    if (t.type === 'DEPOSIT') {
-      studentNetDeposits[studentId] += (t.amount_usd || 0);
-    } else if (t.type === 'WITHDRAWAL') {
-      studentNetDeposits[studentId] -= (t.amount_usd || 0);
-    }
-  });
-  
-  // Apply cap per student and sum
-  let totalCappedNetDeposit = 0;
-  Object.values(studentNetDeposits).forEach(netDeposit => {
-    const cappedAmount = Math.min(netDeposit, MAX_NET_DEPOSIT_PER_STUDENT);
-    totalCappedNetDeposit += Math.max(cappedAmount, 0); // Don't count negative net deposits
-  });
-  
-  return totalCappedNetDeposit;
+  };
+
+  const deposits = transactions
+    .filter(t => t.type === 'DEPOSIT' && t.status === 'APPROVED')
+    .filter(mentorFilter)
+    .filter(dateFilter)
+    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+
+  const withdrawals = transactions
+    .filter(t => t.type === 'WITHDRAWAL' && t.status === 'APPROVED')
+    .filter(mentorFilter)
+    .filter(dateFilter)
+    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+
+  return Math.max(0, deposits - withdrawals);
 };
 
 export const calculateQuarterCommission = (netDeposit, bufferCarriedIn = 0, commissionRatePercent = 4) => {

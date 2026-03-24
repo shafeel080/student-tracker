@@ -127,10 +127,21 @@ export default function CoManageCalculator({ students = [], coManagedStudents = 
         throw new Error('No approved deposits found for any mentor');
       }
 
-      const calculatedResults = coMentors.map(mentor => {
+      // Build results including both co-mentors and primary mentor
+      const allMentors = [...coMentors];
+      
+      // Add primary mentor if not already in co-mentors
+      if (!coMentors.some(cm => cm.mentor_id === primaryMentorId)) {
+        allMentors.push({
+          mentor_id: primaryMentorId,
+          mentor_name: selectedStudent.primary_mentor_name
+        });
+      }
+      
+      const calculatedResults = allMentors.map(mentor => {
         const mentorTotal = mentorDeposits[mentor.mentor_id] || 0;
-        const sharePercent = (mentorTotal / totalDeposits) * 100;
-        const withdrawalShare = amount * (mentorTotal / totalDeposits);
+        const sharePercent = totalDeposits > 0 ? (mentorTotal / totalDeposits) * 100 : 0;
+        const withdrawalShare = totalDeposits > 0 ? amount * (mentorTotal / totalDeposits) : 0;
 
         return {
           mentor_id: mentor.mentor_id,

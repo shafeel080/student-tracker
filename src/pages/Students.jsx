@@ -655,7 +655,7 @@ export default function Students() {
                   Co-Managed ({coManagedStudents.length})
                 </TabsTrigger>
               )}
-              {['broker_admin', 'super_admin'].includes(currentUser.app_role) && isMentor && (
+              {['broker_admin', 'super_admin'].includes(currentUser.app_role) && (
                 <TabsTrigger value="co_manage_calculator">Calculator</TabsTrigger>
               )}
               {isAdmin && <TabsTrigger value="all">All Students</TabsTrigger>}
@@ -962,7 +962,7 @@ export default function Students() {
           )}
 
           {/* Co-Manage Calculator Tab */}
-          {['broker_admin', 'super_admin'].includes(currentUser.app_role) && isMentor && (
+          {['broker_admin', 'super_admin'].includes(currentUser.app_role) && (
             <TabsContent value="co_manage_calculator">
               <div className="rounded-xl border border-gray-200 bg-white overflow-hidden p-6">
                 <CoManageCalculator students={students} coManagedStudents={coManagedStudents} />

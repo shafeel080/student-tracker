@@ -32,22 +32,28 @@ export default function CoManageCalculator({ students = [], coManagedStudents = 
     }
   });
 
-  const createDeductionMutation = useMutation({
-    mutationFn: async ({ mentorId, mentorName, amount }) => {
-      const student = students.find(s => s.id === selectedStudentId);
-      if (!currentUser) throw new Error('User not authenticated');
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const r = await base44.functions.invoke('getAllUsers', {});
+      return r.data?.users || [];
+    },
+    retry: false
+  });
 
+  const createDeductionMutation = useMutation({
+    mutationFn: async ({ mentor_id, mentor_name, student_id, student_name, student_code, amount_usd, reason, created_by_id, created_by_name, notes }) => {
       const deduction = await base44.entities.MentorDeduction.create({
-        mentor_id: mentorId,
-        mentor_name: mentorName,
-        student_id: selectedStudentId,
-        student_name: student?.full_name,
-        student_code: student?.student_code,
-        amount_usd: amount,
-        reason: 'Pro-rata withdrawal deduction',
-        created_by_id: currentUser.id,
-        created_by_name: currentUser.full_name,
-        notes: `Calculated from withdrawal of $${parseFloat(withdrawalAmount).toFixed(2)}`
+        mentor_id,
+        mentor_name,
+        student_id,
+        student_name,
+        student_code,
+        amount_usd,
+        reason,
+        created_by_id,
+        created_by_name,
+        notes
       });
 
       return deduction;
@@ -71,8 +77,6 @@ export default function CoManageCalculator({ students = [], coManagedStudents = 
     if (!currentUser || !selectedStudent) return;
 
     setApplyingMentorId(result.mentor_id);
-
-    const mentorUser = users.find(u => u.id === result.mentor_id);
     
     createDeductionMutation.mutate({
       mentor_id: result.mentor_id,

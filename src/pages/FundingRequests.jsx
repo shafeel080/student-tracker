@@ -673,6 +673,7 @@ export default function FundingRequests() {
                     <TableHead className="font-semibold">Code</TableHead>
                     <TableHead className="font-semibold">Level</TableHead>
                     <TableHead className="font-semibold">Primary Mentor</TableHead>
+                    <TableHead className="font-semibold">Added By</TableHead>
                     <TableHead className="font-semibold">MT5 Login</TableHead>
                     <TableHead className="font-semibold">Amount</TableHead>
                     <TableHead className="font-semibold">Payment</TableHead>
@@ -685,7 +686,7 @@ export default function FundingRequests() {
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={['super_admin', 'broker_admin'].includes(currentUser.app_role) ? 16 : 15} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={['super_admin', 'broker_admin'].includes(currentUser.app_role) ? 17 : 16} className="text-center py-8 text-gray-500">
                         No funding requests found
                       </TableCell>
                     </TableRow>
@@ -753,6 +754,7 @@ export default function FundingRequests() {
                          )}
                         </TableCell>
                         <TableCell className="text-sm">{transaction.primary_mentor_name}</TableCell>
+                        <TableCell className="text-sm">{transaction.initiating_mentor_name || '-'}</TableCell>
                         <TableCell className="font-mono text-sm">
                           {transaction.mt5_login || '-'}
                         </TableCell>

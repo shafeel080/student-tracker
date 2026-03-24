@@ -354,6 +354,7 @@ export default function StudentDetail() {
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">Payment Method</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">MT5 Login</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction ID</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Added By</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
                   </tr>
                 </thead>
@@ -370,6 +371,7 @@ export default function StudentDetail() {
                         <td className="p-3 text-sm">{txn.payment_method}</td>
                         <td className="p-3 text-sm font-mono">{txn.mt5_login || '-'}</td>
                         <td className="p-3 text-sm font-mono">{txn.transaction_id || '-'}</td>
+                        <td className="p-3 text-sm">{txn.initiating_mentor_name || '-'}</td>
                         <td className="p-3">
                           <Badge variant="outline" className={getTransactionStatusColor(txn.status)}>
                             {txn.status}
@@ -402,6 +404,7 @@ export default function StudentDetail() {
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">Payment Method</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">MT5 Login</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction ID</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700">Added By</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
                   </tr>
                 </thead>
@@ -418,6 +421,7 @@ export default function StudentDetail() {
                         <td className="p-3 text-sm">{txn.payment_method}</td>
                         <td className="p-3 text-sm font-mono">{txn.mt5_login || '-'}</td>
                         <td className="p-3 text-sm font-mono">{txn.transaction_id || '-'}</td>
+                        <td className="p-3 text-sm">{txn.initiating_mentor_name || '-'}</td>
                         <td className="p-3">
                           <Badge variant="outline" className={getTransactionStatusColor(txn.status)}>
                             {txn.status}

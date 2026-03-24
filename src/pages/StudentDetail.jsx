@@ -145,6 +145,16 @@ export default function StudentDetail() {
   const displayStudent = applyStudentMasking(student, currentUser.app_role);
   const canEdit = canEditStudent(currentUser.app_role);
 
+  const parsedCoMentors = (() => {
+    if (!student?.co_mentors_details) return [];
+    try {
+      const co = typeof student.co_mentors_details === 'string'
+        ? JSON.parse(student.co_mentors_details)
+        : student.co_mentors_details;
+      return Array.isArray(co) ? co : [];
+    } catch (_) { return []; }
+  })();
+
   const getStatusColor = (status) => {
     return status === 'ACTIVE' 
       ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
@@ -262,6 +272,15 @@ export default function StudentDetail() {
                 <p className="mt-1 text-base text-gray-900">
                   {displayStudent.created_date 
                     ? format(new Date(displayStudent.created_date), 'MMMM d, yyyy')
+                    : '-'}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Co-Mentor(s)</label>
+                <p className="mt-1 text-base font-semibold text-gray-900">
+                  {parsedCoMentors.length > 0
+                    ? parsedCoMentors.map(cm => cm.mentor_name).join(', ')
                     : '-'}
                 </p>
               </div>

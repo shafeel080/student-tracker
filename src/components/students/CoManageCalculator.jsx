@@ -98,24 +98,48 @@ export default function CoManageCalculator({ students = [], coManagedStudents = 
         throw new Error('No co-mentors found');
       }
 
+      // Calculate actual deposits per mentor from FundingTransactions
       const amount = parseFloat(withdrawalAmount);
-      const totalCombined = coMentors.reduce((sum, m) => sum + (m.net_deposit_contribution_usd || 0), 0);
+      const primaryMentorId = selectedStudent.primary_mentor_id;
+      
+      // Get all approved deposits for each mentor
+      const mentorDeposits = {};
+      
+      // Initialize all mentors
+      coMentors.forEach(cm => {
+        mentorDeposits[cm.mentor_id] = 0;
+      });
+      mentorDeposits[primaryMentorId] = 0;
+      
+      // Sum approved deposits by initiating mentor
+      transactions
+        .filter(t => t.student_id === selectedStudentId && t.type === 'DEPOSIT' && t.status === 'APPROVED')
+        .forEach(t => {
+          const mentorId = t.initiating_mentor_id || primaryMentorId;
+          if (mentorDeposits.hasOwnProperty(mentorId)) {
+            mentorDeposits[mentorId] += t.amount_usd || 0;
+          }
+        });
+
+      const totalDeposits = Object.values(mentorDeposits).reduce((sum, val) => sum + val, 0);
+      
+      if (totalDeposits === 0) {
+        throw new Error('No approved deposits found for any mentor');
+      }
 
       const calculatedResults = coMentors.map(mentor => {
-        const mentorNet = mentor.net_deposit_contribution_usd || 0;
-        const sharePercent = totalCombined > 0 ? (mentorNet / totalCombined) * 100 : (100 / coMentors.length);
-        const withdrawalShare = totalCombined > 0
-          ? amount * (mentorNet / totalCombined)
-          : amount / coMentors.length;
+        const mentorTotal = mentorDeposits[mentor.mentor_id] || 0;
+        const sharePercent = (mentorTotal / totalDeposits) * 100;
+        const withdrawalShare = amount * (mentorTotal / totalDeposits);
 
         return {
           mentor_id: mentor.mentor_id,
           mentor_name: mentor.mentor_name,
-          total_deposits: mentorNet,
+          total_deposits: mentorTotal,
           share_percent: sharePercent,
           withdrawal_share: withdrawalShare
         };
-      });
+      }).filter(r => r.total_deposits > 0);
 
       setResults(calculatedResults);
     } catch (error) {

@@ -88,6 +88,12 @@ export default function Students() {
     enabled: !!currentUser && isMentorRole(currentUser?.app_role)
   });
 
+  const { data: allFundingTransactions = [] } = useQuery({
+    queryKey: ['all-funding-transactions-co-managed'],
+    queryFn: () => base44.entities.FundingTransaction.list(),
+    enabled: !!currentUser && isMentorRole(currentUser?.app_role)
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data) => {
       // Check for duplicate email
@@ -924,8 +930,9 @@ export default function Students() {
           ? student.co_mentors_details
           : (() => { try { return JSON.parse(student.co_mentors_details || '[]'); } catch(_) { return []; } })();
         const myNet = _coMentors.find(cm => cm.mentor_id === currentUser?.id)?.net_deposit_contribution_usd || 0;
-        const primaryNet = _coMentors.find(cm => cm.mentor_id === student.senior_mentor_id)?.net_deposit_contribution_usd || 0;
-        const combined = _coMentors.reduce((sum, cm) => sum + (cm.net_deposit_contribution_usd || 0), 0) || 0;
+        const studentTxns = allFundingTransactions.filter(t => t.student_id === student.id && t.status === 'APPROVED');
+        const combinedNet = studentTxns.reduce((sum, t) => t.type === 'DEPOSIT' ? sum + (t.amount_usd || 0) : t.type === 'WITHDRAWAL' ? sum - (t.amount_usd || 0) : sum, 0);
+        const primaryNet = combinedNet - myNet;
         const myEntry = _coMentors.find(cm => cm.mentor_id === currentUser?.id);
                         return (
                           <TableRow key={student.id} className="hover:bg-gray-50 transition-colors">
@@ -934,7 +941,7 @@ export default function Students() {
                             <TableCell className="text-sm">{student.primary_mentor_name}</TableCell>
                             <TableCell className="text-sm font-semibold text-green-700">${myNet.toLocaleString()}</TableCell>
                             <TableCell className="text-sm text-gray-600">${primaryNet.toLocaleString()}</TableCell>
-                            <TableCell className="text-sm font-semibold">${combined.toLocaleString()}</TableCell>
+                            <TableCell className="text-sm font-semibold">${combinedNet.toLocaleString()}</TableCell>
                             <TableCell className="text-sm text-gray-500">
                               {myEntry?.since ? format(new Date(myEntry.since), 'MMM d, yyyy') : '-'}
                             </TableCell>

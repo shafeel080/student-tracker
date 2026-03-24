@@ -20,8 +20,7 @@ Deno.serve(async (req) => {
 
     const student = students[0];
 
-    // For non-co-managed clients, LedgerUtils already handles net deposit deduction
-    // via the WITHDRAWAL FundingTransaction — nothing extra needed
+    // For non-co-managed clients, nothing extra needed
     if (!student.co_mentors_details) {
       return Response.json({ success: true, message: 'Non-co-managed withdrawal — handled via FundingTransaction.' });
     }
@@ -40,15 +39,9 @@ Deno.serve(async (req) => {
     }
 
     const amount = parseFloat(withdrawal_amount);
-    const totalCombined = student.net_deposit_usd || 0;
 
-    if (totalCombined <= 0) {
-      return Response.json({ error: 'No net deposits to apply withdrawal against' }, { status: 400 });
-    }
-
-    if (amount > totalCombined) {
-      return Response.json({ error: 'Withdrawal amount exceeds total net deposits' }, { status: 400 });
-    }
+    // Compute totalCombined from sum of co-mentor net_deposit_contribution_usd values
+    const totalCombined = coMentors.reduce((sum, m) => sum + (m.net_deposit_contribution_usd || 0), 0);
 
     // Co-mentors' total contribution
     const coMentorTotal = coMentors.reduce((sum, m) => sum + (m.net_deposit_contribution_usd || 0), 0);
@@ -58,9 +51,12 @@ Deno.serve(async (req) => {
     const calculationDetails = [];
 
     // Calculate and update each co-mentor's share
+    // If totalCombined is 0, split equally among co-mentors
     const updatedCoMentors = coMentors.map(mentor => {
       const mentorNet = mentor.net_deposit_contribution_usd || 0;
-      const share = totalCombined > 0 ? amount * (mentorNet / totalCombined) : 0;
+      const share = totalCombined > 0
+        ? amount * (mentorNet / totalCombined)
+        : amount / coMentors.length;
       const newNet = Math.max(0, mentorNet - share);
       calculationDetails.push({
         mentor_id: mentor.mentor_id,
@@ -73,7 +69,9 @@ Deno.serve(async (req) => {
       return { ...mentor, net_deposit_contribution_usd: newNet };
     });
 
-    // Primary mentor share (for logging — their net is implicit from student.net_deposit_usd)
+    // Primary mentor share (for logging only)
+    const coMentorTotal = coMentors.reduce((sum, m) => sum + (m.net_deposit_contribution_usd || 0), 0);
+    const primaryMentorNet = Math.max(0, totalCombined - coMentorTotal);
     const primaryShare = totalCombined > 0 ? amount * (primaryMentorNet / totalCombined) : 0;
     calculationDetails.push({
       mentor_id: student.primary_mentor_id,

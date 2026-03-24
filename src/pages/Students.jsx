@@ -89,20 +89,9 @@ export default function Students() {
   });
 
   const { data: allFundingTransactions = [] } = useQuery({
-    queryKey: ['all-funding-transactions-co-managed', coManagedStudents.length],
-    queryFn: async () => {
-      if (!coManagedStudents?.length) return [];
-      const allTxns = [];
-      for (const student of coManagedStudents) {
-        const txns = await base44.entities.FundingTransaction.filter({
-          student_id: student.id,
-          status: 'APPROVED'
-        });
-        allTxns.push(...txns);
-      }
-      return allTxns;
-    },
-    enabled: !!currentUser && isMentorRole(currentUser?.app_role) && coManagedStudents.length > 0
+    queryKey: ['all-funding-transactions-co-managed'],
+    queryFn: () => base44.entities.FundingTransaction.list(),
+    enabled: !!currentUser && isMentorRole(currentUser?.app_role)
   });
   console.log('allFundingTransactions count:', allFundingTransactions.length);
 

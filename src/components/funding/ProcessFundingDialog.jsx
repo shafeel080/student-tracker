@@ -124,9 +124,8 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     // Update co_mentors_details for co-managed client deposits
     if (transaction.type === 'DEPOSIT' && transaction.initiating_mentor_id) {
       try {
-        const studentRecord = await base44.entities.Student.filter({ id: transaction.student_id });
-        const latestStudent = studentRecord?.[0];
-        if (latestStudent && latestStudent.co_mentors_details) {
+        const latestStudent = await base44.entities.Student.get(transaction.student_id);
+        if (latestStudent?.co_mentors_details) {
           const coMentors = Array.isArray(latestStudent.co_mentors_details)
             ? latestStudent.co_mentors_details
             : JSON.parse(latestStudent.co_mentors_details || '[]');

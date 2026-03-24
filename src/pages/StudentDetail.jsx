@@ -101,8 +101,25 @@ export default function StudentDetail() {
   }
 
   // Check if current user has access to this student
-  const accessibleStudents = filterStudentsByRole([student], currentUser, users);
-  if (accessibleStudents.length === 0) {
+  const isMentorRole = ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(currentUser.app_role);
+  const isAdminRole = ['super_admin', 'broker_admin', 'academic_head', 'academic_admin', 'admin_supervisor', 'assistance', 'draw_admin', 'finance_admin'].includes(currentUser.app_role);
+
+  const isCoMentor = (() => {
+    if (!student.co_mentors_details) return false;
+    try {
+      const co = typeof student.co_mentors_details === 'string'
+        ? JSON.parse(student.co_mentors_details)
+        : student.co_mentors_details;
+      return Array.isArray(co) && co.some(cm => cm.mentor_id === currentUser.id);
+    } catch (_) { return false; }
+  })();
+
+  const hasAccess = isAdminRole ||
+    currentUser.id === student.primary_mentor_id ||
+    currentUser.id === student.senior_mentor_id ||
+    isCoMentor;
+
+  if (isMentorRole && !hasAccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
         <div className="max-w-4xl mx-auto">
@@ -119,8 +136,8 @@ export default function StudentDetail() {
     );
   }
 
-  const displayStudent = applyStudentMasking(student, currentUser.role);
-  const canEdit = canEditStudent(currentUser.role);
+  const displayStudent = applyStudentMasking(student, currentUser.app_role);
+  const canEdit = canEditStudent(currentUser.app_role);
 
   const getStatusColor = (status) => {
     return status === 'ACTIVE' 

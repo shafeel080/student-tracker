@@ -6,10 +6,11 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     const { student_id, mentor_id, amount_usd } = await req.json();
+    console.log('updateCoMentorContribution called with:', { student_id, mentor_id, amount_usd, caller_role: user?.app_role, caller_email: user?.email });
 
     if (!student_id || !mentor_id || typeof amount_usd === 'undefined') {
       return Response.json({ error: 'Missing student_id, mentor_id, or amount_usd' }, { status: 400 });

@@ -122,6 +122,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
       }
     }
     // Update co_mentors_details via backend function
+    console.log('initiating_mentor_id:', transaction.initiating_mentor_id, '| type:', transaction.type);
     if (transaction.type === 'DEPOSIT' && transaction.initiating_mentor_id) {
       try {
         await base44.functions.invoke('updateCoMentorContribution', {

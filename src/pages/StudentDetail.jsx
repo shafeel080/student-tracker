@@ -125,16 +125,6 @@ export default function StudentDetail() {
     currentUser.id === student.senior_mentor_id ||
     isCoMentor;
 
-  // DEBUG LOG
-  console.log('=== StudentDetail Access Check ===');
-  console.log('currentUser:', currentUser);
-  console.log('student.co_mentors_details:', student.co_mentors_details);
-  console.log('isMentorRole:', isMentorRole);
-  console.log('isAdminRole:', isAdminRole);
-  console.log('isCoMentor:', isCoMentor);
-  console.log('hasAccess:', hasAccess);
-  console.log('===================================');
-
   if (isMentorRole && !hasAccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">

@@ -123,13 +123,25 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     }
     // Update co_mentors_details via backend function
     console.log('initiating_mentor_id:', transaction.initiating_mentor_id, '| type:', transaction.type);
-    if (transaction.type === 'DEPOSIT' && transaction.initiating_mentor_id) {
-      try {
-        await base44.functions.invoke('updateCoMentorContribution', {
-          student_id: transaction.student_id,
-          mentor_id: transaction.initiating_mentor_id
-        });
-      } catch (err) { console.error('Failed to update co_mentors_details:', err); }
+    if (transaction.type === 'DEPOSIT') {
+      // Update co-mentor contribution if initiating mentor exists
+      if (transaction.initiating_mentor_id) {
+        try {
+          await base44.functions.invoke('updateCoMentorContribution', {
+            student_id: transaction.student_id,
+            mentor_id: transaction.initiating_mentor_id
+          });
+        } catch (err) { console.error('Failed to update co-mentor contribution:', err); }
+      }
+      // Also update primary mentor's entry in co_mentors_details if they have one
+      if (transaction.primary_mentor_id) {
+        try {
+          await base44.functions.invoke('updateCoMentorContribution', {
+            student_id: transaction.student_id,
+            mentor_id: transaction.primary_mentor_id
+          });
+        } catch (err) { console.error('Failed to update primary mentor contribution:', err); }
+      }
     }
 
     // For withdrawals: call processWithdrawal to handle co-mentor proportional deductions

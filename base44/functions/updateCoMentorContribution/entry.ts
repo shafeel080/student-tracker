@@ -40,11 +40,22 @@ Deno.serve(async (req) => {
     }
 
     // Fetch ALL approved FundingTransactions for this student
-    const allTransactions = await base44.asServiceRole.entities.FundingTransaction.filter({
-      student_id,
-      status: 'APPROVED',
-      initiating_mentor_id: mentor_id
-    });
+    const isPrimary = match.role === 'primary' || mentor_id === student.primary_mentor_id;
+    let allTransactions;
+    if (isPrimary) {
+      // Primary mentor's transactions: those without an initiating_mentor_id (normal deposits)
+      const allApproved = await base44.asServiceRole.entities.FundingTransaction.filter({
+        student_id,
+        status: 'APPROVED'
+      });
+      allTransactions = allApproved.filter(t => !t.initiating_mentor_id || t.initiating_mentor_id === mentor_id);
+    } else {
+      allTransactions = await base44.asServiceRole.entities.FundingTransaction.filter({
+        student_id,
+        status: 'APPROVED',
+        initiating_mentor_id: mentor_id
+      });
+    }
 
     // Sum deposits minus withdrawals to get true net contribution
     let netContribution = 0;

@@ -34,12 +34,24 @@ Deno.serve(async (req) => {
         if (student.co_mentors_details) {
           try { coMentors = JSON.parse(student.co_mentors_details); } catch (_) { /* ignore */ }
         }
-        coMentors.push({
-          mentor_id: referral.initiating_mentor_id,
-          mentor_name: referral.initiating_mentor_name,
-          net_deposit_contribution_usd: 0,
-          since: new Date().toISOString()
-        });
+        // Replace co_mentors_details with both primary + co-mentor entries
+        const since = new Date().toISOString();
+        coMentors = [
+          {
+            mentor_id: student.primary_mentor_id,
+            mentor_name: student.primary_mentor_name,
+            net_deposit_contribution_usd: 0,
+            role: 'primary',
+            since
+          },
+          {
+            mentor_id: referral.initiating_mentor_id,
+            mentor_name: referral.initiating_mentor_name,
+            net_deposit_contribution_usd: 0,
+            role: 'co_mentor',
+            since
+          }
+        ];
         await base44.asServiceRole.entities.Student.update(student.id, {
           co_mentors_details: JSON.stringify(coMentors)
         });

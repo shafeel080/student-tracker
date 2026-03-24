@@ -121,24 +121,14 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
         await base44.entities.Student.update(transaction.student_id, { student_level: 'LEVEL_2' });
       }
     }
-    // Update co_mentors_details for co-managed client deposits
+    // Update co_mentors_details via backend function
     if (transaction.type === 'DEPOSIT' && transaction.initiating_mentor_id) {
       try {
-        const latestStudent = await base44.entities.Student.get(transaction.student_id);
-        if (latestStudent?.co_mentors_details) {
-          const coMentors = Array.isArray(latestStudent.co_mentors_details)
-            ? latestStudent.co_mentors_details
-            : JSON.parse(latestStudent.co_mentors_details || '[]');
-          const match = coMentors.find(cm => cm.mentor_id === transaction.initiating_mentor_id);
-          if (match) {
-            const updatedCoMentors = coMentors.map(cm =>
-              cm.mentor_id === transaction.initiating_mentor_id
-                ? { ...cm, net_deposit_contribution_usd: (cm.net_deposit_contribution_usd || 0) + (formData.amount_usd || transaction.amount_usd || 0) }
-                : cm
-            );
-            await base44.entities.Student.update(transaction.student_id, { co_mentors_details: updatedCoMentors });
-          }
-        }
+        await base44.functions.invoke('updateCoMentorContribution', {
+          student_id: transaction.student_id,
+          mentor_id: transaction.initiating_mentor_id,
+          amount_usd: formData.amount_usd || transaction.amount_usd
+        });
       } catch (err) { console.error('Failed to update co_mentors_details:', err); }
     }
 

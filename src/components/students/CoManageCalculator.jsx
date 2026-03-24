@@ -54,17 +54,39 @@ export default function CoManageCalculator({ students = [], coManagedStudents = 
     },
     onSuccess: (deduction) => {
       queryClient.invalidateQueries(['mentor-deductions']);
-      toast.success(`Deduction created for ${deduction.mentor_name}`);
+      toast.success(`Deduction applied successfully for ${deduction.mentor_name}`);
       setApplyingMentorId(null);
     },
     onError: (error) => {
-      toast.error(`Failed to create deduction: ${error.message}`);
+      toast.error(`Failed to apply deduction: ${error.message}`);
+      setApplyingMentorId(null);
     }
   });
 
   const selectedStudent = useMemo(() => {
     return students.find(s => s.id === selectedStudentId);
   }, [selectedStudentId, students]);
+
+  const handleApplyDeduction = async (result) => {
+    if (!currentUser || !selectedStudent) return;
+
+    setApplyingMentorId(result.mentor_id);
+
+    const mentorUser = users.find(u => u.id === result.mentor_id);
+    
+    createDeductionMutation.mutate({
+      mentor_id: result.mentor_id,
+      mentor_name: result.mentor_name,
+      student_id: selectedStudentId,
+      student_name: selectedStudent.full_name,
+      student_code: selectedStudent.student_code,
+      amount_usd: result.withdrawal_share,
+      reason: `Pro-rata withdrawal deduction - Student withdrawal: $${withdrawalAmount} (${result.share_percent.toFixed(1)}% share)`,
+      created_by_id: currentUser.id,
+      created_by_name: currentUser.full_name,
+      notes: `Mentor deposits: $${result.total_deposits.toFixed(2)}`
+    });
+  };
 
   const handleCalculate = () => {
     if (!selectedStudentId || !withdrawalAmount) {
@@ -157,19 +179,6 @@ export default function CoManageCalculator({ students = [], coManagedStudents = 
       toast.error(`Calculation failed: ${error.message}`);
     } finally {
       setIsCalculating(false);
-    }
-  };
-
-  const handleApplyDeduction = async (result) => {
-    setApplyingMentorId(result.mentor_id);
-    try {
-      await createDeductionMutation.mutateAsync({
-        mentorId: result.mentor_id,
-        mentorName: result.mentor_name,
-        amount: result.withdrawal_share
-      });
-    } finally {
-      setApplyingMentorId(null);
     }
   };
 

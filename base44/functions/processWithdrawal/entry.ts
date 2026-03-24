@@ -20,19 +20,23 @@ Deno.serve(async (req) => {
 
     const student = students[0];
 
+    // For non-co-managed clients, LedgerUtils already handles net deposit deduction
+    // via the WITHDRAWAL FundingTransaction — nothing extra needed
     if (!student.co_mentors_details) {
-      return Response.json({ error: 'Student is not co-managed. Use standard withdrawal process.' }, { status: 400 });
+      return Response.json({ success: true, message: 'Non-co-managed withdrawal — handled via FundingTransaction.' });
     }
 
     let coMentors = [];
     try {
-      coMentors = JSON.parse(student.co_mentors_details);
+      coMentors = typeof student.co_mentors_details === 'string'
+        ? JSON.parse(student.co_mentors_details)
+        : student.co_mentors_details;
     } catch (_) {
       return Response.json({ error: 'Invalid co_mentors_details format' }, { status: 400 });
     }
 
     if (!Array.isArray(coMentors) || coMentors.length === 0) {
-      return Response.json({ error: 'No co-mentors found on this student' }, { status: 400 });
+      return Response.json({ success: true, message: 'No co-mentors — handled via FundingTransaction.' });
     }
 
     const amount = parseFloat(withdrawal_amount);

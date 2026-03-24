@@ -76,20 +76,25 @@ export default function CoManageCalculator({ students = [], coManagedStudents = 
   const handleApplyDeduction = async (result) => {
     if (!currentUser || !selectedStudent) return;
 
-    setApplyingMentorId(result.mentor_id);
-    
-    createDeductionMutation.mutate({
-      mentor_id: result.mentor_id,
-      mentor_name: result.mentor_name,
-      student_id: selectedStudentId,
-      student_name: selectedStudent.full_name,
-      student_code: selectedStudent.student_code,
-      amount_usd: result.withdrawal_share,
-      reason: `Pro-rata withdrawal deduction - Student withdrawal: $${withdrawalAmount} (${result.share_percent.toFixed(1)}% share)`,
-      created_by_id: currentUser.id,
-      created_by_name: currentUser.full_name,
-      notes: `Mentor deposits: $${result.total_deposits.toFixed(2)}`
-    });
+    try {
+      setApplyingMentorId(result.mentor_id);
+      await createDeductionMutation.mutateAsync({
+        mentor_id: result.mentor_id,
+        mentor_name: result.mentor_name,
+        student_id: selectedStudentId,
+        student_name: selectedStudent.full_name,
+        student_code: selectedStudent.student_code,
+        amount_usd: result.withdrawal_share,
+        reason: `Pro-rata withdrawal deduction - Student withdrawal: $${withdrawalAmount} (${result.share_percent.toFixed(1)}% share)`,
+        created_by_id: currentUser.id,
+        created_by_name: currentUser.full_name,
+        notes: `Mentor deposits: $${result.total_deposits.toFixed(2)}`
+      });
+    } catch (error) {
+      console.error('Deduction error:', error);
+      toast.error(error.message || 'Failed to apply deduction');
+      setApplyingMentorId(null);
+    }
   };
 
   const handleCalculate = () => {

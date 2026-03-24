@@ -88,23 +88,12 @@ export default function Students() {
     enabled: !!currentUser && isMentorRole(currentUser?.app_role)
   });
 
-  // Compute co-managed students early (before early return) so the query below can use it
-  const coManagedForQuery = (currentUser && ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(currentUser?.app_role))
-    ? (allStudentsForCoManaged.length ? allStudentsForCoManaged : students).filter(s => {
-        if (!s.co_mentors_details) return false;
-        try {
-          const co = JSON.parse(s.co_mentors_details);
-          return Array.isArray(co) && co.some(m => m.mentor_id === currentUser.id);
-        } catch (_) { return false; }
-      })
-    : [];
-
   const { data: allFundingTransactions = [] } = useQuery({
-    queryKey: ['all-funding-transactions-co-managed', coManagedForQuery.length],
+    queryKey: ['all-funding-transactions-co-managed', coManagedStudents.length],
     queryFn: async () => {
-      if (!coManagedForQuery?.length) return [];
+      if (!coManagedStudents?.length) return [];
       const allTxns = [];
-      for (const student of coManagedForQuery) {
+      for (const student of coManagedStudents) {
         const txns = await base44.entities.FundingTransaction.filter({
           student_id: student.id,
           status: 'APPROVED'
@@ -113,7 +102,7 @@ export default function Students() {
       }
       return allTxns;
     },
-    enabled: !!currentUser && ['junior_mentor', 'senior_mentor', 'subjunior_mentor'].includes(currentUser?.app_role) && coManagedForQuery.length > 0
+    enabled: !!currentUser && isMentorRole(currentUser?.app_role) && coManagedStudents.length > 0
   });
   console.log('allFundingTransactions count:', allFundingTransactions.length);
 
@@ -305,8 +294,14 @@ export default function Students() {
   const isAdmin = ['super_admin', 'broker_admin', 'academic_head'].includes(currentUser.app_role);
   const isSuperAdmin = currentUser.app_role === 'super_admin';
 
-  // Co-managed students: reuse the early computation
-  const coManagedStudents = coManagedForQuery;
+  // Co-managed students: where current user appears in co_mentors_details (mentors)
+  const coManagedStudents = isMentor ? (allStudentsForCoManaged.length ? allStudentsForCoManaged : students).filter(s => {
+    if (!s.co_mentors_details) return false;
+    try {
+      const co = JSON.parse(s.co_mentors_details);
+      return Array.isArray(co) && co.some(m => m.mentor_id === currentUser.id);
+    } catch (_) { return false; }
+  }) : [];
 
   // All co-managed students for admin view
   const allCoManagedStudents = isAdmin ? students.filter(s => {

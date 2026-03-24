@@ -103,8 +103,12 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     const updatedData = {
       ...formData,
       mt5_login: formData.mt5_account_id ? (selectedMT5Account?.mt5_login || formData.mt5_login) : formData.mt5_login,
-      initiating_mentor_id: transaction.initiating_mentor_id || undefined,
-      initiating_mentor_name: transaction.initiating_mentor_name || undefined,
+      initiating_mentor_id: transaction.type === 'WITHDRAWAL'
+        ? transaction.primary_mentor_id
+        : (transaction.initiating_mentor_id || undefined),
+      initiating_mentor_name: transaction.type === 'WITHDRAWAL'
+        ? transaction.primary_mentor_name
+        : (transaction.initiating_mentor_name || undefined),
       status: 'APPROVED'
     };
 

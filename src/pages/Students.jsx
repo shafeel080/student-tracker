@@ -88,12 +88,7 @@ export default function Students() {
     enabled: !!currentUser && isMentorRole(currentUser?.app_role)
   });
 
-  const { data: allFundingTransactions = [] } = useQuery({
-    queryKey: ['all-funding-transactions-co-managed'],
-    queryFn: () => base44.entities.FundingTransaction.list(),
-    enabled: !!currentUser && isMentorRole(currentUser?.app_role)
-  });
-  console.log('allFundingTransactions count:', allFundingTransactions.length);
+
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
@@ -931,8 +926,7 @@ export default function Students() {
           ? student.co_mentors_details
           : (() => { try { return JSON.parse(student.co_mentors_details || '[]'); } catch(_) { return []; } })();
         const myNet = _coMentors.find(cm => cm.mentor_id === currentUser?.id)?.net_deposit_contribution_usd || 0;
-        const studentTxns = allFundingTransactions.filter(t => t.student_id === student.id && t.status === 'APPROVED');
-        const combinedNet = studentTxns.reduce((sum, t) => t.type === 'DEPOSIT' ? sum + (t.amount_usd || 0) : t.type === 'WITHDRAWAL' ? sum - (t.amount_usd || 0) : sum, 0);
+        const combinedNet = _coMentors.reduce((sum, cm) => sum + (cm.net_deposit_contribution_usd || 0), 0);
         const primaryNet = combinedNet - myNet;
         const myEntry = _coMentors.find(cm => cm.mentor_id === currentUser?.id);
                         return (

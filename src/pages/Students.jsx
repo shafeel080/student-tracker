@@ -93,6 +93,7 @@ export default function Students() {
     queryFn: () => base44.entities.FundingTransaction.list(),
     enabled: !!currentUser && isMentorRole(currentUser?.app_role)
   });
+  console.log('allFundingTransactions count:', allFundingTransactions.length);
 
   const createMutation = useMutation({
     mutationFn: async (data) => {

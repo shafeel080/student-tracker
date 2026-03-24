@@ -754,7 +754,15 @@ export default function FundingRequests() {
                          )}
                         </TableCell>
                         <TableCell className="text-sm">{transaction.primary_mentor_name}</TableCell>
-                        <TableCell className="text-sm">{transaction.initiating_mentor_name || '-'}</TableCell>
+                        <TableCell className="text-sm">
+                          {transaction.initiating_mentor_name ? (
+                            <>
+                              {transaction.initiating_mentor_name}
+                              {transaction.initiating_mentor_id === transaction.primary_mentor_id && <span className="text-xs text-gray-500 block">(Primary)</span>}
+                              {transaction.initiating_mentor_id === transaction.senior_mentor_id && <span className="text-xs text-gray-500 block">(Senior)</span>}
+                            </>
+                          ) : '-'}
+                        </TableCell>
                         <TableCell className="font-mono text-sm">
                           {transaction.mt5_login || '-'}
                         </TableCell>

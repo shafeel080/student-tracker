@@ -9,15 +9,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { student_id, mentor_id, amount_usd } = await req.json();
-    console.log('updateCoMentorContribution called with:', { student_id, mentor_id, amount_usd, caller_role: user?.app_role, caller_email: user?.email });
+    const { student_id, mentor_id } = await req.json();
+    console.log('updateCoMentorContribution called with:', { student_id, mentor_id, caller_role: user?.app_role, caller_email: user?.email });
 
-    if (!student_id || !mentor_id || typeof amount_usd === 'undefined') {
-      return Response.json({ error: 'Missing student_id, mentor_id, or amount_usd' }, { status: 400 });
+    if (!student_id || !mentor_id) {
+      return Response.json({ error: 'Missing student_id or mentor_id' }, { status: 400 });
     }
 
     const student = await base44.asServiceRole.entities.Student.get(student_id);
-
     if (!student) {
       return Response.json({ error: 'Student not found' }, { status: 404 });
     }
@@ -40,9 +39,28 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message: 'Co-mentor not found — no update needed' });
     }
 
+    // Fetch ALL approved FundingTransactions for this student
+    const allTransactions = await base44.asServiceRole.entities.FundingTransaction.filter({
+      student_id,
+      status: 'APPROVED',
+      initiating_mentor_id: mentor_id
+    });
+
+    // Sum deposits minus withdrawals to get true net contribution
+    let netContribution = 0;
+    for (const tx of allTransactions) {
+      if (tx.type === 'DEPOSIT') {
+        netContribution += tx.amount_usd || 0;
+      } else if (tx.type === 'WITHDRAWAL') {
+        netContribution -= tx.amount_usd || 0;
+      }
+    }
+
+    console.log(`Recalculated net contribution for mentor ${mentor_id}: $${netContribution} from ${allTransactions.length} transactions`);
+
     const updatedCoMentors = coMentors.map(cm =>
       cm.mentor_id === mentor_id
-        ? { ...cm, net_deposit_contribution_usd: (cm.net_deposit_contribution_usd || 0) + amount_usd }
+        ? { ...cm, net_deposit_contribution_usd: netContribution }
         : cm
     );
 
@@ -50,7 +68,7 @@ Deno.serve(async (req) => {
       co_mentors_details: JSON.stringify(updatedCoMentors)
     });
 
-    return Response.json({ success: true, updatedCoMentors });
+    return Response.json({ success: true, netContribution, updatedCoMentors });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

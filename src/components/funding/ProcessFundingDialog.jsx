@@ -127,8 +127,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
       try {
         await base44.functions.invoke('updateCoMentorContribution', {
           student_id: transaction.student_id,
-          mentor_id: transaction.initiating_mentor_id,
-          amount_usd: formData.amount_usd || transaction.amount_usd
+          mentor_id: transaction.initiating_mentor_id
         });
       } catch (err) { console.error('Failed to update co_mentors_details:', err); }
     }

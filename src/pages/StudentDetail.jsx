@@ -37,6 +37,12 @@ export default function StudentDetail() {
   const { data: student, isLoading } = useQuery({
     queryKey: ['student', studentId],
     queryFn: async () => {
+      // Try direct get first (bypasses list-level RLS)
+      try {
+        const s = await base44.entities.Student.get(studentId);
+        if (s) return s;
+      } catch(_) {}
+      // Fallback: list and find
       const students = await base44.entities.Student.list();
       return students.find(s => s.id === studentId);
     },

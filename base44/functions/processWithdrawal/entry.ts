@@ -43,11 +43,6 @@ Deno.serve(async (req) => {
     // Compute totalCombined from sum of co-mentor net_deposit_contribution_usd values
     const totalCombined = coMentors.reduce((sum, m) => sum + (m.net_deposit_contribution_usd || 0), 0);
 
-    // Co-mentors' total contribution
-    const coMentorTotal = coMentors.reduce((sum, m) => sum + (m.net_deposit_contribution_usd || 0), 0);
-    // Primary mentor's implied net
-    const primaryMentorNet = Math.max(0, totalCombined - coMentorTotal);
-
     const calculationDetails = [];
 
     // Calculate and update each co-mentor's share

@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import StudentForm from "../components/students/StudentForm";
 import StudentRequestForm from "../components/students/StudentRequestForm";
 import BulkImportStudentsDialog from "../components/students/BulkImportStudentsDialog";
-import CoManageCalculator from "../components/students/CoManageCalculator";
+
 import { Plus, Search, Eye, Users, UserCheck, Upload, Download, Filter, ArrowUp, Share2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -655,9 +655,7 @@ export default function Students() {
                   Co-Managed ({coManagedStudents.length})
                 </TabsTrigger>
               )}
-              {['broker_admin', 'super_admin'].includes(currentUser.app_role) && (
-                <TabsTrigger value="co_manage_calculator">Calculator</TabsTrigger>
-              )}
+
               {isAdmin && <TabsTrigger value="all">All Students</TabsTrigger>}
               {['academic_head', 'broker_admin', 'super_admin'].includes(currentUser.app_role) && (
                 <TabsTrigger value="open_pool">Delta Open Students</TabsTrigger>
@@ -961,17 +959,6 @@ export default function Students() {
             </TabsContent>
           )}
 
-          {/* Co-Manage Calculator Tab */}
-          {['broker_admin', 'super_admin'].includes(currentUser.app_role) && (
-            <TabsContent value="co_manage_calculator">
-              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden p-6">
-                <CoManageCalculator students={students} coManagedStudents={students.filter(s => {
-                  if (!s.co_mentors_details) return false;
-                  try { return Array.isArray(JSON.parse(typeof s.co_mentors_details === 'string' ? s.co_mentors_details : JSON.stringify(s.co_mentors_details))) && JSON.parse(typeof s.co_mentors_details === 'string' ? s.co_mentors_details : JSON.stringify(s.co_mentors_details)).length > 0; } catch (_) { return false; }
-                })} />
-              </div>
-            </TabsContent>
-          )}
 
           {/* Open Pool Students Tab */}
           <TabsContent value="open_pool">

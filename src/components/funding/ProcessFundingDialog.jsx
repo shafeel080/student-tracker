@@ -40,6 +40,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     notes: ''
   });
   const [transactionIdError, setTransactionIdError] = useState('');
+  const [withdrawalMentorId, setWithdrawalMentorId] = useState('');
 
   const { data: mt5Accounts = [] } = useQuery({
     queryKey: ['mt5accounts', transaction?.student_id],
@@ -67,6 +68,29 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     enabled: open
   });
 
+  // Build co-managed mentor options for withdrawal attribution
+  const coManagedMentorOptions = React.useMemo(() => {
+    if (!student || !transaction || transaction.type !== 'WITHDRAWAL') return [];
+    let coMentors = [];
+    if (student.co_mentors_details) {
+      try {
+        coMentors = typeof student.co_mentors_details === 'string'
+          ? JSON.parse(student.co_mentors_details)
+          : student.co_mentors_details;
+      } catch (_) {}
+    }
+    if (!Array.isArray(coMentors) || coMentors.length === 0) return [];
+    const options = [{ id: student.primary_mentor_id, name: student.primary_mentor_name }];
+    coMentors.forEach(cm => {
+      if (!options.find(o => o.id === cm.mentor_id)) {
+        options.push({ id: cm.mentor_id, name: cm.mentor_name });
+      }
+    });
+    return options;
+  }, [student, transaction]);
+
+  const isCoManagedWithdrawal = coManagedMentorOptions.length > 0;
+
   useEffect(() => {
     if (transaction) {
       setFormData({
@@ -78,6 +102,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
         notes: transaction.notes || ''
       });
       setTransactionIdError('');
+      setWithdrawalMentorId('');
     }
   }, [transaction]);
 
@@ -100,14 +125,18 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     
     const selectedMT5Account = mt5Accounts.find(acc => acc.id === formData.mt5_account_id);
     
+    const selectedWithdrawalMentor = isCoManagedWithdrawal && withdrawalMentorId
+      ? coManagedMentorOptions.find(m => m.id === withdrawalMentorId)
+      : null;
+
     const updatedData = {
       ...formData,
       mt5_login: formData.mt5_account_id ? (selectedMT5Account?.mt5_login || formData.mt5_login) : formData.mt5_login,
       initiating_mentor_id: transaction.type === 'WITHDRAWAL'
-        ? transaction.primary_mentor_id
+        ? (selectedWithdrawalMentor?.id || transaction.primary_mentor_id)
         : (transaction.initiating_mentor_id || undefined),
       initiating_mentor_name: transaction.type === 'WITHDRAWAL'
-        ? transaction.primary_mentor_name
+        ? (selectedWithdrawalMentor?.name || transaction.primary_mentor_name)
         : (transaction.initiating_mentor_name || undefined),
       status: 'APPROVED'
     };
@@ -274,6 +303,23 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
                 <p className="text-sm text-red-600">{transactionIdError}</p>
               )}
             </div>
+
+            {isCoManagedWithdrawal && (
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-base font-semibold text-orange-700">Attribute Withdrawal To *</Label>
+                <Select value={withdrawalMentorId} onValueChange={setWithdrawalMentorId}>
+                  <SelectTrigger className="border-orange-300 focus:ring-orange-400">
+                    <SelectValue placeholder="Select mentor to attribute withdrawal to" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {coManagedMentorOptions.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-orange-600">This is a co-managed client. Select which mentor's net deposit this withdrawal reduces.</p>
+              </div>
+            )}
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="notes">Notes</Label>

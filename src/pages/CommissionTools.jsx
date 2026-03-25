@@ -70,35 +70,63 @@ export default function CommissionTools() {
     } catch (_) { toast.error('Invalid co-mentor data'); return; }
 
     const primaryMentorId = selectedStudent.primary_mentor_id;
-    const mentorDeposits = {};
-    coMentors.forEach(cm => { mentorDeposits[cm.mentor_id] = 0; });
-    mentorDeposits[primaryMentorId] = 0;
 
-    fundingTransactions
-      .filter(t => t.student_id === selectedStudentId && t.type === 'DEPOSIT' && t.status === 'APPROVED')
-      .forEach(t => {
-        const mid = t.initiating_mentor_id || primaryMentorId;
-        if (mentorDeposits.hasOwnProperty(mid)) mentorDeposits[mid] += t.amount_usd || 0;
-      });
-
-    const totalDeposits = Object.values(mentorDeposits).reduce((s, v) => s + v, 0);
-    if (totalDeposits === 0) { toast.error('No approved deposits found'); return; }
-
+    // Build mentor map: all known mentors (primary + co-mentors)
     const allMentors = [...coMentors];
     if (!coMentors.some(cm => cm.mentor_id === primaryMentorId)) {
       allMentors.push({ mentor_id: primaryMentorId, mentor_name: selectedStudent.primary_mentor_name });
     }
 
+    // Initialize per-mentor deposits and withdrawals
+    const mentorDeposits = {};
+    const mentorWithdrawals = {};
+    allMentors.forEach(m => {
+      mentorDeposits[m.mentor_id] = 0;
+      mentorWithdrawals[m.mentor_id] = 0;
+    });
+
+    // Aggregate approved transactions
+    fundingTransactions
+      .filter(t => t.student_id === selectedStudentId && t.status === 'APPROVED')
+      .forEach(t => {
+        const mid = t.initiating_mentor_id || primaryMentorId;
+        if (!mentorDeposits.hasOwnProperty(mid)) {
+          mentorDeposits[mid] = 0;
+          mentorWithdrawals[mid] = 0;
+        }
+        if (t.type === 'DEPOSIT') mentorDeposits[mid] += t.amount_usd || 0;
+        else if (t.type === 'WITHDRAWAL') mentorWithdrawals[mid] += t.amount_usd || 0;
+      });
+
+    // Calculate net per mentor
+    const mentorNets = {};
+    Object.keys(mentorDeposits).forEach(mid => {
+      mentorNets[mid] = mentorDeposits[mid] - mentorWithdrawals[mid];
+    });
+
+    const totalNet = Object.values(mentorNets).reduce((s, v) => s + v, 0);
+    if (totalNet <= 0) { toast.error('Total net deposits is zero or negative'); return; }
+
     setProRataResults(
       allMentors
-        .filter(m => (mentorDeposits[m.mentor_id] || 0) > 0)
-        .map(m => ({
-          mentor_id: m.mentor_id,
-          mentor_name: m.mentor_name,
-          total_deposits: mentorDeposits[m.mentor_id] || 0,
-          share_percent: (mentorDeposits[m.mentor_id] / totalDeposits) * 100,
-          withdrawal_share: amount * (mentorDeposits[m.mentor_id] / totalDeposits),
-        }))
+        .filter(m => mentorNets[m.mentor_id] > 0)
+        .map(m => {
+          const sharePercent = (mentorNets[m.mentor_id] / totalNet) * 100;
+          const proRataAmount = amount * (mentorNets[m.mentor_id] / totalNet);
+          const mentor = mentors.find(u => u.id === m.mentor_id);
+          const commissionRate = mentor?.commission_rate || 4;
+          return {
+            mentor_id: m.mentor_id,
+            mentor_name: m.mentor_name,
+            total_deposits: mentorDeposits[m.mentor_id] || 0,
+            total_withdrawals: mentorWithdrawals[m.mentor_id] || 0,
+            net: mentorNets[m.mentor_id],
+            share_percent: sharePercent,
+            pro_rata_amount: proRataAmount,
+            commission_rate: commissionRate,
+            commission_amount: proRataAmount * (commissionRate / 100),
+          };
+        })
     );
   };
 
@@ -197,14 +225,18 @@ export default function CommissionTools() {
             </div>
 
             {proRataResults && (
-              <div className="rounded-md border bg-white mt-2">
+              <div className="rounded-md border bg-white mt-2 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
                       <TableHead>Mentor</TableHead>
-                      <TableHead className="text-right">Total Deposits</TableHead>
+                      <TableHead className="text-right">Deposits</TableHead>
+                      <TableHead className="text-right">Withdrawals</TableHead>
+                      <TableHead className="text-right">Net</TableHead>
                       <TableHead className="text-right">Share %</TableHead>
-                      <TableHead className="text-right">Withdrawal Share</TableHead>
+                      <TableHead className="text-right">Pro-Rata Amount</TableHead>
+                      <TableHead className="text-right">Commission Rate</TableHead>
+                      <TableHead className="text-right">Commission Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -212,8 +244,12 @@ export default function CommissionTools() {
                       <TableRow key={r.mentor_id}>
                         <TableCell className="font-medium">{r.mentor_name}</TableCell>
                         <TableCell className="text-right font-mono">${r.total_deposits.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-mono text-red-600">${r.total_withdrawals.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold">${r.net.toFixed(2)}</TableCell>
                         <TableCell className="text-right font-semibold">{r.share_percent.toFixed(1)}%</TableCell>
-                        <TableCell className="text-right font-semibold text-red-700">${r.withdrawal_share.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold text-red-700">${r.pro_rata_amount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">{r.commission_rate}%</TableCell>
+                        <TableCell className="text-right font-semibold text-purple-700">${r.commission_amount.toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

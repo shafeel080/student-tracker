@@ -216,13 +216,15 @@ export default function QuarterClosing() {
                 </div>
               </div>
 
-              <Button 
-                onClick={handleBulkGenerate} 
-                disabled={!isQuarterEnded}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-              >
-                Generate All Ledgers
-              </Button>
+              {currentUser.app_role !== 'finance_admin' && (
+                <Button 
+                  onClick={handleBulkGenerate} 
+                  disabled={!isQuarterEnded}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Generate All Ledgers
+                </Button>
+              )}
             </div>
             {!isQuarterEnded && (
               <p className="text-sm text-amber-600 mt-2">
@@ -288,7 +290,7 @@ export default function QuarterClosing() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {!data.isClosed && (
+                        {!data.isClosed && currentUser.app_role !== 'finance_admin' && (
                           <Button
                             size="sm"
                             onClick={() => handleGenerateLedger(data)}

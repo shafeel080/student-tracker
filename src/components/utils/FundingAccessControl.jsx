@@ -9,7 +9,7 @@ export const canProcessFundingTransaction = (role) => {
 };
 
 export const canViewAllFundingTransactions = (role) => {
-  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role);
+  return ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'finance_admin'].includes(role);
 };
 
 export const filterFundingTransactionsByRole = (currentUser, allTransactions, allStudents, allUsers = []) => {
@@ -22,8 +22,8 @@ export const filterFundingTransactionsByRole = (currentUser, allTransactions, al
     return allTransactions;
   }
   
-  // Academic Head and Academic Admin see all
-  if (['academic_head', 'academic_admin'].includes(role)) {
+  // Academic Head, Academic Admin, and Finance Admin see all
+  if (['academic_head', 'academic_admin', 'finance_admin'].includes(role)) {
     return allTransactions;
   }
   

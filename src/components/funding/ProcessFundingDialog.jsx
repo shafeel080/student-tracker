@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -52,14 +52,15 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     enabled: !!transaction?.student_id && open
   });
 
-  const { data: student } = useQuery({
+  const { data: student, isLoading: isLoadingStudent } = useQuery({
     queryKey: ['student', transaction?.student_id],
     queryFn: async () => {
       if (!transaction?.student_id) return null;
       const students = await base44.entities.Student.list();
       return students.find(s => s.id === transaction.student_id);
     },
-    enabled: !!transaction?.student_id && open
+    enabled: !!transaction?.student_id,
+    staleTime: 0
   });
 
   const { data: allTransactions = [] } = useQuery({
@@ -69,7 +70,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
   });
 
   // Build co-managed mentor options for withdrawal attribution
-  const coManagedMentorOptions = React.useMemo(() => {
+  const coManagedMentorOptions = useMemo(() => {
     if (!student || !transaction || transaction.type !== 'WITHDRAWAL') return [];
     let coMentors = [];
     if (student.co_mentors_details) {
@@ -133,10 +134,10 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
       ...formData,
       mt5_login: formData.mt5_account_id ? (selectedMT5Account?.mt5_login || formData.mt5_login) : formData.mt5_login,
       initiating_mentor_id: transaction.type === 'WITHDRAWAL'
-        ? (selectedWithdrawalMentor?.id || transaction.primary_mentor_id)
+        ? (isCoManagedWithdrawal ? selectedWithdrawalMentor?.id : transaction.primary_mentor_id)
         : (transaction.initiating_mentor_id || undefined),
       initiating_mentor_name: transaction.type === 'WITHDRAWAL'
-        ? (selectedWithdrawalMentor?.name || transaction.primary_mentor_name)
+        ? (isCoManagedWithdrawal ? selectedWithdrawalMentor?.name : transaction.primary_mentor_name)
         : (transaction.initiating_mentor_name || undefined),
       status: 'APPROVED'
     };
@@ -362,10 +363,11 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
           </Button>
           <Button
             onClick={handleApprove}
-            className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2"
+            disabled={isLoadingStudent || (isCoManagedWithdrawal && !withdrawalMentorId)}
+            className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 disabled:opacity-50"
           >
             <CheckCircle className="h-4 w-4" />
-            Approve
+            {isLoadingStudent ? 'Loading...' : 'Approve'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,8 +1,9 @@
 /**
  * Automated Quarterly Ledger Generation
- * 
+ *
  * This function automatically generates commission ledgers for all mentors
  * for the previous quarter. It runs at the beginning of each new quarter.
+ * Manual commission adjustments within the quarter are factored into release/buffer.
  */
 
 export default async function generateQuarterlyLedgers({ entities }) {
@@ -53,6 +54,9 @@ export default async function generateQuarterlyLedgers({ entities }) {
   
   // Get all funding transactions
   const allTransactions = await entities.FundingTransaction.list();
+
+  // Get all manual commission adjustments
+  const allAdjustments = await entities.ManualCommissionAdjustment.list();
   
   // Get existing ledgers to check for duplicates
   const existingLedgers = await entities.CommissionLedger.list();
@@ -111,8 +115,19 @@ export default async function generateQuarterlyLedgers({ entities }) {
     
     // Calculate commissions
     const grossCommission = (netDeposit + bufferCarriedIn) * 0.04;
-    const commissionRelease = grossCommission * 0.75;
-    const commissionBuffer = grossCommission * 0.25;
+
+    // Apply manual commission adjustments for this mentor within the quarter
+    const adjustmentTotal = allAdjustments
+      .filter(a => {
+        if (a.mentor_id !== mentor.id) return false;
+        const adjDate = new Date(a.created_date);
+        return adjDate >= start && adjDate <= end;
+      })
+      .reduce((sum, a) => sum + (a.amount_usd || 0), 0);
+
+    const adjustedGross = grossCommission + adjustmentTotal;
+    const commissionRelease = adjustedGross * 0.75;
+    const commissionBuffer = adjustedGross * 0.25;
     
     // Calculate release date (15th of next month after quarter end)
     const releaseDate = new Date(prevYear, startMonth + 3, 15);

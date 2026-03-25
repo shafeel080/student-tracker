@@ -5,6 +5,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
+import CommissionTools from './pages/CommissionTools';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/CommissionTools" element={<LayoutWrapper currentPageName="CommissionTools"><CommissionTools /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

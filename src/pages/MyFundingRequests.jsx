@@ -64,6 +64,12 @@ export default function MyFundingRequests() {
     enabled: !!currentUser
   });
 
+  const { data: manualAdjustments = [] } = useQuery({
+    queryKey: ['my-manual-adjustments'],
+    queryFn: () => base44.entities.ManualCommissionAdjustment.list('-created_date'),
+    enabled: !!currentUser,
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data) => {
       // Refetch current user to ensure we have the latest upline_commission_percentage
@@ -142,6 +148,15 @@ export default function MyFundingRequests() {
   // Calculate MY commission
   const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
   const quarterLabel = getCurrentQuarterLabel();
+
+  // Apply manual adjustments for current quarter
+  const myAdjustments = manualAdjustments.filter(a =>
+    a.mentor_id === currentUser.id && isWithinCurrentQuarter(a.created_date)
+  );
+  const adjustmentTotal = myAdjustments.reduce((sum, a) => sum + (a.amount_usd || 0), 0);
+  const adjustedGross = commission.grossCommissionUsd + adjustmentTotal;
+  const adjustedRelease = adjustedGross * 0.75;
+  const adjustedBuffer = adjustedGross * 0.25;
 
   // Calculate TEAM commission - each transaction uses its own stored percentage
   const approvedTeamTransactions = teamTransactions.filter(t => 
@@ -261,15 +276,13 @@ export default function MyFundingRequests() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white rounded-lg p-4 border border-blue-100">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm text-gray-600">Net Deposit</p>
                       <DollarSign className="h-5 w-5 text-blue-600" />
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">
-                      ${commission.netDepositUsd.toFixed(2)}
-                    </p>
+                    <p className="text-2xl font-bold text-gray-900">${commission.netDepositUsd.toFixed(2)}</p>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 border border-emerald-100">
@@ -277,9 +290,26 @@ export default function MyFundingRequests() {
                       <p className="text-sm text-gray-600">Gross Commission (4%)</p>
                       <Award className="h-5 w-5 text-emerald-600" />
                     </div>
-                    <p className="text-2xl font-bold text-emerald-600">
-                      ${commission.grossCommissionUsd.toFixed(2)}
+                    <p className="text-2xl font-bold text-emerald-600">${commission.grossCommissionUsd.toFixed(2)}</p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-purple-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-600">Manual Adjustments</p>
+                      <Wallet className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <p className={`text-2xl font-bold ${adjustmentTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {adjustmentTotal >= 0 ? '+' : ''}${adjustmentTotal.toFixed(2)}
                     </p>
+                    <p className="text-xs text-gray-500 mt-1">{myAdjustments.length} adjustment(s)</p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-indigo-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-600">Adjusted Gross</p>
+                      <Award className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-indigo-600">${adjustedGross.toFixed(2)}</p>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 border border-green-100">
@@ -287,9 +317,7 @@ export default function MyFundingRequests() {
                       <p className="text-sm text-gray-600">Release (75%)</p>
                       <Wallet className="h-5 w-5 text-green-600" />
                     </div>
-                    <p className="text-2xl font-bold text-green-600">
-                      ${commission.release75Usd.toFixed(2)}
-                    </p>
+                    <p className="text-2xl font-bold text-green-600">${adjustedRelease.toFixed(2)}</p>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 border border-amber-100">
@@ -297,9 +325,7 @@ export default function MyFundingRequests() {
                       <p className="text-sm text-gray-600">Buffer (25%)</p>
                       <Wallet className="h-5 w-5 text-amber-600" />
                     </div>
-                    <p className="text-2xl font-bold text-amber-600">
-                      ${commission.buffer25Usd.toFixed(2)}
-                    </p>
+                    <p className="text-2xl font-bold text-amber-600">${adjustedBuffer.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -328,7 +354,7 @@ export default function MyFundingRequests() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {myTransactions.length === 0 && pendingReferrals.length === 0 ? (
+                      {myTransactions.length === 0 && pendingReferrals.length === 0 && myAdjustments.length === 0 ? (
                        <TableRow>
                          <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                            No funding requests yet
@@ -366,6 +392,26 @@ export default function MyFundingRequests() {
                                </a>
                              ) : '-'}
                            </TableCell>
+                         </TableRow>
+                       ))}
+                       {myAdjustments.map((adj) => (
+                         <TableRow key={`adj-${adj.id}`} className="hover:bg-purple-50 bg-purple-50/30 transition-colors">
+                           <TableCell className="text-sm">{adj.created_date ? format(new Date(adj.created_date), 'MMM d, yyyy HH:mm') : '-'}</TableCell>
+                           <TableCell><Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">ADJUSTMENT</Badge></TableCell>
+                           <TableCell>
+                             <Badge variant="outline" className={adj.adjustment_type === 'ADDITION' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}>
+                               {adj.adjustment_type}
+                             </Badge>
+                           </TableCell>
+                           <TableCell className="font-medium">{adj.reason}</TableCell>
+                           <TableCell>-</TableCell>
+                           <TableCell>-</TableCell>
+                           <TableCell className={`font-semibold ${adj.amount_usd >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                             {adj.amount_usd >= 0 ? '+' : ''}${adj.amount_usd.toFixed(2)}
+                           </TableCell>
+                           {!isAssistance && <TableCell>-</TableCell>}
+                           <TableCell>-</TableCell>
+                           <TableCell>-</TableCell>
                          </TableRow>
                        ))}
                        {myTransactions.map((transaction) => {

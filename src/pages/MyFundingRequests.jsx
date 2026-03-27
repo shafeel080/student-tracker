@@ -386,6 +386,7 @@ export default function MyFundingRequests() {
                            <TableCell className="font-semibold text-gray-900">${parseFloat(referral.requested_deposit_amount || 0).toFixed(2)}</TableCell>
                            {!isAssistance && <TableCell className="text-gray-400">-</TableCell>}
                            <TableCell className="text-sm">{referral.payment_method || '-'}</TableCell>
+                           <TableCell>-</TableCell>
                            <TableCell>
                              {referral.screenshot_url ? (
                                <a href={referral.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
@@ -411,6 +412,7 @@ export default function MyFundingRequests() {
                              {adj.amount_usd >= 0 ? '+' : ''}${adj.amount_usd.toFixed(2)}
                            </TableCell>
                            {!isAssistance && <TableCell>-</TableCell>}
+                           <TableCell>-</TableCell>
                            <TableCell>-</TableCell>
                            <TableCell>-</TableCell>
                          </TableRow>

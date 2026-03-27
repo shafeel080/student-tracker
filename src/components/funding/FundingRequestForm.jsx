@@ -104,8 +104,12 @@ export default function FundingRequestForm({ students, allStudents = [], current
       requested_by_id: currentUser.id,
       requested_by_name: currentUser.full_name,
       requested_at: new Date().toISOString(),
-      initiating_mentor_id: currentUser.id,
-      initiating_mentor_name: currentUser.full_name
+      initiating_mentor_id: currentUser.app_role === 'assistance' && currentUser.assigned_mentor_id
+        ? currentUser.assigned_mentor_id
+        : currentUser.id,
+      initiating_mentor_name: currentUser.app_role === 'assistance' && currentUser.assigned_mentor_name
+        ? currentUser.assigned_mentor_name
+        : currentUser.full_name
     };
 
     onSubmit(dataToSubmit);

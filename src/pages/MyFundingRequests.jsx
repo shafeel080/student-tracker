@@ -350,6 +350,7 @@ export default function MyFundingRequests() {
                         <TableHead className="font-semibold">Amount</TableHead>
                         {!isAssistance && <TableHead className="font-semibold">Commission</TableHead>}
                         <TableHead className="font-semibold">Payment Method</TableHead>
+                        <TableHead className="font-semibold">Rejection Reason</TableHead>
                         <TableHead className="font-semibold">Screenshot</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -458,6 +459,11 @@ export default function MyFundingRequests() {
                               </TableCell>
                             )}
                             <TableCell className="text-sm">{transaction.payment_method}</TableCell>
+                            <TableCell className="text-sm">
+                              {transaction.status === 'REJECTED' && transaction.rejection_reason ? (
+                                <span className="text-red-600 font-medium">{transaction.rejection_reason}</span>
+                              ) : '-'}
+                            </TableCell>
                             <TableCell>
                               {transaction.screenshot_url ? (
                                 <a

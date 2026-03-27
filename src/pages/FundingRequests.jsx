@@ -674,6 +674,7 @@ export default function FundingRequests() {
                     <TableHead className="font-semibold">User ID</TableHead>
                     <TableHead className="font-semibold">Txn ID</TableHead>
                     <TableHead className="font-semibold">Approved By</TableHead>
+                    <TableHead className="font-semibold">Rejection Reason</TableHead>
                     <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -781,6 +782,11 @@ export default function FundingRequests() {
                           ) : (
                             '-'
                           )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {transaction.status === 'REJECTED' && transaction.rejection_reason ? (
+                            <span className="text-red-600 font-medium">{transaction.rejection_reason}</span>
+                          ) : '-'}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">

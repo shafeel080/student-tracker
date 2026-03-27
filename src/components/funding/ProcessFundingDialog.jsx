@@ -37,6 +37,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
     mt5_account_id: '',
     mt5_login: '',
     transaction_id: '',
+    rejection_reason: '',
     notes: ''
   });
   const [transactionIdError, setTransactionIdError] = useState('');
@@ -100,6 +101,7 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
         mt5_account_id: transaction.mt5_account_id || '',
         mt5_login: transaction.mt5_login || '',
         transaction_id: transaction.transaction_id || '',
+        rejection_reason: transaction.rejection_reason || '',
         notes: transaction.notes || ''
       });
       setTransactionIdError('');
@@ -321,6 +323,16 @@ export default function ProcessFundingDialog({ transaction, open, onClose, onPro
                 <p className="text-xs text-orange-600">This is a co-managed client. Select which mentor's net deposit this withdrawal reduces.</p>
               </div>
             )}
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="rejection_reason">Rejection Reason</Label>
+              <Input
+                id="rejection_reason"
+                value={formData.rejection_reason}
+                onChange={(e) => setFormData({ ...formData, rejection_reason: e.target.value })}
+                placeholder="Enter reason if rejecting..."
+              />
+            </div>
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="notes">Notes</Label>

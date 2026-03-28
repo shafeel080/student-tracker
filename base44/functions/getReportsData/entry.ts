@@ -17,8 +17,8 @@ Deno.serve(async (req) => {
         const body = await req.json();
         const { startDate, endDate } = body;
 
-        // Fetch all approved funding transactions
-        const allTransactions = await base44.asServiceRole.entities.FundingTransaction.list();
+        // Fetch all approved funding transactions (high limit to get all records)
+        const allTransactions = await base44.asServiceRole.entities.FundingTransaction.list('-requested_at', 5000);
 
         // Filter by date range
         const filtered = allTransactions.filter(t => {

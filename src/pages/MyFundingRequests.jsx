@@ -123,10 +123,10 @@ export default function MyFundingRequests() {
     myStudents = students.filter(s => s.primary_mentor_id === currentUser.assigned_mentor_id);
     teamTransactions = [];
   } else {
-    // Filter MY transactions - by initiating_mentor_id (co-managed support), fallback to primary_mentor_id for legacy
+    // Filter MY transactions - by initiating_mentor_id or primary_mentor_id (covers assistance-submitted & legacy transactions)
     myTransactions = transactions.filter(t =>
-      (t.initiating_mentor_id && t.initiating_mentor_id === currentUser.id) ||
-      (!t.initiating_mentor_id && t.primary_mentor_id === currentUser.id)
+      t.initiating_mentor_id === currentUser.id ||
+      t.primary_mentor_id === currentUser.id
     );
     myStudents = students.filter(s => {
       if (s.primary_mentor_id === currentUser.id) return true;

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
     try {
@@ -17,16 +17,38 @@ Deno.serve(async (req) => {
         const body = await req.json();
         const { startDate, endDate } = body;
 
-        // Fetch all approved funding transactions (high limit to get all records)
-        const allTransactions = await base44.asServiceRole.entities.FundingTransaction.list('-requested_at', 5000);
+        // Fetch all approved funding transactions in batches (SDK truncates large responses)
+        const BATCH = 100;
+        let allTxs = [];
+        let skip = 0;
+        while (true) {
+            console.log('fetching skip:', skip);
+            const raw = await base44.asServiceRole.entities.FundingTransaction.filter({ status: 'APPROVED' }, '-requested_at', BATCH, skip);
+            console.log('raw type:', typeof raw, 'isArray:', Array.isArray(raw));
+            let batch;
+            if (Array.isArray(raw)) {
+                batch = raw;
+            } else if (typeof raw === 'string') {
+                try { batch = JSON.parse(raw); } catch (_) { break; }
+            } else {
+                batch = raw?.results || raw?.data || [];
+            }
+            if (!batch.length) break;
+            allTxs = allTxs.concat(batch);
+            if (batch.length < BATCH) break;
+            skip += BATCH;
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        console.log('total fetched:', allTxs.length, 'first item:', JSON.stringify(allTxs[0])?.slice(0, 300));
 
         // Filter by date range
-        const filtered = allTransactions.filter(t => {
+        const filtered = allTxs.filter(t => {
             const txDate = new Date(t.requested_at || t.created_date);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            end.setHours(23, 59, 59, 999);
-            return txDate >= start && txDate <= end && t.status === 'APPROVED';
+            return txDate >= start && txDate <= end;
         });
 
         // Aggregate by student

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -33,34 +33,66 @@ export default function Reports() {
         ? { start: new Date(customStart), end: new Date(customEnd) }
         : getDateRange(activeTab);
 
-    const { data, isLoading, refetch } = useQuery({
-        queryKey: ['reports', activeTab, customStart, customEnd],
-        queryFn: async () => {
-            const res = await base44.functions.invoke('getReportsData', {
-                startDate: dateRange.start.toISOString(),
-                endDate: dateRange.end.toISOString(),
-            });
-            return res.data;
-        },
+    const { data: allTransactions = [], isLoading, refetch } = useQuery({
+        queryKey: ['funding-transactions-approved'],
+        queryFn: () => base44.entities.FundingTransaction.filter({ status: 'APPROVED' }),
     });
 
-    const rows = (data?.rows || []).filter(r => {
-        if (!search) return true;
-        const s = search.toLowerCase();
-        return (
-            r.student_name?.toLowerCase().includes(s) ||
-            r.primary_mentor_name?.toLowerCase().includes(s) ||
-            r.senior_mentor_name?.toLowerCase().includes(s) ||
-            r.student_code?.toLowerCase().includes(s)
-        );
-    });
+    const { rows, totals } = useMemo(() => {
+        const start = dateRange.start;
+        const end = dateRange.end;
 
-    const totals = rows.reduce((acc, r) => {
-        acc.total_deposit += r.total_deposit;
-        acc.total_withdrawal += r.total_withdrawal;
-        acc.net += r.net;
-        return acc;
-    }, { total_deposit: 0, total_withdrawal: 0, net: 0 });
+        const filtered = allTransactions.filter(t => {
+            const txDate = new Date(t.requested_at || t.created_date);
+            return txDate >= start && txDate <= end;
+        });
+
+        const studentMap = {};
+        for (const tx of filtered) {
+            const key = tx.student_id;
+            if (!studentMap[key]) {
+                studentMap[key] = {
+                    student_id: tx.student_id,
+                    student_name: tx.student_name,
+                    student_code: tx.student_code || '',
+                    primary_mentor_name: tx.primary_mentor_name || '',
+                    senior_mentor_name: tx.senior_mentor_name || '',
+                    total_deposit: 0,
+                    total_withdrawal: 0,
+                    net: 0,
+                    transaction_count: 0,
+                };
+            }
+            if (tx.type === 'DEPOSIT') studentMap[key].total_deposit += tx.amount_usd || 0;
+            else if (tx.type === 'WITHDRAWAL') studentMap[key].total_withdrawal += tx.amount_usd || 0;
+            studentMap[key].transaction_count += 1;
+        }
+
+        for (const key in studentMap) {
+            studentMap[key].net = studentMap[key].total_deposit - studentMap[key].total_withdrawal;
+        }
+
+        let rows = Object.values(studentMap).sort((a, b) => b.total_deposit - a.total_deposit);
+
+        if (search) {
+            const s = search.toLowerCase();
+            rows = rows.filter(r =>
+                r.student_name?.toLowerCase().includes(s) ||
+                r.primary_mentor_name?.toLowerCase().includes(s) ||
+                r.senior_mentor_name?.toLowerCase().includes(s) ||
+                r.student_code?.toLowerCase().includes(s)
+            );
+        }
+
+        const totals = rows.reduce((acc, r) => {
+            acc.total_deposit += r.total_deposit;
+            acc.total_withdrawal += r.total_withdrawal;
+            acc.net += r.net;
+            return acc;
+        }, { total_deposit: 0, total_withdrawal: 0, net: 0 });
+
+        return { rows, totals };
+    }, [allTransactions, dateRange, search]);
 
     const handleExportCSV = () => {
         const headers = ['Student Code', 'Student Name', 'Primary Mentor', 'Senior Mentor', 'Deposits (USD)', 'Withdrawals (USD)', 'Net (USD)', 'Transactions'];

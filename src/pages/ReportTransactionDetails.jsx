@@ -56,17 +56,40 @@ export default function ReportTransactionDetails() {
     }, [allAdjustments, filterType, filterId, startDate, endDate]);
 
     const totals = useMemo(() => {
-        const base = transactions.reduce((acc, t) => {
-            if (t.type === 'DEPOSIT') acc.deposit += t.amount_usd || 0;
-            else if (t.type === 'WITHDRAWAL') acc.withdrawal += t.amount_usd || 0;
-            return acc;
-        }, { deposit: 0, withdrawal: 0 });
-        const commissionEarned = base.deposit * 0.04;
-        const commissionDeducted = base.withdrawal * 0.04;
+        // Group by student, apply $25K cap per student on net deposit
+        const studentMap = {};
+        for (const t of transactions) {
+            if (!studentMap[t.student_id]) {
+                studentMap[t.student_id] = { deposits: 0, withdrawals: 0 };
+            }
+            if (t.type === 'DEPOSIT') studentMap[t.student_id].deposits += t.amount_usd || 0;
+            else if (t.type === 'WITHDRAWAL') studentMap[t.student_id].withdrawals += t.amount_usd || 0;
+        }
+
+        let commissionFromDepositsOnly = 0;
+        let grossCommission = 0;
+        const CAP = 25000;
+
+        for (const s of Object.values(studentMap)) {
+            const depositsCapped = Math.min(s.deposits, CAP);
+            commissionFromDepositsOnly += depositsCapped * 0.04;
+            const netDeposit = s.deposits - s.withdrawals;
+            const commissionableNet = Math.min(Math.max(netDeposit, 0), CAP);
+            grossCommission += commissionableNet * 0.04;
+        }
+
+        const commissionDeducted = commissionFromDepositsOnly - grossCommission;
         const manualAdjTotal = adjustments.reduce((sum, a) => {
             return sum + (a.adjustment_type === 'addition' ? (a.amount_usd || 0) : -(Math.abs(a.amount_usd) || 0));
         }, 0);
-        return { ...base, commissionEarned, commissionDeducted, manualAdjTotal, netCommission: commissionEarned - commissionDeducted + manualAdjTotal };
+
+        return {
+            commissionEarned: commissionFromDepositsOnly,
+            commissionDeducted,
+            grossCommission,
+            manualAdjTotal,
+            netCommission: grossCommission + manualAdjTotal
+        };
     }, [transactions, adjustments]);
 
     const handleExport = () => {

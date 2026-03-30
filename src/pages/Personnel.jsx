@@ -289,7 +289,7 @@ export default function Personnel() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        {['super_admin', 'academic_head'].includes(currentUser.app_role) && (
+                        {['super_admin', 'academic_head', 'broker_admin'].includes(currentUser.app_role) && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -299,7 +299,7 @@ export default function Personnel() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         )}
-                        {['super_admin', 'academic_head', 'broker_admin'].includes(currentUser.app_role) && !isImpersonating() && user.app_role !== 'super_admin' && (
+                        {['super_admin', 'academic_head', 'broker_admin'].includes(currentUser.app_role) && !isImpersonating() && user.app_role !== 'super_admin' && user.app_role !== 'broker_admin' && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -310,7 +310,7 @@ export default function Personnel() {
                             <LogIn className="h-4 w-4" />
                           </Button>
                         )}
-                      </div>
+                        </div>
                     </TableCell>
                   </TableRow>
                 ))

@@ -22,6 +22,11 @@ export default function ReportTransactionDetails() {
         queryFn: () => base44.entities.FundingTransaction.filter({ status: 'APPROVED' }),
     });
 
+    const { data: allAdjustments = [] } = useQuery({
+        queryKey: ['manual-commission-adjustments-detail'],
+        queryFn: () => base44.entities.ManualCommissionAdjustment.list(),
+    });
+
     const transactions = useMemo(() => {
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate + 'T23:59:59') : null;
@@ -37,6 +42,18 @@ export default function ReportTransactionDetails() {
             return true;
         });
     }, [allTransactions, filterType, filterId, startDate, endDate]);
+
+    const adjustments = useMemo(() => {
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate + 'T23:59:59') : null;
+        return allAdjustments.filter(a => {
+            if (filterType === 'mentor' && a.mentor_id !== filterId) return false;
+            const aDate = new Date(a.created_date);
+            if (start && aDate < start) return false;
+            if (end && aDate > end) return false;
+            return true;
+        });
+    }, [allAdjustments, filterType, filterId, startDate, endDate]);
 
     const totals = useMemo(() => transactions.reduce((acc, t) => {
         if (t.type === 'DEPOSIT') acc.deposit += t.amount_usd || 0;
@@ -151,8 +168,12 @@ export default function ReportTransactionDetails() {
                                             <td className={`px-4 py-3 text-right font-bold ${t.type === 'DEPOSIT' ? 'text-green-700' : 'text-red-600'}`}>
                                                 ${(t.amount_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                             </td>
-                                            <td className="px-4 py-3 text-right font-medium text-purple-700">
-                                                {t.type === 'DEPOSIT' ? `$${((t.amount_usd || 0) * 0.04).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
+                                            <td className="px-4 py-3 text-right font-medium">
+                                               {t.type === 'DEPOSIT' ? (
+                                                   <span className="text-purple-700">+${((t.amount_usd || 0) * 0.04).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                               ) : (
+                                                   <span className="text-red-500">-${((t.amount_usd || 0) * 0.04).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                               )}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 text-xs">{t.payment_method || '—'}</td>
                                             <td className="px-4 py-3 text-gray-500 font-mono text-xs">{t.transaction_id || '—'}</td>
@@ -162,6 +183,49 @@ export default function ReportTransactionDetails() {
                             </table>
                         </div>
                     </div>
+
+                    {/* Manual Adjustments Section */}
+                    {adjustments.length > 0 && (
+                        <div className="mt-6">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-3">Manual Commission Adjustments</h2>
+                            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-gray-50 border-b border-gray-200">
+                                                <th className="text-left px-4 py-3 font-semibold text-gray-600">Date</th>
+                                                <th className="text-left px-4 py-3 font-semibold text-gray-600">Mentor</th>
+                                                <th className="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
+                                                <th className="text-right px-4 py-3 font-semibold text-gray-600">Amount (USD)</th>
+                                                <th className="text-left px-4 py-3 font-semibold text-gray-600">Reason</th>
+                                                <th className="text-left px-4 py-3 font-semibold text-gray-600">Added By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {adjustments.map((a, idx) => (
+                                                <tr key={a.id} className={`border-b border-gray-100 hover:bg-gray-50 ${idx % 2 !== 0 ? 'bg-gray-50/40' : ''}`}>
+                                                    <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                                                        {a.created_date ? format(new Date(a.created_date), 'dd MMM yyyy') : '—'}
+                                                    </td>
+                                                    <td className="px-4 py-3 font-medium text-gray-900">{a.mentor_name || '—'}</td>
+                                                    <td className="px-4 py-3">
+                                                        <Badge variant={a.adjustment_type === 'addition' ? 'default' : 'destructive'} className="text-xs">
+                                                            {a.adjustment_type === 'addition' ? 'Addition' : 'Deduction'}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className={`px-4 py-3 text-right font-bold ${a.adjustment_type === 'addition' ? 'text-green-700' : 'text-red-600'}`}>
+                                                        {a.adjustment_type === 'addition' ? '+' : '-'}${(Math.abs(a.amount_usd) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-gray-600 text-xs">{a.reason || '—'}</td>
+                                                    <td className="px-4 py-3 text-gray-500 text-xs">{a.created_by || '—'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </div>

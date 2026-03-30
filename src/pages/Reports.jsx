@@ -125,7 +125,7 @@ export default function Reports() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        {format(dateRange.start, 'dd MMM yyyy')} – {format(dateRange.end, 'dd MMM yyyy')}
+                        {dateRange.start instanceof Date && !isNaN(dateRange.start) ? format(dateRange.start, 'dd MMM yyyy') : '—'} – {dateRange.end instanceof Date && !isNaN(dateRange.end) ? format(dateRange.end, 'dd MMM yyyy') : '—'}
                     </p>
                 </div>
                 <div className="flex gap-2">

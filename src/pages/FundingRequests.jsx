@@ -413,7 +413,7 @@ export default function FundingRequests() {
           escapeCSV(student?.email || ''),
           escapeCSV(t.student_code || ''),
           escapeCSV(t.primary_mentor_name || ''),
-          escapeCSV(t.initiating_mentor_name || ''),
+          escapeCSV(t.initiating_mentor_name || t.requested_by_name || ''),
           escapeCSV(t.mt5_login || ''),
           escapeCSV(t.amount_usd?.toFixed(2) || '0.00'),
           escapeCSV(t.payment_method || ''),

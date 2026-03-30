@@ -55,11 +55,19 @@ export default function ReportTransactionDetails() {
         });
     }, [allAdjustments, filterType, filterId, startDate, endDate]);
 
-    const totals = useMemo(() => transactions.reduce((acc, t) => {
-        if (t.type === 'DEPOSIT') acc.deposit += t.amount_usd || 0;
-        else if (t.type === 'WITHDRAWAL') acc.withdrawal += t.amount_usd || 0;
-        return acc;
-    }, { deposit: 0, withdrawal: 0 }), [transactions]);
+    const totals = useMemo(() => {
+        const base = transactions.reduce((acc, t) => {
+            if (t.type === 'DEPOSIT') acc.deposit += t.amount_usd || 0;
+            else if (t.type === 'WITHDRAWAL') acc.withdrawal += t.amount_usd || 0;
+            return acc;
+        }, { deposit: 0, withdrawal: 0 });
+        const commissionEarned = base.deposit * 0.04;
+        const commissionDeducted = base.withdrawal * 0.04;
+        const manualAdjTotal = adjustments.reduce((sum, a) => {
+            return sum + (a.adjustment_type === 'addition' ? (a.amount_usd || 0) : -(Math.abs(a.amount_usd) || 0));
+        }, 0);
+        return { ...base, commissionEarned, commissionDeducted, manualAdjTotal, netCommission: commissionEarned - commissionDeducted + manualAdjTotal };
+    }, [transactions, adjustments]);
 
     const handleExport = () => {
         const headers = ['Date', 'Student Code', 'Student', 'Primary Mentor', 'Senior Mentor', 'Added By', 'Type', 'Amount (USD)', 'Payment Method', 'Transaction ID'];
@@ -104,20 +112,28 @@ export default function ReportTransactionDetails() {
             ) : (
                 <>
                     {/* Summary */}
-                    <div className="grid grid-cols-3 gap-4 mb-5">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                            <p className="text-xs text-green-600 font-medium uppercase">Total Deposits</p>
-                            <p className="text-2xl font-bold text-green-700 mt-1">${totals.deposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Commission Earned</p>
+                            <p className="text-2xl font-bold text-green-700 mt-1">${totals.commissionEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-gray-400 mt-1">4% of deposits</p>
                         </div>
                         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                            <p className="text-xs text-red-600 font-medium uppercase">Total Withdrawals</p>
-                            <p className="text-2xl font-bold text-red-700 mt-1">${totals.withdrawal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-red-600 font-medium uppercase tracking-wide">Commission Deducted</p>
+                            <p className="text-2xl font-bold text-red-700 mt-1">${totals.commissionDeducted.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-gray-400 mt-1">4% of withdrawals</p>
                         </div>
-                        <div className={`border rounded-xl p-4 ${(totals.deposit - totals.withdrawal) >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
-                            <p className={`text-xs font-medium uppercase ${(totals.deposit - totals.withdrawal) >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Net</p>
-                            <p className={`text-2xl font-bold mt-1 ${(totals.deposit - totals.withdrawal) >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                                ${(totals.deposit - totals.withdrawal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        <div className={`border rounded-xl p-4 ${totals.manualAdjTotal >= 0 ? 'bg-amber-50 border-amber-200' : 'bg-orange-50 border-orange-200'}`}>
+                            <p className={`text-xs font-medium uppercase tracking-wide ${totals.manualAdjTotal >= 0 ? 'text-amber-600' : 'text-orange-600'}`}>Manual Adjustments</p>
+                            <p className={`text-2xl font-bold mt-1 ${totals.manualAdjTotal >= 0 ? 'text-amber-700' : 'text-orange-700'}`}>
+                                {totals.manualAdjTotal >= 0 ? '+' : ''}${totals.manualAdjTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </p>
+                            <p className="text-xs text-gray-400 mt-1">{adjustments.length} adjustment{adjustments.length !== 1 ? 's' : ''}</p>
+                        </div>
+                        <div className={`border rounded-xl p-4 ${totals.netCommission >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'}`}>
+                            <p className={`text-xs font-medium uppercase tracking-wide ${totals.netCommission >= 0 ? 'text-blue-600' : 'text-red-600'}`}>Net Commission</p>
+                            <p className={`text-2xl font-bold mt-1 ${totals.netCommission >= 0 ? 'text-blue-700' : 'text-red-700'}`}>${totals.netCommission.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-gray-400 mt-1">Earned − Deducted + Adj.</p>
                         </div>
                     </div>
 

@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, UserPlus, Clock, CheckCircle, XCircle, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 
 export default function MyStudentRequests() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -20,8 +21,9 @@ export default function MyStudentRequests() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const realUser = await base44.auth.me();
+      const effectiveUser = getEffectiveUser(realUser);
+      setCurrentUser(effectiveUser);
     };
     fetchUser();
   }, []);

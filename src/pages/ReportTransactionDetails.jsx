@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { getEffectiveUser } from '../components/utils/ImpersonationContext';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -7,8 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Download } from 'lucide-react';
 import { format } from 'date-fns';
 
+const MENTOR_ROLES = ['junior_mentor', 'senior_mentor'];
+
 export default function ReportTransactionDetails() {
     const navigate = useNavigate();
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        base44.auth.me().then(u => setCurrentUser(getEffectiveUser(u)));
+    }, []);
+
+    const isMentor = currentUser && MENTOR_ROLES.includes(currentUser.app_role);
     const params = new URLSearchParams(window.location.search);
     const filterType = params.get('filterType'); // 'mentor', 'student', 'added_by'
     const filterId = params.get('filterId');
@@ -37,6 +47,7 @@ export default function ReportTransactionDetails() {
             if (start && txDate < start) return false;
             if (end && txDate > end) return false;
 
+            if (filterType === 'student') return t.student_id === filterId;
             if (filterType === 'mentor') {
                 if (reportType === 'primary') {
                     const effectiveId = t.initiating_mentor_id || t.primary_mentor_id;
@@ -225,7 +236,7 @@ export default function ReportTransactionDetails() {
                                             <td className="px-4 py-3 font-medium text-gray-900">{t.student_name}</td>
                                             <td className="px-4 py-3 text-gray-600">{t.primary_mentor_name || '—'}</td>
                                             <td className="px-4 py-3 text-gray-600">{t.senior_mentor_name || '—'}</td>
-                                            <td className="px-4 py-3 text-gray-600">{t.initiating_mentor_name || t.requested_by_name || '—'}</td>
+                                            {!isMentor && <td className="px-4 py-3 text-gray-600">{t.initiating_mentor_name || t.requested_by_name || '—'}</td>}
                                             <td className="px-4 py-3 text-center">
                                                 <Badge variant={t.type === 'DEPOSIT' ? 'default' : 'destructive'} className="text-xs">
                                                     {t.type}
@@ -264,7 +275,7 @@ export default function ReportTransactionDetails() {
                                                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
                                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Amount (USD)</th>
                                                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Reason</th>
-                                                <th className="text-left px-4 py-3 font-semibold text-gray-600">Added By</th>
+                                                {!isMentor && <th className="text-left px-4 py-3 font-semibold text-gray-600">Added By</th>}
                                             </tr>
                                         </thead>
                                         <tbody>

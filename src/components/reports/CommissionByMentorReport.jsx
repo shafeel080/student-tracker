@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Badge } from '@/components/ui/badge';
 import { Download, RefreshCw } from 'lucide-react';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
 export default function CommissionByMentorReport({ startDate, endDate, dateLabel }) {
+    const navigate = useNavigate();
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -115,7 +117,7 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
                             {rows.length === 0 ? (
                                 <tr><td colSpan={9} className="text-center py-12 text-gray-400">No commission data found for this period.</td></tr>
                             ) : rows.map((row, idx) => (
-                                <tr key={row.mentor_id} className={`border-b border-gray-100 hover:bg-gray-50 ${idx % 2 !== 0 ? 'bg-gray-50/40' : ''}`}>
+                                <tr key={row.mentor_id} onClick={() => navigate(`/ReportTransactionDetails?filterType=mentor&filterId=${row.mentor_id}&filterName=${encodeURIComponent(row.mentor_name)}&startDate=${startDate}&endDate=${endDate}&dateLabel=${encodeURIComponent(dateLabel)}`)} className={`border-b border-gray-100 hover:bg-blue-50 cursor-pointer ${idx % 2 !== 0 ? 'bg-gray-50/40' : ''}`}>
                                     <td className="px-4 py-3 font-medium text-gray-900">{row.mentor_name}</td>
                                     <td className="px-4 py-3 text-center"><Badge variant="outline">{row.transaction_count}</Badge></td>
                                     <td className={`px-4 py-3 text-right font-medium ${row.net_deposit >= 0 ? 'text-gray-700' : 'text-orange-600'}`}>${row.net_deposit?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>

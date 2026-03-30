@@ -67,7 +67,11 @@ export default function MyStudentRequests() {
   }
 
   // Filter to show only current user's requests
-  const myRequests = requests.filter(r => r.requested_by_id === currentUser.id);
+  const myRequests = requests.filter(r =>
+    r.requested_by_id === currentUser.id ||
+    r.requested_primary_mentor_id === currentUser.id ||
+    r.requested_senior_mentor_id === currentUser.id
+  );
 
   // Apply search
   const filteredRequests = myRequests.filter(r => {

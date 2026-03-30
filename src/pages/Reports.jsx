@@ -50,6 +50,11 @@ export default function Reports() {
         queryFn: () => base44.entities.FundingTransaction.filter({ status: 'APPROVED' }),
     });
 
+    const { data: allUsers = [] } = useQuery({
+        queryKey: ['all-users-reports'],
+        queryFn: () => base44.entities.User.list(),
+    });
+
     const filteredTransactions = useMemo(() => {
         const start = dateRange.start;
         const end = dateRange.end;
@@ -147,7 +152,7 @@ export default function Reports() {
             {!isLoading && (
                 <>
                     {activeReport === 'primary_mentor' && <PrimaryMentorReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
-                    {activeReport === 'added_by' && <AddedByReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
+                    {activeReport === 'added_by' && <AddedByReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} allUsers={allUsers} mentorFilter={mentorFilter} />}
                     {activeReport === 'student_wise' && <StudentWiseReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
                     {activeReport === 'commission_mentor' && <CommissionByMentorReport startDate={startDateStr} endDate={endDateStr} dateLabel={dateLabel} />}
                 </>

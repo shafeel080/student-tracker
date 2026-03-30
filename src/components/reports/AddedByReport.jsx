@@ -5,17 +5,58 @@ import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
-export default function AddedByReport({ transactions, dateLabel, startDate, endDate }) {
+const ADMIN_ROLES = ['broker_admin', 'super_admin', 'admin', 'finance_admin', 'academic_head', 'academic_admin'];
+
+function getRoleLabel(role) {
+    const labels = {
+        broker_admin: 'Broker Admin',
+        super_admin: 'Super Admin',
+        admin: 'Admin',
+        finance_admin: 'Finance Admin',
+        academic_head: 'Academic Head',
+        academic_admin: 'Academic Admin',
+    };
+    return labels[role] || role?.replace(/_/g, ' ');
+}
+
+export default function AddedByReport({ transactions, dateLabel, startDate, endDate, allUsers = [], mentorFilter = '' }) {
     const navigate = useNavigate();
+
+    const userMap = useMemo(() => {
+        const map = {};
+        for (const u of allUsers) map[u.id] = u;
+        return map;
+    }, [allUsers]);
+
     const { rows, totals } = useMemo(() => {
         const map = {};
         for (const tx of transactions) {
-            const key = tx.initiating_mentor_id || tx.requested_by_id || 'unknown';
-            const name = tx.initiating_mentor_name || tx.requested_by_name || 'Unknown';
+            const addedById = tx.initiating_mentor_id || tx.requested_by_id || 'unknown';
+            const addedByUser = userMap[addedById];
+            const isAdmin = addedByUser && ADMIN_ROLES.includes(addedByUser.app_role);
+
+            // If a mentor filter is active, only include transactions where
+            // the selected mentor is the one who added it (initiating/requested).
+            // Skip transactions where the adder is a different person (admin or other mentor).
+            if (mentorFilter) {
+                const addedByName = tx.initiating_mentor_name || tx.requested_by_name || '';
+                if (addedByName !== mentorFilter) continue;
+            }
+
+            let displayName;
+            if (isAdmin) {
+                displayName = getRoleLabel(addedByUser.app_role);
+            } else {
+                displayName = tx.initiating_mentor_name || tx.requested_by_name || 'Unknown';
+            }
+
+            const key = isAdmin ? `admin_${addedByUser.app_role}` : addedById;
+
             if (!map[key]) {
                 map[key] = {
                     id: key,
-                    name,
+                    name: displayName,
+                    isAdmin: !!isAdmin,
                     total_deposit: 0,
                     total_withdrawal: 0,
                     net: 0,
@@ -43,7 +84,7 @@ export default function AddedByReport({ transactions, dateLabel, startDate, endD
         }, { total_deposit: 0, total_withdrawal: 0, net: 0 });
 
         return { rows, totals };
-    }, [transactions]);
+    }, [transactions, userMap, mentorFilter]);
 
     const handleExport = () => {
         const headers = ['Added By', 'Students', 'Txns', 'Deposits (USD)', 'Withdrawals (USD)', 'Net (USD)'];

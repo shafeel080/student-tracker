@@ -30,6 +30,9 @@ export default function MyFundingRequests() {
   const [activeTab, setActiveTab] = useState('my');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [filterType, setFilterType] = useState('ALL');
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterSearch, setFilterSearch] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -341,10 +344,43 @@ export default function MyFundingRequests() {
             {/* Transactions Table */}
             <Card className="border-gray-200">
               <CardHeader className="border-b border-gray-100">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <CardTitle className="text-lg font-semibold">Request History</CardTitle>
-                  <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold">Request History</CardTitle>
+                    {(dateFrom || dateTo || filterType !== 'ALL' || filterStatus !== 'ALL' || filterSearch) && (
+                      <Button variant="ghost" size="sm" className="h-8 text-xs text-red-500 hover:text-red-700" onClick={() => { setDateFrom(''); setDateTo(''); setFilterType('ALL'); setFilterStatus('ALL'); setFilterSearch(''); }}>
+                        <X className="h-3 w-3 mr-1" /> Clear Filters
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
                     <Filter className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <Input
+                      type="text"
+                      placeholder="Search student..."
+                      value={filterSearch}
+                      onChange={(e) => setFilterSearch(e.target.value)}
+                      className="h-8 text-sm w-40"
+                    />
+                    <select
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                      className="h-8 text-sm border border-input rounded-md px-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring"
+                    >
+                      <option value="ALL">All Types</option>
+                      <option value="DEPOSIT">Deposit</option>
+                      <option value="WITHDRAWAL">Withdrawal</option>
+                    </select>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="h-8 text-sm border border-input rounded-md px-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring"
+                    >
+                      <option value="ALL">All Statuses</option>
+                      <option value="PENDING">Pending</option>
+                      <option value="APPROVED">Approved</option>
+                      <option value="REJECTED">Rejected</option>
+                    </select>
                     <Input
                       type="date"
                       value={dateFrom}
@@ -358,11 +394,6 @@ export default function MyFundingRequests() {
                       onChange={(e) => setDateTo(e.target.value)}
                       className="h-8 text-sm w-36"
                     />
-                    {(dateFrom || dateTo) && (
-                      <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => { setDateFrom(''); setDateTo(''); }}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -390,6 +421,9 @@ export default function MyFundingRequests() {
                           const d = new Date(t.requested_at || t.created_date);
                           if (dateFrom && d < new Date(dateFrom)) return false;
                           if (dateTo && d > new Date(dateTo + 'T23:59:59')) return false;
+                          if (filterType !== 'ALL' && t.type !== filterType) return false;
+                          if (filterStatus !== 'ALL' && t.status !== filterStatus) return false;
+                          if (filterSearch && !t.student_name?.toLowerCase().includes(filterSearch.toLowerCase()) && !t.student_code?.toLowerCase().includes(filterSearch.toLowerCase())) return false;
                           return true;
                         });
                         const filteredReferrals = pendingReferrals.filter(r => {

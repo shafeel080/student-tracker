@@ -16,6 +16,7 @@ export default function ReportTransactionDetails() {
     const startDate = params.get('startDate');
     const endDate = params.get('endDate');
     const dateLabel = params.get('dateLabel');
+    const reportType = params.get('reportType'); // 'primary' | null
 
     const { data: allTransactions = [], isLoading } = useQuery({
         queryKey: ['funding-transactions-approved-detail'],
@@ -36,7 +37,10 @@ export default function ReportTransactionDetails() {
             if (start && txDate < start) return false;
             if (end && txDate > end) return false;
 
-            if (filterType === 'mentor') return (t.initiating_mentor_id || t.primary_mentor_id) === filterId;
+            if (filterType === 'mentor') {
+                if (reportType === 'primary') return t.primary_mentor_id === filterId;
+                return (t.initiating_mentor_id || t.primary_mentor_id) === filterId;
+            }
             if (filterType === 'student') return t.student_id === filterId;
             if (filterType === 'added_by') return (t.initiating_mentor_id || t.requested_by_id) === filterId;
             return true;
@@ -142,7 +146,7 @@ export default function ReportTransactionDetails() {
             ) : (
                 <>
                     {/* Summary */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
                         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                             <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Total Deposit</p>
                             <p className="text-2xl font-bold text-green-700 mt-1">${totals.totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
@@ -156,7 +160,7 @@ export default function ReportTransactionDetails() {
                             <p className={`text-2xl font-bold mt-1 ${totals.netDeposit >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>${totals.netDeposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+                    {reportType !== 'primary' && <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                             <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Commission Earned</p>
                             <p className="text-2xl font-bold text-green-700 mt-1">${totals.commissionEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
@@ -179,7 +183,7 @@ export default function ReportTransactionDetails() {
                             <p className={`text-2xl font-bold mt-1 ${totals.netCommission >= 0 ? 'text-blue-700' : 'text-red-700'}`}>${totals.netCommission.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                             <p className="text-xs text-gray-400 mt-1">Earned − Deducted + Adj.</p>
                         </div>
-                    </div>
+                    </div>}
 
                     {/* Table */}
                     <div className="flex items-center justify-between mb-3">

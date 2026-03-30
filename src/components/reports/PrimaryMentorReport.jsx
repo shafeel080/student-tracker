@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // fixed
 import { Badge } from '@/components/ui/badge';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';

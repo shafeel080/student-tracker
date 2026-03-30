@@ -36,6 +36,12 @@ export default function AddedByReport({ transactions, dateLabel, startDate, endD
             const isAdmin = addedByUser && ADMIN_ROLES.includes(addedByUser.app_role);
 
 
+            // When mentor filter is active, only show transactions added by that mentor or by admins
+            if (mentorFilter) {
+                const addedByName = tx.initiating_mentor_name || tx.requested_by_name || '';
+                if (!isAdmin && addedByName !== mentorFilter) continue;
+            }
+
             let displayName;
             if (isAdmin) {
                 displayName = getRoleLabel(addedByUser.app_role);

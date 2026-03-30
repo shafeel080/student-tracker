@@ -125,6 +125,7 @@ export default function ReportTransactionDetails() {
                                         <th className="text-left px-4 py-3 font-semibold text-gray-600">Added By</th>
                                         <th className="text-center px-4 py-3 font-semibold text-gray-600">Type</th>
                                         <th className="text-right px-4 py-3 font-semibold text-gray-600">Amount (USD)</th>
+                                        <th className="text-right px-4 py-3 font-semibold text-gray-600">Commission (4%)</th>
                                         <th className="text-left px-4 py-3 font-semibold text-gray-600">Payment Method</th>
                                         <th className="text-left px-4 py-3 font-semibold text-gray-600">Txn ID</th>
                                     </tr>
@@ -149,6 +150,9 @@ export default function ReportTransactionDetails() {
                                             </td>
                                             <td className={`px-4 py-3 text-right font-bold ${t.type === 'DEPOSIT' ? 'text-green-700' : 'text-red-600'}`}>
                                                 ${(t.amount_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-medium text-purple-700">
+                                                {t.type === 'DEPOSIT' ? `$${((t.amount_usd || 0) * 0.04).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 text-xs">{t.payment_method || '—'}</td>
                                             <td className="px-4 py-3 text-gray-500 font-mono text-xs">{t.transaction_id || '—'}</td>

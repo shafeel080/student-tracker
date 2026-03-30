@@ -10,6 +10,8 @@ export default function PrimaryMentorReport({ transactions, dateLabel, startDate
     const { rows, totals } = useMemo(() => {
         const mentorMap = {};
         for (const tx of transactions) {
+            // Skip transactions initiated by a co-mentor (not the primary mentor)
+            if (tx.initiating_mentor_id && tx.initiating_mentor_id !== tx.primary_mentor_id) continue;
             const key = tx.primary_mentor_id || 'unassigned';
             if (!mentorMap[key]) {
                 mentorMap[key] = {

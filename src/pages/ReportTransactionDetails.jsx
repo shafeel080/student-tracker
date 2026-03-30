@@ -38,7 +38,12 @@ export default function ReportTransactionDetails() {
             if (end && txDate > end) return false;
 
             if (filterType === 'mentor') {
-                if (reportType === 'primary') return t.primary_mentor_id === filterId;
+                if (reportType === 'primary') {
+                    if (t.primary_mentor_id !== filterId) return false;
+                    // Exclude co-mentor initiated transactions
+                    if (t.initiating_mentor_id && t.initiating_mentor_id !== t.primary_mentor_id) return false;
+                    return true;
+                }
                 return (t.initiating_mentor_id || t.primary_mentor_id) === filterId;
             }
             if (filterType === 'student') return t.student_id === filterId;

@@ -525,19 +525,10 @@ export default function FundingRequests() {
             <CardTitle className="text-lg font-semibold tracking-tight">Filters</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search by student, code, MT5 login, or transaction ID..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+            <div className="flex flex-col gap-3">
+              {/* Top row: filters left, search right */}
+              <div className="flex flex-col md:flex-row md:items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 flex-1">
 
               {/* Status Filter */}
               <Tabs value={filterStatus} onValueChange={setFilterStatus}>
@@ -614,6 +605,21 @@ export default function FundingRequests() {
                   </SelectContent>
                 </Select>
               )}
+                </div>
+
+                {/* Search - top right */}
+                <div className="md:w-72 w-full">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search student, code, MT5, txn ID..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

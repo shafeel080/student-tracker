@@ -28,6 +28,7 @@ export default function Reports() {
     const [customStart, setCustomStart] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [customEnd, setCustomEnd] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [search, setSearch] = useState('');
+    const [mentorFilter, setMentorFilter] = useState('');
 
     const dateRange = activeTab === 'Custom'
         ? { start: new Date(customStart), end: new Date(customEnd) }
@@ -74,6 +75,12 @@ export default function Reports() {
 
         let rows = Object.values(studentMap).sort((a, b) => b.total_deposit - a.total_deposit);
 
+        if (mentorFilter) {
+            rows = rows.filter(r =>
+                r.primary_mentor_name === mentorFilter || r.senior_mentor_name === mentorFilter
+            );
+        }
+
         if (search) {
             const s = search.toLowerCase();
             rows = rows.filter(r =>
@@ -92,7 +99,7 @@ export default function Reports() {
         }, { total_deposit: 0, total_withdrawal: 0, net: 0 });
 
         return { rows, totals };
-    }, [allTransactions, dateRange, search]);
+    }, [allTransactions, dateRange, search, mentorFilter]);
 
     const handleExportCSV = () => {
         const headers = ['Student Code', 'Student Name', 'Primary Mentor', 'Senior Mentor', 'Deposits (USD)', 'Withdrawals (USD)', 'Net (USD)', 'Transactions'];
@@ -174,6 +181,21 @@ export default function Reports() {
                         />
                     </div>
                 )}
+
+                {/* Mentor Filter */}
+                <select
+                    value={mentorFilter}
+                    onChange={e => setMentorFilter(e.target.value)}
+                    className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                    <option value="">All Mentors</option>
+                    {Array.from(new Set([
+                        ...allTransactions.map(t => t.primary_mentor_name).filter(Boolean),
+                        ...allTransactions.map(t => t.senior_mentor_name).filter(Boolean)
+                    ])).sort().map(name => (
+                        <option key={name} value={name}>{name}</option>
+                    ))}
+                </select>
 
                 {/* Search */}
                 <div className="relative ml-auto">

@@ -402,7 +402,7 @@ export default function FundingRequests() {
     };
 
     const csvContent = [
-      ['Requested Date', 'Type', 'Status', 'Student Name', 'Student Email', 'Student Code', 'Primary Mentor', 'MT5 Login', 'Amount USD', 'Payment Method', 'User ID', 'Transaction ID', 'Approved By', 'Approved Date', 'Notes'].join(','),
+      ['Requested Date', 'Type', 'Status', 'Student Name', 'Student Email', 'Student Code', 'Primary Mentor', 'Added By', 'MT5 Login', 'Amount USD', 'Payment Method', 'User ID', 'Transaction ID', 'Approved By', 'Approved Date', 'Notes'].join(','),
       ...filteredTransactions.map(t => {
         const student = students.find(s => s.id === t.student_id);
         return [
@@ -413,6 +413,7 @@ export default function FundingRequests() {
           escapeCSV(student?.email || ''),
           escapeCSV(t.student_code || ''),
           escapeCSV(t.primary_mentor_name || ''),
+          escapeCSV(t.initiating_mentor_name || ''),
           escapeCSV(t.mt5_login || ''),
           escapeCSV(t.amount_usd?.toFixed(2) || '0.00'),
           escapeCSV(t.payment_method || ''),

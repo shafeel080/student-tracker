@@ -36,7 +36,7 @@ export default function ReportTransactionDetails() {
             if (start && txDate < start) return false;
             if (end && txDate > end) return false;
 
-            if (filterType === 'mentor') return t.primary_mentor_id === filterId;
+            if (filterType === 'mentor') return (t.initiating_mentor_id || t.primary_mentor_id) === filterId;
             if (filterType === 'student') return t.student_id === filterId;
             if (filterType === 'added_by') return (t.initiating_mentor_id || t.requested_by_id) === filterId;
             return true;

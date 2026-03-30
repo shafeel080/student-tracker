@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Award, Wallet, Eye, Users, Clock } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Award, Wallet, Eye, Users, Clock, Filter, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import FundingRequestForm from "../components/funding/FundingRequestForm";
 import { 
   canCreateFundingTransaction,
@@ -27,6 +28,8 @@ export default function MyFundingRequests() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('my');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -338,7 +341,30 @@ export default function MyFundingRequests() {
             {/* Transactions Table */}
             <Card className="border-gray-200">
               <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold">Request History</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <CardTitle className="text-lg font-semibold">Request History</CardTitle>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Filter className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="h-8 text-sm w-36"
+                    />
+                    <span className="text-gray-400 text-sm">to</span>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="h-8 text-sm w-36"
+                    />
+                    {(dateFrom || dateTo) && (
+                      <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => { setDateFrom(''); setDateTo(''); }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -359,137 +385,143 @@ export default function MyFundingRequests() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {myTransactions.length === 0 && pendingReferrals.length === 0 && myAdjustments.length === 0 ? (
-                       <TableRow>
-                         <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-                           No funding requests yet
-                         </TableCell>
-                       </TableRow>
-                      ) : (
-                       <>
-                       {pendingReferrals.map((referral) => (
-                         <TableRow key={`ref-${referral.id}`} className="hover:bg-orange-50 bg-orange-50/40 transition-colors">
-                           <TableCell className="text-sm">
-                             {referral.created_at ? format(new Date(referral.created_at), 'MMM d, yyyy HH:mm') : '-'}
-                           </TableCell>
-                           <TableCell>
-                             <div className="flex items-center gap-2">
-                               <TrendingUp className="h-4 w-4 text-blue-600" />
-                               <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">DEPOSIT</Badge>
-                             </div>
-                           </TableCell>
-                           <TableCell>
-                             <Badge variant="outline" className={getReferralStatusColor()}>
-                               <Clock className="h-3 w-3 mr-1" />
-                               Pending Co-Mgmt Approval
-                             </Badge>
-                           </TableCell>
-                           <TableCell className="font-medium">{referral.student_name}</TableCell>
-                           <TableCell className="font-mono text-sm text-blue-600">{referral.student_code || '-'}</TableCell>
-                           <TableCell className="font-mono text-sm">{referral.mt5_login || '-'}</TableCell>
-                           <TableCell className="font-semibold text-gray-900">${parseFloat(referral.requested_deposit_amount || 0).toFixed(2)}</TableCell>
-                           {!isAssistance && <TableCell className="text-gray-400">-</TableCell>}
-                           <TableCell className="text-sm">{referral.payment_method || '-'}</TableCell>
-                           <TableCell>-</TableCell>
-                           <TableCell>
-                             {referral.screenshot_url ? (
-                               <a href={referral.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                                 <Eye className="h-4 w-4" />
-                               </a>
-                             ) : '-'}
-                           </TableCell>
-                         </TableRow>
-                       ))}
-                       {myAdjustments.map((adj) => (
-                         <TableRow key={`adj-${adj.id}`} className="hover:bg-purple-50 bg-purple-50/30 transition-colors">
-                           <TableCell className="text-sm">{adj.created_date ? format(new Date(adj.created_date), 'MMM d, yyyy HH:mm') : '-'}</TableCell>
-                           <TableCell><Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">ADJUSTMENT</Badge></TableCell>
-                           <TableCell>
-                             <Badge variant="outline" className={adj.adjustment_type === 'ADDITION' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}>
-                               {adj.adjustment_type}
-                             </Badge>
-                           </TableCell>
-                           <TableCell className="font-medium">{adj.reason}</TableCell>
-                           <TableCell>-</TableCell>
-                           <TableCell>-</TableCell>
-                           <TableCell className={`font-semibold ${adj.amount_usd >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                             {adj.amount_usd >= 0 ? '+' : ''}${adj.amount_usd.toFixed(2)}
-                           </TableCell>
-                           {!isAssistance && <TableCell>-</TableCell>}
-                           <TableCell>-</TableCell>
-                           <TableCell>-</TableCell>
-                           <TableCell>-</TableCell>
-                         </TableRow>
-                       ))}
-                       {myTransactions.map((transaction) => {
-                        const commissionEarned = transaction.commission_amount || 0;
-                         return (
-                         <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
-                            <TableCell className="text-sm">
-                              {transaction.requested_at
-                                ? format(new Date(transaction.requested_at), 'MMM d, yyyy HH:mm')
-                                : '-'}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {transaction.type === 'DEPOSIT' ? (
-                                  <TrendingUp className="h-4 w-4 text-blue-600" />
-                                ) : (
-                                  <TrendingDown className="h-4 w-4 text-purple-600" />
-                                )}
-                                <Badge variant="outline" className={getTypeColor(transaction.type)}>
-                                  {transaction.type}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={getStatusColor(transaction.status)}>
-                                {transaction.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-medium">{transaction.student_name}</TableCell>
-                            <TableCell className="font-mono text-sm text-blue-600">
-                              {transaction.student_code}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {transaction.mt5_login || '-'}
-                            </TableCell>
-                            <TableCell className="font-semibold text-gray-900">
-                              ${transaction.amount_usd?.toFixed(2)}
-                            </TableCell>
-                            {!isAssistance && (
-                              <TableCell className={`font-semibold ${commissionEarned >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {transaction.status === 'APPROVED' 
-                                  ? `$${commissionEarned.toFixed(2)}` 
-                                  : '-'}
+                      {(() => {
+                        const filteredTransactions = myTransactions.filter(t => {
+                          const d = new Date(t.requested_at || t.created_date);
+                          if (dateFrom && d < new Date(dateFrom)) return false;
+                          if (dateTo && d > new Date(dateTo + 'T23:59:59')) return false;
+                          return true;
+                        });
+                        const filteredReferrals = pendingReferrals.filter(r => {
+                          const d = new Date(r.created_at || r.created_date);
+                          if (dateFrom && d < new Date(dateFrom)) return false;
+                          if (dateTo && d > new Date(dateTo + 'T23:59:59')) return false;
+                          return true;
+                        });
+                        const filteredAdjustments = myAdjustments.filter(a => {
+                          const d = new Date(a.created_date);
+                          if (dateFrom && d < new Date(dateFrom)) return false;
+                          if (dateTo && d > new Date(dateTo + 'T23:59:59')) return false;
+                          return true;
+                        });
+                        if (filteredTransactions.length === 0 && filteredReferrals.length === 0 && filteredAdjustments.length === 0) {
+                          return (
+                            <TableRow>
+                              <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                                {(dateFrom || dateTo) ? 'No transactions found for selected date range' : 'No funding requests yet'}
                               </TableCell>
-                            )}
-                            <TableCell className="text-sm">{transaction.payment_method}</TableCell>
-                            <TableCell className="text-sm">
-                              {transaction.status === 'REJECTED' && transaction.rejection_reason ? (
-                                <span className="text-red-600 font-medium">{transaction.rejection_reason}</span>
-                              ) : '-'}
-                            </TableCell>
-                            <TableCell>
-                              {transaction.screenshot_url ? (
-                                <a
-                                  href={transaction.screenshot_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </a>
-                              ) : (
-                                '-'
-                              )}
-                            </TableCell>
                             </TableRow>
-                            );
+                          );
+                        }
+                        return (
+                          <>
+                            {filteredReferrals.map((referral) => (
+                              <TableRow key={`ref-${referral.id}`} className="hover:bg-orange-50 bg-orange-50/40 transition-colors">
+                                <TableCell className="text-sm">
+                                  {referral.created_at ? format(new Date(referral.created_at), 'MMM d, yyyy HH:mm') : '-'}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">DEPOSIT</Badge>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={getReferralStatusColor()}>
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    Pending Co-Mgmt Approval
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-medium">{referral.student_name}</TableCell>
+                                <TableCell className="font-mono text-sm text-blue-600">{referral.student_code || '-'}</TableCell>
+                                <TableCell className="font-mono text-sm">{referral.mt5_login || '-'}</TableCell>
+                                <TableCell className="font-semibold text-gray-900">${parseFloat(referral.requested_deposit_amount || 0).toFixed(2)}</TableCell>
+                                {!isAssistance && <TableCell className="text-gray-400">-</TableCell>}
+                                <TableCell className="text-sm">{referral.payment_method || '-'}</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell>
+                                  {referral.screenshot_url ? (
+                                    <a href={referral.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                      <Eye className="h-4 w-4" />
+                                    </a>
+                                  ) : '-'}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            {filteredAdjustments.map((adj) => (
+                              <TableRow key={`adj-${adj.id}`} className="hover:bg-purple-50 bg-purple-50/30 transition-colors">
+                                <TableCell className="text-sm">{adj.created_date ? format(new Date(adj.created_date), 'MMM d, yyyy HH:mm') : '-'}</TableCell>
+                                <TableCell><Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">ADJUSTMENT</Badge></TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={adj.adjustment_type === 'ADDITION' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}>
+                                    {adj.adjustment_type}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-medium">{adj.reason}</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell className={`font-semibold ${adj.amount_usd >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {adj.amount_usd >= 0 ? '+' : ''}${adj.amount_usd.toFixed(2)}
+                                </TableCell>
+                                {!isAssistance && <TableCell>-</TableCell>}
+                                <TableCell>-</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell>-</TableCell>
+                              </TableRow>
+                            ))}
+                            {filteredTransactions.map((transaction) => {
+                              const commissionEarned = transaction.commission_amount || 0;
+                              return (
+                                <TableRow key={transaction.id} className="hover:bg-gray-50 transition-colors">
+                                  <TableCell className="text-sm">
+                                    {transaction.requested_at ? format(new Date(transaction.requested_at), 'MMM d, yyyy HH:mm') : '-'}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      {transaction.type === 'DEPOSIT' ? (
+                                        <TrendingUp className="h-4 w-4 text-blue-600" />
+                                      ) : (
+                                        <TrendingDown className="h-4 w-4 text-purple-600" />
+                                      )}
+                                      <Badge variant="outline" className={getTypeColor(transaction.type)}>
+                                        {transaction.type}
+                                      </Badge>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className={getStatusColor(transaction.status)}>
+                                      {transaction.status}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="font-medium">{transaction.student_name}</TableCell>
+                                  <TableCell className="font-mono text-sm text-blue-600">{transaction.student_code}</TableCell>
+                                  <TableCell className="font-mono text-sm">{transaction.mt5_login || '-'}</TableCell>
+                                  <TableCell className="font-semibold text-gray-900">${transaction.amount_usd?.toFixed(2)}</TableCell>
+                                  {!isAssistance && (
+                                    <TableCell className={`font-semibold ${commissionEarned >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      {transaction.status === 'APPROVED' ? `$${commissionEarned.toFixed(2)}` : '-'}
+                                    </TableCell>
+                                  )}
+                                  <TableCell className="text-sm">{transaction.payment_method}</TableCell>
+                                  <TableCell className="text-sm">
+                                    {transaction.status === 'REJECTED' && transaction.rejection_reason ? (
+                                      <span className="text-red-600 font-medium">{transaction.rejection_reason}</span>
+                                    ) : '-'}
+                                  </TableCell>
+                                  <TableCell>
+                                    {transaction.screenshot_url ? (
+                                      <a href={transaction.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                        <Eye className="h-4 w-4" />
+                                      </a>
+                                    ) : '-'}
+                                  </TableCell>
+                                </TableRow>
+                              );
                             })}
-                            </>
-                            )}
-                            </TableBody>
+                          </>
+                        );
+                      })()}
+                    </TableBody>
                   </Table>
                 </div>
               </CardContent>

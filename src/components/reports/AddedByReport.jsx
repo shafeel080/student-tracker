@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
-export default function AddedByReport({ transactions, dateLabel }) {
+export default function AddedByReport({ transactions, dateLabel, startDate, endDate }) {
+    const navigate = useNavigate();
     const { rows, totals } = useMemo(() => {
         const map = {};
         for (const tx of transactions) {
@@ -95,7 +97,7 @@ export default function AddedByReport({ transactions, dateLabel }) {
                             {rows.length === 0 ? (
                                 <tr><td colSpan={6} className="text-center py-12 text-gray-400">No data found for this period.</td></tr>
                             ) : rows.map((row, idx) => (
-                                <tr key={row.id} className={`border-b border-gray-100 hover:bg-gray-50 ${idx % 2 !== 0 ? 'bg-gray-50/40' : ''}`}>
+                                <tr key={row.id} onClick={() => navigate(`/ReportTransactionDetails?filterType=added_by&filterId=${row.id}&filterName=${encodeURIComponent(row.name)}&startDate=${startDate}&endDate=${endDate}&dateLabel=${encodeURIComponent(dateLabel)}`)} className={`border-b border-gray-100 hover:bg-blue-50 cursor-pointer ${idx % 2 !== 0 ? 'bg-gray-50/40' : ''}`}>
                                     <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
                                     <td className="px-4 py-3 text-center"><Badge variant="secondary">{row.student_count}</Badge></td>
                                     <td className="px-4 py-3 text-center"><Badge variant="outline">{row.transaction_count}</Badge></td>

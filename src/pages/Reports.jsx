@@ -146,9 +146,9 @@ export default function Reports() {
             {/* Report Content */}
             {!isLoading && (
                 <>
-                    {activeReport === 'primary_mentor' && <PrimaryMentorReport transactions={filteredTransactions} dateLabel={dateLabel} />}
-                    {activeReport === 'added_by' && <AddedByReport transactions={filteredTransactions} dateLabel={dateLabel} />}
-                    {activeReport === 'student_wise' && <StudentWiseReport transactions={filteredTransactions} dateLabel={dateLabel} />}
+                    {activeReport === 'primary_mentor' && <PrimaryMentorReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
+                    {activeReport === 'added_by' && <AddedByReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
+                    {activeReport === 'student_wise' && <StudentWiseReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
                     {activeReport === 'commission_mentor' && <CommissionByMentorReport startDate={startDateStr} endDate={endDateStr} dateLabel={dateLabel} />}
                 </>
             )}

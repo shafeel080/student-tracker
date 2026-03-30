@@ -7,10 +7,12 @@ Deno.serve(async (req) => {
 
         if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const allowedRoles = ['super_admin', 'broker_admin', 'academic_head', 'finance_admin'];
+        const allowedRoles = ['super_admin', 'broker_admin', 'academic_head', 'finance_admin', 'junior_mentor', 'senior_mentor'];
         if (!allowedRoles.includes(user.app_role)) {
             return Response.json({ error: 'Forbidden' }, { status: 403 });
         }
+
+        const isMentor = ['junior_mentor', 'senior_mentor'].includes(user.app_role);
 
         const body = await req.json();
         const { startDate, endDate } = body;
@@ -47,16 +49,24 @@ Deno.serve(async (req) => {
         end.setHours(23, 59, 59, 999);
 
         // Filter transactions by date range
-        const filtered = allTxs.filter(t => {
+        let filtered = allTxs.filter(t => {
             const d = new Date(t.requested_at || t.created_date);
             return d >= start && d <= end;
         });
 
         // Filter adjustments by date range
-        const filteredAdj = allAdjustments.filter(a => {
+        let filteredAdj = allAdjustments.filter(a => {
             const d = new Date(a.created_date);
             return d >= start && d <= end;
         });
+
+        // If mentor, restrict to own data only
+        if (isMentor) {
+            filtered = filtered.filter(t =>
+                (t.initiating_mentor_id || t.primary_mentor_id) === user.id
+            );
+            filteredAdj = filteredAdj.filter(a => a.mentor_id === user.id);
+        }
 
         // Group transactions by mentor (initiating_mentor_id or primary_mentor_id)
         const mentorMap = {};

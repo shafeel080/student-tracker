@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,22 @@ import PrimaryMentorReport from '../components/reports/PrimaryMentorReport';
 import AddedByReport from '../components/reports/AddedByReport';
 import StudentWiseReport from '../components/reports/StudentWiseReport';
 import CommissionByMentorReport from '../components/reports/CommissionByMentorReport';
+import { getEffectiveUser } from '../components/utils/ImpersonationContext';
 
 const DATE_TABS = ['Daily', 'Weekly', 'Monthly', 'Custom'];
-const REPORT_TABS = [
+
+const MENTOR_ROLES = ['junior_mentor', 'senior_mentor'];
+
+const ADMIN_REPORT_TABS = [
     { key: 'primary_mentor', label: 'Primary Mentor Report' },
     { key: 'added_by', label: 'Added By Report' },
     { key: 'student_wise', label: 'Student-Wise Transactions' },
     { key: 'commission_mentor', label: 'Commission by Mentor' },
+];
+
+const MENTOR_REPORT_TABS = [
+    { key: 'student_wise', label: 'My Students Transactions' },
+    { key: 'commission_mentor', label: 'My Commission Summary' },
 ];
 
 function getDateRange(tab) {
@@ -29,11 +38,21 @@ function getDateRange(tab) {
 }
 
 export default function Reports() {
+    const [currentUser, setCurrentUser] = useState(null);
     const [activeTab, setActiveTab] = useState('Daily');
-    const [activeReport, setActiveReport] = useState('primary_mentor');
+    const [activeReport, setActiveReport] = useState(null);
     const [customStart, setCustomStart] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [customEnd, setCustomEnd] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [mentorFilter, setMentorFilter] = useState('');
+
+    useEffect(() => {
+        base44.auth.me().then(u => {
+            const user = getEffectiveUser(u);
+            setCurrentUser(user);
+            const isMentor = MENTOR_ROLES.includes(user.app_role);
+            setActiveReport(isMentor ? 'student_wise' : 'primary_mentor');
+        });
+    }, []);
 
     const dateRange = activeTab === 'Custom'
         ? { start: new Date(customStart), end: new Date(customEnd) }
@@ -44,6 +63,9 @@ export default function Reports() {
     const startDateStr = format(safeStart, 'yyyy-MM-dd');
     const endDateStr = format(safeEnd, 'yyyy-MM-dd');
     const dateLabel = `${format(safeStart, 'dd MMM yyyy')} – ${format(safeEnd, 'dd MMM yyyy')}`;
+
+    const isMentor = currentUser && MENTOR_ROLES.includes(currentUser.app_role);
+    const reportTabs = isMentor ? MENTOR_REPORT_TABS : ADMIN_REPORT_TABS;
 
     const { data: allTransactions = [], isLoading, refetch } = useQuery({
         queryKey: ['funding-transactions-approved'],
@@ -62,20 +84,32 @@ export default function Reports() {
             const txDate = new Date(t.requested_at || t.created_date);
             return txDate >= start && txDate <= end;
         });
-        if (mentorFilter) {
+        // Mentors only see their own students' transactions
+        if (isMentor && currentUser) {
+            filtered = filtered.filter(t =>
+                t.primary_mentor_id === currentUser.id ||
+                t.initiating_mentor_id === currentUser.id
+            );
+        } else if (mentorFilter) {
             filtered = filtered.filter(r =>
                 r.primary_mentor_name === mentorFilter || r.senior_mentor_name === mentorFilter
             );
         }
         return filtered;
-    }, [allTransactions, dateRange, mentorFilter]);
+    }, [allTransactions, dateRange, mentorFilter, isMentor, currentUser]);
+
+    if (!currentUser || activeReport === null) return (
+        <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        </div>
+    );
 
     return (
         <div className="p-6 max-w-full">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">{isMentor ? 'My Reports' : 'Reports'}</h1>
                     <p className="text-sm text-gray-500 mt-1">{dateLabel}</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => refetch()}>
@@ -108,6 +142,7 @@ export default function Reports() {
                     </div>
                 )}
 
+                {!isMentor && (
                 <select
                     value={mentorFilter}
                     onChange={e => setMentorFilter(e.target.value)}
@@ -121,11 +156,12 @@ export default function Reports() {
                         <option key={name} value={name}>{name}</option>
                     ))}
                 </select>
+                )}
             </div>
 
             {/* Report Sub-tabs */}
             <div className="flex gap-1 mb-5 border-b border-gray-200 overflow-x-auto">
-                {REPORT_TABS.map(tab => (
+                {reportTabs.map(tab => (
                     <button
                         key={tab.key}
                         onClick={() => setActiveReport(tab.key)}

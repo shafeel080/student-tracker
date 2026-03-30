@@ -299,7 +299,7 @@ export default function Personnel() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         )}
-                        {['super_admin', 'academic_head'].includes(currentUser.app_role) && !isImpersonating() && user.app_role !== 'super_admin' && (
+                        {['super_admin', 'academic_head', 'broker_admin'].includes(currentUser.app_role) && !isImpersonating() && user.app_role !== 'super_admin' && (
                           <Button
                             variant="ghost"
                             size="sm"

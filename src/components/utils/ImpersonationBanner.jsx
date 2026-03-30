@@ -25,7 +25,7 @@ export default function ImpersonationBanner() {
         className="text-white hover:bg-amber-600 border border-white/40 flex items-center gap-1.5 ml-4 flex-shrink-0"
       >
         <UserX className="h-4 w-4" />
-        Return to Super Admin
+        Return to My Account
       </Button>
     </div>
   );

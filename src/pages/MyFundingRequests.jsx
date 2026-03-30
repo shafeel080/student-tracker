@@ -284,6 +284,9 @@ export default function MyFundingRequests() {
                       <DollarSign className="h-5 w-5 text-blue-600" />
                     </div>
                     <p className="text-2xl font-bold text-gray-900">${commission.netDepositUsd.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Actual: <span className={commission.rawNetDepositUsd < 0 ? 'text-red-500 font-semibold' : 'text-gray-600'}>${commission.rawNetDepositUsd.toFixed(2)}</span>
+                    </p>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 border border-emerald-100">

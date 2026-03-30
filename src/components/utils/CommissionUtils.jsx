@@ -55,6 +55,13 @@ export const calculateQuarterlyNetDepositAndCommission = (transactions, currentU
     else if (t.type === 'WITHDRAWAL') studentNetDeposits[studentId] -= (t.amount_usd || 0);
   });
 
+  // rawNetDepositUsd = actual sum per student (can be negative, no floor) for display
+  let rawNetDepositUsd = 0;
+  Object.values(studentNetDeposits).forEach(studentNet => {
+    rawNetDepositUsd += Math.min(studentNet, MAX_NET_DEPOSIT_PER_STUDENT);
+  });
+
+  // netDepositUsd = commission-eligible (floored at 0 per student)
   let netDepositUsd = 0;
   Object.values(studentNetDeposits).forEach(studentNet => {
     const capped = Math.min(studentNet, MAX_NET_DEPOSIT_PER_STUDENT);
@@ -70,6 +77,7 @@ export const calculateQuarterlyNetDepositAndCommission = (transactions, currentU
   
   return {
     netDepositUsd,
+    rawNetDepositUsd,
     grossCommissionUsd,
     release75Usd,
     buffer25Usd

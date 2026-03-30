@@ -44,19 +44,27 @@ export const calculateQuarterNetDeposit = (mentorId, startDate, endDate, transac
     return requestedDate >= start && requestedDate <= end;
   };
 
-  const deposits = transactions
-    .filter(t => t.type === 'DEPOSIT' && t.status === 'APPROVED')
+  const relevantTransactions = transactions
+    .filter(t => t.status === 'APPROVED')
     .filter(mentorFilter)
-    .filter(dateFilter)
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+    .filter(dateFilter);
 
-  const withdrawals = transactions
-    .filter(t => t.type === 'WITHDRAWAL' && t.status === 'APPROVED')
-    .filter(mentorFilter)
-    .filter(dateFilter)
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
+  // Aggregate per-student, cap at $25k, floor at 0 — same logic as mentor portal
+  const studentNetDeposits = {};
+  relevantTransactions.forEach(t => {
+    const studentId = t.student_id;
+    if (!studentNetDeposits[studentId]) studentNetDeposits[studentId] = 0;
+    if (t.type === 'DEPOSIT') studentNetDeposits[studentId] += (t.amount_usd || 0);
+    else if (t.type === 'WITHDRAWAL') studentNetDeposits[studentId] -= (t.amount_usd || 0);
+  });
 
-  return Math.max(0, deposits - withdrawals);
+  let netDepositUsd = 0;
+  Object.values(studentNetDeposits).forEach(studentNet => {
+    const capped = Math.min(studentNet, MAX_NET_DEPOSIT_PER_STUDENT);
+    netDepositUsd += Math.max(capped, 0);
+  });
+
+  return netDepositUsd;
 };
 
 export const calculateQuarterCommission = (netDeposit, bufferCarriedIn = 0, commissionRatePercent = 4) => {

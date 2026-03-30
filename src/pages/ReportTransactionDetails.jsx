@@ -256,7 +256,7 @@ export default function ReportTransactionDetails() {
                                                         {a.adjustment_type === 'addition' ? '+' : '-'}${(Math.abs(a.amount_usd) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                     </td>
                                                     <td className="px-4 py-3 text-gray-600 text-xs">{a.reason || '—'}</td>
-                                                    <td className="px-4 py-3 text-gray-500 text-xs">{a.created_by || '—'}</td>
+                                                    <td className="px-4 py-3 text-gray-500 text-xs">Finance Admin</td>
                                                 </tr>
                                             ))}
                                         </tbody>

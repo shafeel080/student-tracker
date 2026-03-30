@@ -83,12 +83,19 @@ export default function ReportTransactionDetails() {
             return sum + (a.adjustment_type === 'addition' ? (a.amount_usd || 0) : -(Math.abs(a.amount_usd) || 0));
         }, 0);
 
+        const totalDeposit = transactions.filter(t => t.type === 'DEPOSIT').reduce((s, t) => s + (t.amount_usd || 0), 0);
+        const totalWithdrawal = transactions.filter(t => t.type === 'WITHDRAWAL').reduce((s, t) => s + (t.amount_usd || 0), 0);
+        const netDeposit = totalDeposit - totalWithdrawal;
+
         return {
             commissionEarned: commissionFromDepositsOnly,
             commissionDeducted,
             grossCommission,
             manualAdjTotal,
-            netCommission: grossCommission + manualAdjTotal
+            netCommission: grossCommission + manualAdjTotal,
+            totalDeposit,
+            totalWithdrawal,
+            netDeposit
         };
     }, [transactions, adjustments]);
 
@@ -135,6 +142,20 @@ export default function ReportTransactionDetails() {
             ) : (
                 <>
                     {/* Summary */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                            <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Total Deposit</p>
+                            <p className="text-2xl font-bold text-green-700 mt-1">${totals.totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                            <p className="text-xs text-red-600 font-medium uppercase tracking-wide">Total Withdrawal</p>
+                            <p className="text-2xl font-bold text-red-700 mt-1">${totals.totalWithdrawal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                        <div className={`border rounded-xl p-4 ${totals.netDeposit >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
+                            <p className={`text-xs font-medium uppercase tracking-wide ${totals.netDeposit >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Net Deposit</p>
+                            <p className={`text-2xl font-bold mt-1 ${totals.netDeposit >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>${totals.netDeposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                             <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Commission Earned</p>

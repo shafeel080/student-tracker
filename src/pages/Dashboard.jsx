@@ -6,6 +6,7 @@ import { Users, TrendingUp, DollarSign, Target, AlertCircle, Award, Wallet, Acti
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TransactionTable from "../components/transactions/TransactionTable";
 import { canViewAllStudents, isMentorRole, canApproveTransactions } from "../components/utils/DataMasking";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 import { 
   filterFundingTransactionsByRole, 
   canProcessFundingTransaction 
@@ -18,8 +19,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const realUser = await base44.auth.me();
+      setCurrentUser(getEffectiveUser(realUser));
     };
     fetchUser();
   }, []);

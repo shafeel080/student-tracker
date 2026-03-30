@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DollarSign, TrendingUp, Calendar } from "lucide-react";
 import { filterLedgersByRole } from "../components/utils/LedgerUtils";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 import { format } from "date-fns";
 
 export default function MyCommissionHistory() {
@@ -13,8 +14,8 @@ export default function MyCommissionHistory() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const realUser = await base44.auth.me();
+      setCurrentUser(getEffectiveUser(realUser));
     };
     fetchUser();
   }, []);

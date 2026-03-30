@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Award, Users, TrendingUp, DollarSign, Target, Calendar, Search } from "lucide-react";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 import { format } from "date-fns";
 
 export default function MentorPerformance() {
@@ -16,8 +17,8 @@ export default function MentorPerformance() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const realUser = await base44.auth.me();
+      setCurrentUser(getEffectiveUser(realUser));
     };
     fetchUser();
   }, []);

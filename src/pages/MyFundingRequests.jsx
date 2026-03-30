@@ -19,6 +19,7 @@ import {
   isWithinCurrentQuarter
 } from "../components/utils/CommissionUtils";
 import { filterStudentsByRole } from "../components/utils/StudentAccessControl";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -31,8 +32,8 @@ export default function MyFundingRequests() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const realUser = await base44.auth.me();
+      setCurrentUser(getEffectiveUser(realUser));
     };
     fetchUser();
   }, []);

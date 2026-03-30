@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Target, TrendingUp, Calendar } from "lucide-react";
 import { filterTargetsByRole } from "../components/utils/TargetAccessControl";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 import { 
   computeTargetAchievement, 
   getCurrentActiveTargets,
@@ -18,8 +19,8 @@ export default function MyTargets() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const realUser = await base44.auth.me();
+      setCurrentUser(getEffectiveUser(realUser));
     };
     fetchUser();
   }, []);

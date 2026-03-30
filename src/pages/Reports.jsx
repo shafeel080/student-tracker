@@ -39,9 +39,11 @@ export default function Reports() {
         ? { start: new Date(customStart), end: new Date(customEnd) }
         : getDateRange(activeTab);
 
-    const startDateStr = format(dateRange.start, 'yyyy-MM-dd');
-    const endDateStr = format(dateRange.end instanceof Date && !isNaN(dateRange.end) ? dateRange.end : new Date(), 'yyyy-MM-dd');
-    const dateLabel = `${format(dateRange.start, 'dd MMM yyyy')} – ${format(dateRange.end instanceof Date && !isNaN(dateRange.end) ? dateRange.end : new Date(), 'dd MMM yyyy')}`;
+    const safeEnd = (dateRange.end instanceof Date && !isNaN(dateRange.end)) ? dateRange.end : new Date();
+    const safeStart = (dateRange.start instanceof Date && !isNaN(dateRange.start)) ? dateRange.start : new Date();
+    const startDateStr = format(safeStart, 'yyyy-MM-dd');
+    const endDateStr = format(safeEnd, 'yyyy-MM-dd');
+    const dateLabel = `${format(safeStart, 'dd MMM yyyy')} – ${format(safeEnd, 'dd MMM yyyy')}`;
 
     const { data: allTransactions = [], isLoading, refetch } = useQuery({
         queryKey: ['funding-transactions-approved'],

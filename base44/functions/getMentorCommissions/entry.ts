@@ -20,15 +20,6 @@ Deno.serve(async (req) => {
         const BATCH = 100;
         const MAX_CAP = 25000;
 
-        // Fetch all users to get real mentor names
-        const allUsers = await base44.asServiceRole.entities.User.list();
-        const userMap = {};
-        for (const u of allUsers) {
-            if (['junior_mentor', 'senior_mentor'].includes(u.app_role)) {
-                userMap[u.id] = u.full_name;
-            }
-        }
-
         // Fetch all approved transactions
         let allTxs = [];
         let skip = 0;
@@ -82,10 +73,7 @@ Deno.serve(async (req) => {
 
         for (const tx of filtered) {
             const mentorId = tx.initiating_mentor_id || tx.primary_mentor_id;
-            // Use real user name from User entity; fall back to stored name
-            const mentorName = userMap[mentorId] || tx.initiating_mentor_name || tx.primary_mentor_name || 'Unknown';
-            // Skip if not a real mentor
-            if (!userMap[mentorId]) continue;
+            const mentorName = tx.initiating_mentor_name || tx.primary_mentor_name || 'Unknown';
 
             if (!mentorMap[mentorId]) {
                 mentorMap[mentorId] = {

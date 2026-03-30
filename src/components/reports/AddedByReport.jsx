@@ -35,13 +35,6 @@ export default function AddedByReport({ transactions, dateLabel, startDate, endD
             const addedByUser = userMap[addedById];
             const isAdmin = addedByUser && ADMIN_ROLES.includes(addedByUser.app_role);
 
-            // If a mentor filter is active, only include transactions where
-            // the selected mentor is the one who added it (initiating/requested).
-            // Skip transactions where the adder is a different person (admin or other mentor).
-            if (mentorFilter) {
-                const addedByName = tx.initiating_mentor_name || tx.requested_by_name || '';
-                if (addedByName !== mentorFilter) continue;
-            }
 
             let displayName;
             if (isAdmin) {

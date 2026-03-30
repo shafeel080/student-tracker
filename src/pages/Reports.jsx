@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { Calendar, RefreshCw } from 'lucide-react';
-import PrimaryMentorReport from '../components/reports/PrimaryMentorReport';
-import AddedByReport from '../components/reports/AddedByReport';
+
 import StudentWiseReport from '../components/reports/StudentWiseReport';
 import CommissionByMentorReport from '../components/reports/CommissionByMentorReport';
 import { getEffectiveUser } from '../components/utils/ImpersonationContext';
@@ -16,8 +15,6 @@ const DATE_TABS = ['Daily', 'Weekly', 'Monthly', 'Custom'];
 const MENTOR_ROLES = ['junior_mentor', 'senior_mentor'];
 
 const ADMIN_REPORT_TABS = [
-    { key: 'primary_mentor', label: 'Primary Mentor Report' },
-    { key: 'added_by', label: 'Added By Report' },
     { key: 'student_wise', label: 'Student-Wise Transactions' },
     { key: 'commission_mentor', label: 'Commission by Mentor' },
 ];
@@ -50,7 +47,7 @@ export default function Reports() {
             const user = getEffectiveUser(u);
             setCurrentUser(user);
             const isMentor = MENTOR_ROLES.includes(user.app_role);
-            setActiveReport(isMentor ? 'student_wise' : 'primary_mentor');
+            setActiveReport('student_wise');
         });
     }, []);
 
@@ -187,8 +184,7 @@ export default function Reports() {
             {/* Report Content */}
             {!isLoading && (
                 <>
-                    {activeReport === 'primary_mentor' && <PrimaryMentorReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
-                    {activeReport === 'added_by' && <AddedByReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} allUsers={allUsers} mentorFilter={mentorFilter} />}
+
                     {activeReport === 'student_wise' && <StudentWiseReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
                     {activeReport === 'commission_mentor' && <CommissionByMentorReport startDate={startDateStr} endDate={endDateStr} dateLabel={dateLabel} />}
                 </>

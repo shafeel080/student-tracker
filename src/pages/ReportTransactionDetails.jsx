@@ -67,18 +67,16 @@ export default function ReportTransactionDetails() {
         }
 
         let commissionFromDepositsOnly = 0;
-        let grossCommission = 0;
         const CAP = 25000;
 
         for (const s of Object.values(studentMap)) {
             const depositsCapped = Math.min(s.deposits, CAP);
             commissionFromDepositsOnly += depositsCapped * 0.04;
-            const netDeposit = s.deposits - s.withdrawals;
-            const commissionableNet = Math.min(Math.max(netDeposit, 0), CAP);
-            grossCommission += commissionableNet * 0.04;
         }
 
-        const commissionDeducted = commissionFromDepositsOnly - grossCommission;
+        const totalWithdrawalAmt = transactions.filter(t => t.type === 'WITHDRAWAL').reduce((s, t) => s + (t.amount_usd || 0), 0);
+        const commissionDeducted = totalWithdrawalAmt * 0.04;
+        const grossCommission = Math.max(commissionFromDepositsOnly - commissionDeducted, 0);
         const manualAdjTotal = adjustments.reduce((sum, a) => {
             return sum + (a.adjustment_type === 'addition' ? (a.amount_usd || 0) : -(Math.abs(a.amount_usd) || 0));
         }, 0);

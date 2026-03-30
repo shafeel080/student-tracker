@@ -216,7 +216,7 @@ export default function ReportTransactionDetails() {
                                         <th className="text-left px-4 py-3 font-semibold text-gray-600">Student</th>
                                         <th className="text-left px-4 py-3 font-semibold text-gray-600">Primary Mentor</th>
                                         <th className="text-left px-4 py-3 font-semibold text-gray-600">Senior Mentor</th>
-                                        
+                                        {!isMentor && <th className="text-left px-4 py-3 font-semibold text-gray-600">Added By</th>}
                                         <th className="text-center px-4 py-3 font-semibold text-gray-600">Type</th>
                                         <th className="text-right px-4 py-3 font-semibold text-gray-600">Amount (USD)</th>
                                         <th className="text-right px-4 py-3 font-semibold text-gray-600">Commission (4%)</th>

@@ -39,14 +39,11 @@ export default function ReportTransactionDetails() {
 
             if (filterType === 'mentor') {
                 if (reportType === 'primary') {
-                    if (t.primary_mentor_id !== filterId) return false;
-                    // Exclude co-mentor initiated transactions
-                    if (t.initiating_mentor_id && t.initiating_mentor_id !== t.primary_mentor_id) return false;
-                    return true;
+                    const effectiveId = t.initiating_mentor_id || t.primary_mentor_id;
+                    return effectiveId === filterId;
                 }
                 return (t.initiating_mentor_id || t.primary_mentor_id) === filterId;
             }
-            if (filterType === 'student') return t.student_id === filterId;
             if (filterType === 'added_by') return (t.initiating_mentor_id || t.requested_by_id) === filterId;
             return true;
         });

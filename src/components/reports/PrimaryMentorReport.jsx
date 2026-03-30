@@ -10,13 +10,15 @@ export default function PrimaryMentorReport({ transactions, dateLabel, startDate
     const { rows, totals } = useMemo(() => {
         const mentorMap = {};
         for (const tx of transactions) {
-            // Skip transactions initiated by a co-mentor (not the primary mentor)
-            if (tx.initiating_mentor_id && tx.initiating_mentor_id !== tx.primary_mentor_id) continue;
-            const key = tx.primary_mentor_id || 'unassigned';
+            // Attribute transaction to the mentor who initiated it (co-mentor or primary)
+            const key = tx.initiating_mentor_id || tx.primary_mentor_id || 'unassigned';
+            const mentorName = tx.initiating_mentor_id && tx.initiating_mentor_id !== tx.primary_mentor_id
+                ? tx.initiating_mentor_name
+                : (tx.primary_mentor_name || 'Unassigned');
             if (!mentorMap[key]) {
                 mentorMap[key] = {
                     mentor_id: key,
-                    mentor_name: tx.primary_mentor_name || 'Unassigned',
+                    mentor_name: mentorName || 'Unassigned',
                     senior_mentor_name: tx.senior_mentor_name || '—',
                     total_deposit: 0,
                     total_withdrawal: 0,

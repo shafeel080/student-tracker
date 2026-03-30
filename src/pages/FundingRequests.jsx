@@ -28,6 +28,8 @@ export default function FundingRequests() {
   const [currentUser, setCurrentUser] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
   const [filterMentor, setFilterMentor] = useState('all');
   const [filterPaymentMethod, setFilterPaymentMethod] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -161,6 +163,20 @@ export default function FundingRequests() {
   }
   if (filterPaymentMethod !== 'all') {
     filteredTransactions = filteredTransactions.filter(t => t.payment_method === filterPaymentMethod);
+  }
+  if (filterDateFrom) {
+    const from = new Date(filterDateFrom);
+    filteredTransactions = filteredTransactions.filter(t => {
+      const d = new Date(t.requested_at || t.created_date);
+      return d >= from;
+    });
+  }
+  if (filterDateTo) {
+    const to = new Date(filterDateTo + 'T23:59:59');
+    filteredTransactions = filteredTransactions.filter(t => {
+      const d = new Date(t.requested_at || t.created_date);
+      return d <= to;
+    });
   }
   if (searchTerm) {
     const lowerSearch = searchTerm.toLowerCase();
@@ -559,6 +575,28 @@ export default function FundingRequests() {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Date Range Filter */}
+              <div className="flex items-center gap-2">
+                <Input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={e => setFilterDateFrom(e.target.value)}
+                  className="w-38 h-9 text-sm"
+                  placeholder="From"
+                />
+                <span className="text-gray-400 text-sm">–</span>
+                <Input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={e => setFilterDateTo(e.target.value)}
+                  className="w-38 h-9 text-sm"
+                  placeholder="To"
+                />
+                {(filterDateFrom || filterDateTo) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setFilterDateFrom(''); setFilterDateTo(''); }} className="text-gray-400 hover:text-gray-600 px-2">✕</Button>
+                )}
+              </div>
 
               {/* Payment Method Filter */}
               {['super_admin', 'broker_admin'].includes(currentUser.app_role) && (

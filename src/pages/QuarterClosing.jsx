@@ -50,6 +50,12 @@ export default function QuarterClosing() {
     enabled: !!currentUser
   });
 
+  const { data: manualAdjustments = [] } = useQuery({
+    queryKey: ['manual-commission-adjustments'],
+    queryFn: () => base44.entities.ManualCommissionAdjustment.list(),
+    enabled: !!currentUser
+  });
+
   const closeLedgerMutation = useMutation({
     mutationFn: async (data) => {
       const result = await base44.entities.CommissionLedger.create(data);
@@ -107,15 +113,32 @@ export default function QuarterClosing() {
     const prevLedger = ledgers.find(l => l.mentor_id === mentor.id && l.quarter === prevQuarterLabel);
     const bufferCarriedIn = prevLedger?.commission_buffer_usd || 0;
 
+    // Sum manual adjustments for this mentor within the quarter
+    const start = new Date(start_date);
+    const end = new Date(end_date);
+    end.setHours(23, 59, 59, 999);
+    const mentorAdjustments = manualAdjustments.filter(a => {
+      const aDate = new Date(a.created_date);
+      return a.mentor_id === mentor.id && aDate >= start && aDate <= end;
+    });
+    const manualAdjustmentTotal = mentorAdjustments.reduce((sum, a) => sum + (a.amount_usd || 0), 0);
+
     // Use mentor's individual commission rate (default 4%)
     const commissionRate = mentor.commission_rate ?? 4;
     const commission = calculateQuarterCommission(netDeposit, bufferCarriedIn, commissionRate);
+    const adjustedGross = commission.gross_commission_usd + manualAdjustmentTotal;
+    const adjustedRelease = adjustedGross * 0.75;
+    const adjustedBuffer = adjustedGross * 0.25;
 
     return {
       mentor,
       netDeposit,
       bufferCarriedIn,
       ...commission,
+      manualAdjustmentTotal,
+      adjustedGross,
+      adjustedRelease,
+      adjustedBuffer,
       commissionRate,
       isClosed: false
     };
@@ -131,12 +154,14 @@ export default function QuarterClosing() {
       start_date,
       end_date,
       net_deposit_usd: mentorInfo.netDeposit,
-      gross_commission_usd: mentorInfo.gross_commission_usd,
       commission_rate: mentorInfo.commissionRate,
-      commission_release_usd: mentorInfo.commission_release_usd,
-      commission_buffer_usd: mentorInfo.commission_buffer_usd,
+      gross_commission_usd: mentorInfo.gross_commission_usd,
+      manual_adjustment_usd: mentorInfo.manualAdjustmentTotal,
+      adjusted_gross_commission_usd: mentorInfo.adjustedGross,
+      commission_release_usd: mentorInfo.adjustedRelease,
+      commission_buffer_usd: mentorInfo.adjustedBuffer,
       buffer_carried_in_usd: mentorInfo.bufferCarriedIn,
-      buffer_carried_out_usd: mentorInfo.commission_buffer_usd,
+      buffer_carried_out_usd: mentorInfo.adjustedBuffer,
       is_closed: true,
       is_released: false,
       release_date: calculateReleaseDate(end_date),
@@ -265,16 +290,28 @@ export default function QuarterClosing() {
                         ${data.isClosed ? data.ledger.buffer_carried_in_usd.toFixed(2) : data.bufferCarriedIn.toFixed(2)}
                       </TableCell>
                       <TableCell className="font-semibold">
-                        ${data.isClosed ? data.ledger.gross_commission_usd.toFixed(2) : data.gross_commission_usd.toFixed(2)}
-                        <span className="text-xs text-gray-400 ml-1">
-                          ({data.isClosed ? (data.ledger.commission_rate ?? 4) : data.commissionRate}%)
-                        </span>
+                        <div>
+                          ${data.isClosed
+                            ? (data.ledger.adjusted_gross_commission_usd ?? data.ledger.gross_commission_usd).toFixed(2)
+                            : data.adjustedGross.toFixed(2)}
+                          <span className="text-xs text-gray-400 ml-1">
+                            ({data.isClosed ? (data.ledger.commission_rate ?? 4) : data.commissionRate}%)
+                          </span>
+                        </div>
+                        {(data.isClosed ? (data.ledger.manual_adjustment_usd || 0) : data.manualAdjustmentTotal) !== 0 && (
+                          <div className="text-xs mt-0.5">
+                            <span className="text-gray-400">Raw: ${data.isClosed ? data.ledger.gross_commission_usd.toFixed(2) : data.gross_commission_usd.toFixed(2)}</span>
+                            <span className={`ml-1 font-medium ${ (data.isClosed ? data.ledger.manual_adjustment_usd : data.manualAdjustmentTotal) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {(data.isClosed ? data.ledger.manual_adjustment_usd : data.manualAdjustmentTotal) >= 0 ? '+' : ''}${(data.isClosed ? data.ledger.manual_adjustment_usd : data.manualAdjustmentTotal).toFixed(2)}
+                            </span>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-emerald-600 font-semibold">
-                        ${data.isClosed ? data.ledger.commission_release_usd.toFixed(2) : data.commission_release_usd.toFixed(2)}
+                        ${data.isClosed ? data.ledger.commission_release_usd.toFixed(2) : data.adjustedRelease.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-amber-600 font-semibold">
-                        ${data.isClosed ? data.ledger.commission_buffer_usd.toFixed(2) : data.commission_buffer_usd.toFixed(2)}
+                        ${data.isClosed ? data.ledger.commission_buffer_usd.toFixed(2) : data.adjustedBuffer.toFixed(2)}
                       </TableCell>
                       <TableCell>
                         {data.isClosed ? (

@@ -30,6 +30,7 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
 
     const totals = rows.reduce((acc, r) => {
         acc.total_deposit += r.total_deposit || 0;
+        acc.total_withdrawal += r.total_withdrawal || 0;
         acc.commissionable_net += r.commissionable_net || 0;
         acc.gross_commission += r.gross_commission || 0;
         acc.manual_adjustment += r.manual_adjustment || 0;
@@ -37,7 +38,7 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
         acc.release_75 += r.release_75 || 0;
         acc.buffer_25 += r.buffer_25 || 0;
         return acc;
-    }, { total_deposit: 0, commissionable_net: 0, gross_commission: 0, manual_adjustment: 0, adjusted_gross: 0, release_75: 0, buffer_25: 0 });
+    }, { total_deposit: 0, total_withdrawal: 0, commissionable_net: 0, gross_commission: 0, manual_adjustment: 0, adjusted_gross: 0, release_75: 0, buffer_25: 0 });
 
     const handleExport = () => {
         const headers = ['Mentor', 'Total Deposit', 'Total Withdrawal', 'Net Deposit', 'Commissionable Net (capped)', 'Gross Commission (4%)', 'Manual Adjustments', 'Adjusted Gross', 'Release (75%)', 'Buffer (25%)', 'Txns'];
@@ -104,6 +105,7 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
                             <tr className="bg-gray-50 border-b border-gray-200">
                                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Mentor</th>
                                 <th className="text-center px-4 py-3 font-semibold text-gray-600">Txns</th>
+                                <th className="text-right px-4 py-3 font-semibold text-gray-600">Total Deposit</th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Net Deposit</th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Commissionable Net<br/><span className="text-xs font-normal text-gray-400">($25K cap/student)</span></th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Gross Commission<br/><span className="text-xs font-normal text-gray-400">(4%)</span></th>
@@ -115,11 +117,12 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
                         </thead>
                         <tbody>
                             {rows.length === 0 ? (
-                                <tr><td colSpan={9} className="text-center py-12 text-gray-400">No commission data found for this period.</td></tr>
+                                <tr><td colSpan={10} className="text-center py-12 text-gray-400">No commission data found for this period.</td></tr>
                             ) : rows.map((row, idx) => (
                                 <tr key={row.mentor_id} onClick={() => navigate(`/ReportTransactionDetails?filterType=mentor&filterId=${row.mentor_id}&filterName=${encodeURIComponent(row.mentor_name)}&startDate=${startDate}&endDate=${endDate}&dateLabel=${encodeURIComponent(dateLabel)}`)} className={`border-b border-gray-100 hover:bg-blue-50 cursor-pointer ${idx % 2 !== 0 ? 'bg-gray-50/40' : ''}`}>
                                     <td className="px-4 py-3 font-medium text-gray-900">{row.mentor_name}</td>
                                     <td className="px-4 py-3 text-center"><Badge variant="outline">{row.transaction_count}</Badge></td>
+                                    <td className="px-4 py-3 text-right font-medium text-green-700">${row.total_deposit?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                     <td className={`px-4 py-3 text-right font-medium ${row.net_deposit >= 0 ? 'text-gray-700' : 'text-orange-600'}`}>${row.net_deposit?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                     <td className="px-4 py-3 text-right font-medium text-green-700">${row.commissionable_net?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                     <td className="px-4 py-3 text-right font-medium text-blue-700">${row.gross_commission?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
@@ -135,6 +138,7 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
                         <tfoot>
                             <tr className="bg-gray-100 border-t-2 border-gray-300 font-bold">
                                 <td colSpan={2} className="px-4 py-3 text-gray-700">Total ({rows.length} mentors)</td>
+                                <td className="px-4 py-3 text-right text-green-700">${totals.total_deposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                 <td className="px-4 py-3 text-right text-gray-700">${totals.commissionable_net.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                 <td className="px-4 py-3 text-right text-green-700">${totals.commissionable_net.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                 <td className="px-4 py-3 text-right text-blue-700">${totals.gross_commission.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>

@@ -6,7 +6,7 @@ import { Download, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
-export default function CommissionByMentorReport({ startDate, endDate, dateLabel }) {
+export default function CommissionByMentorReport({ startDate, endDate, dateLabel, isMentor, mentorId }) {
     const navigate = useNavigate();
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -18,7 +18,12 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
         setError(null);
         try {
             const res = await base44.functions.invoke('getMentorCommissions', { startDate, endDate });
-            setRows(res.data?.rows || []);
+            let data = res.data?.rows || [];
+            // In impersonation mode, filter to only show this mentor's data
+            if (isMentor && mentorId) {
+                data = data.filter(r => r.mentor_id === mentorId);
+            }
+            setRows(data);
         } catch (e) {
             setError(e.message || 'Failed to load commission data');
         } finally {

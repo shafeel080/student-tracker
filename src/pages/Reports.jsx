@@ -186,7 +186,7 @@ export default function Reports() {
                 <>
 
                     {activeReport === 'student_wise' && <StudentWiseReport transactions={filteredTransactions} dateLabel={dateLabel} startDate={startDateStr} endDate={endDateStr} />}
-                    {activeReport === 'commission_mentor' && <CommissionByMentorReport startDate={startDateStr} endDate={endDateStr} dateLabel={dateLabel} />}
+                    {activeReport === 'commission_mentor' && <CommissionByMentorReport startDate={startDateStr} endDate={endDateStr} dateLabel={dateLabel} isMentor={isMentor} mentorId={isMentor ? currentUser?.id : null} />}
                 </>
             )}
         </div>

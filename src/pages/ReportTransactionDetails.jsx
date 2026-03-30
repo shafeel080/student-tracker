@@ -173,7 +173,7 @@ export default function ReportTransactionDetails() {
                             <p className={`text-2xl font-bold mt-1 ${totals.netDeposit >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>${totals.netDeposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                         </div>
                     </div>
-                    {reportType !== 'primary' && <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+                    {reportType !== 'primary' && filterType !== 'student' && <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                             <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Commission Earned</p>
                             <p className="text-2xl font-bold text-green-700 mt-1">${totals.commissionEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
@@ -262,8 +262,7 @@ export default function ReportTransactionDetails() {
                     </div>
 
                     {/* Manual Adjustments Section */}
-                    {adjustments.length > 0 && (
-                        <div className="mt-6">
+                    {filterType !== 'student' && adjustments.length > 0 && (                        <div className="mt-6">
                             <h2 className="text-lg font-semibold text-gray-800 mb-3">Manual Commission Adjustments</h2>
                             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                                 <div className="overflow-x-auto">
@@ -275,7 +274,7 @@ export default function ReportTransactionDetails() {
                                                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
                                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Amount (USD)</th>
                                                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Reason</th>
-                                                {!isMentor && <th className="text-left px-4 py-3 font-semibold text-gray-600">Added By</th>}
+                                                <th className="text-left px-4 py-3 font-semibold text-gray-600">Added By</th>
                                             </tr>
                                         </thead>
                                         <tbody>

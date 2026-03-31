@@ -21,6 +21,9 @@
         "ticket_escalation",
         "ticket_auto_closed",
         "ticket_resolved",
+        "ticket_reply",
+        "ticket_status",
+        "ticket_closed",
         "general"
       ],
       "default": "general",

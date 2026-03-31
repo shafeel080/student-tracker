@@ -48,7 +48,7 @@ export default function Tickets() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ['all-users-tickets'],
     queryFn: async () => {
-      try { return await base44.entities.User.list(); } catch { return []; }
+      try { return await base44.entities.User.list(); } catch (e) { return []; }
     },
     enabled: !!currentUser,
     retry: false,
@@ -61,7 +61,6 @@ export default function Tickets() {
     refetchInterval: 5000,
   });
 
-  // Keep selectedTicket in sync with latest ticket data
   useEffect(() => {
     if (selectedTicket && tickets.length > 0) {
       const updated = tickets.find(t => t.id === selectedTicket.id);
@@ -69,7 +68,6 @@ export default function Tickets() {
     }
   }, [tickets]);
 
-  // Create ticket mutation
   const createMutation = useMutation({
     mutationFn: async (formData) => {
       const ticketNumber = generateTicketNumber(tickets);
@@ -91,11 +89,9 @@ export default function Tickets() {
         student_id: formData.student_id || '',
         student_name: formData.student_name || '',
         screenshot_url: formData.screenshot_url || '',
-        created_date: new Date().toISOString(),
         escalated: false,
       });
 
-      // Initial message
       await base44.entities.TicketMessage.create({
         ticket_id: newTicket.id,
         sender_id: currentUser.id,
@@ -103,10 +99,8 @@ export default function Tickets() {
         sender_role: currentUser.app_role,
         message: formData.description,
         message_type: 'user_message',
-        created_date: new Date().toISOString(),
       });
 
-      // Notify assigned role users
       const roleUsers = allUsers.filter(u => u.app_role === assignedToRole);
       await Promise.all(roleUsers.map(u =>
         base44.entities.Notification.create({
@@ -116,7 +110,6 @@ export default function Tickets() {
           type: 'ticket_new',
           read: false,
           link: '/Tickets',
-          created_date: new Date().toISOString(),
         })
       ));
 
@@ -130,7 +123,6 @@ export default function Tickets() {
     },
   });
 
-  // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText) => {
       const isFirstAdminResponse = canRespondToTicket(currentUser.app_role) && selectedTicket.status === 'open';
@@ -142,7 +134,6 @@ export default function Tickets() {
         sender_role: currentUser.app_role,
         message: messageText,
         message_type: 'user_message',
-        created_date: new Date().toISOString(),
       });
 
       if (isFirstAdminResponse) {
@@ -158,7 +149,6 @@ export default function Tickets() {
     },
   });
 
-  // Resolve mutation
   const resolveMutation = useMutation({
     mutationFn: async () => {
       await base44.entities.Ticket.update(selectedTicket.id, {
@@ -172,9 +162,7 @@ export default function Tickets() {
         sender_role: 'system',
         message: `Ticket has been marked as resolved by ${currentUser.full_name}. Waiting for confirmation from ${selectedTicket.created_by_name} to close.`,
         message_type: 'system_message',
-        created_date: new Date().toISOString(),
       });
-      // Notify ticket creator
       await base44.entities.Notification.create({
         user_id: selectedTicket.created_by_id,
         title: `Ticket ${selectedTicket.ticket_number} Resolved`,
@@ -182,7 +170,6 @@ export default function Tickets() {
         type: 'ticket_resolved',
         read: false,
         link: '/Tickets',
-        created_date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
@@ -192,7 +179,6 @@ export default function Tickets() {
     },
   });
 
-  // Close mutation
   const closeMutation = useMutation({
     mutationFn: async () => {
       await base44.entities.Ticket.update(selectedTicket.id, {
@@ -206,7 +192,6 @@ export default function Tickets() {
         sender_role: 'system',
         message: `Ticket closed by ${currentUser.full_name}.`,
         message_type: 'system_message',
-        created_date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
@@ -224,7 +209,6 @@ export default function Tickets() {
     );
   }
 
-  // Filtered tickets
   let visibleTickets = filterTicketsByRole(currentUser, tickets);
   if (filterStatus !== 'all') visibleTickets = visibleTickets.filter(t => t.status === filterStatus);
   if (filterPriority !== 'all') visibleTickets = visibleTickets.filter(t => t.priority === filterPriority);
@@ -236,25 +220,34 @@ export default function Tickets() {
   );
 
   const statusCounts = {
-    open: tickets.filter(t => t.status === 'open').length,
-    in_progress: tickets.filter(t => t.status === 'in_progress').length,
-    resolved: tickets.filter(t => t.status === 'resolved').length,
-    closed: tickets.filter(t => t.status === 'closed').length,
+    open: visibleTickets.filter(t => t.status === 'open').length,
+    in_progress: visibleTickets.filter(t => t.status === 'in_progress').length,
+    resolved: visibleTickets.filter(t => t.status === 'resolved').length,
+    closed: visibleTickets.filter(t => t.status === 'closed').length,
   };
 
   const getStatusBadge = (status) => {
-    const config = {
-      open: { cls: 'bg-blue-100 text-blue-800 border-blue-200', icon: Clock },
-      in_progress: { cls: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: AlertCircle },
-      resolved: { cls: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2 },
-      closed: { cls: 'bg-gray-100 text-gray-800 border-gray-200', icon: XCircle },
+    const map = {
+      open: { cls: 'bg-blue-100 text-blue-800 border-blue-200', Icon: Clock },
+      in_progress: { cls: 'bg-yellow-100 text-yellow-800 border-yellow-200', Icon: AlertCircle },
+      resolved: { cls: 'bg-green-100 text-green-800 border-green-200', Icon: CheckCircle2 },
+      closed: { cls: 'bg-gray-100 text-gray-800 border-gray-200', Icon: XCircle },
     };
-    const { cls, icon: Icon } = config[status] || config.open;
-    return <Badge variant="outline" className={cls}><Icon className="h-3 w-3 mr-1" />{status.replace('_', ' ')}</Badge>;
+    const { cls, Icon } = map[status] || map.open;
+    return (
+      <Badge variant="outline" className={cls}>
+        <Icon className="h-3 w-3 mr-1" />{status.replace('_', ' ')}
+      </Badge>
+    );
   };
 
   const getPriorityBadge = (priority) => {
-    const colors = { low: 'bg-gray-100 text-gray-700', medium: 'bg-blue-100 text-blue-700', high: 'bg-orange-100 text-orange-700', urgent: 'bg-red-100 text-red-700' };
+    const colors = {
+      low: 'bg-gray-100 text-gray-700',
+      medium: 'bg-blue-100 text-blue-700',
+      high: 'bg-orange-100 text-orange-700',
+      urgent: 'bg-red-100 text-red-700',
+    };
     return <Badge variant="outline" className={colors[priority] || ''}>{priority}</Badge>;
   };
 
@@ -262,7 +255,6 @@ export default function Tickets() {
     ? students
     : students.filter(s => s.primary_mentor_id === currentUser.id || s.senior_mentor_id === currentUser.id);
 
-  // Detail view
   if (selectedTicket) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
@@ -286,11 +278,9 @@ export default function Tickets() {
     );
   }
 
-  // List view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
             <TicketIcon className="h-9 w-9 text-blue-600" />
@@ -303,7 +293,6 @@ export default function Tickets() {
           )}
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Open', key: 'open', color: 'bg-blue-50 border-blue-200 text-blue-700' },
@@ -318,7 +307,6 @@ export default function Tickets() {
           ))}
         </div>
 
-        {/* Filters */}
         <Card className="border-gray-200">
           <CardContent className="p-4">
             <div className="flex flex-wrap gap-3 items-center">
@@ -360,7 +348,6 @@ export default function Tickets() {
           </CardContent>
         </Card>
 
-        {/* Table */}
         <Card className="border-gray-200">
           <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
             <CardTitle className="text-lg font-semibold">Tickets ({visibleTickets.length})</CardTitle>
@@ -408,7 +395,6 @@ export default function Tickets() {
         </Card>
       </div>
 
-      {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

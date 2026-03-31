@@ -101,17 +101,16 @@ export default function Tickets() {
         message_type: 'user_message',
       });
 
-      // Notify assigned role users + super admins
-      const notifyUsers = allUsers.filter(u => u.app_role === assignedToRole || u.app_role === 'super_admin');
-      await Promise.all(notifyUsers.map(u =>
-        base44.entities.Notification.create({
-          user_id: u.id,
+      // Notify assigned role users + super admins via backend (service role)
+      try {
+        await base44.functions.invoke('sendTicketNotification', {
           title: `New Ticket: ${ticketNumber}`,
           message: `${currentUser.full_name} raised a ${formData.category} ticket: ${formData.title}`,
           type: 'ticket_new',
-          read: false,
-        })
-      ));
+          assignedToRole,
+          assignedToId: assignedUser?.id || null,
+        });
+      } catch (e) { console.error('Notification error (create):', e); }
 
       await logAction('create_ticket', 'Ticket', newTicket.id, `Created ticket: ${formData.title}`, null, newTicket);
       return newTicket;
@@ -142,42 +141,42 @@ export default function Tickets() {
           status: 'in_progress',
           first_response_date: new Date().toISOString(),
         });
-        // Notification 3: in_progress — notify ticket creator
-        await base44.entities.Notification.create({
-          user_id: selectedTicket.created_by_id,
-          title: `Ticket ${selectedTicket.ticket_number} In Progress`,
-          message: `Your ticket '${selectedTicket.title}' is now being handled.`,
-          type: 'ticket_status',
-          read: false,
-        });
+        // Notification 3: in_progress — notify ticket creator directly (we have the id)
+        try {
+          await base44.entities.Notification.create({
+            user_id: selectedTicket.created_by_id,
+            title: `Ticket ${selectedTicket.ticket_number} In Progress`,
+            message: `Your ticket '${selectedTicket.title}' is now being handled.`,
+            type: 'ticket_status',
+            read: false,
+          });
+        } catch (e) { console.error('Notification error (in_progress):', e); }
       }
 
       // Notification 2: new reply
       const isCreator = currentUser.id === selectedTicket.created_by_id;
       if (isCreator) {
-        // Mentor sent reply — notify assigned admin + super admins
-        const replyTargets = allUsers.filter(u =>
-          (selectedTicket.assigned_to_id ? u.id === selectedTicket.assigned_to_id : u.app_role === selectedTicket.assigned_to_role) ||
-          u.app_role === 'super_admin'
-        );
-        await Promise.all(replyTargets.map(u =>
-          base44.entities.Notification.create({
-            user_id: u.id,
+        // Mentor sent reply — notify assigned admin + super admins via backend
+        try {
+          await base44.functions.invoke('sendTicketNotification', {
+            title: `New Reply: ${selectedTicket.ticket_number}`,
+            message: `${currentUser.full_name} replied to ticket: ${selectedTicket.title}`,
+            type: 'ticket_reply',
+            assignedToRole: selectedTicket.assigned_to_role,
+            assignedToId: selectedTicket.assigned_to_id || null,
+          });
+        } catch (e) { console.error('Notification error (reply mentor):', e); }
+      } else {
+        // Admin sent reply — notify ticket creator directly
+        try {
+          await base44.entities.Notification.create({
+            user_id: selectedTicket.created_by_id,
             title: `New Reply: ${selectedTicket.ticket_number}`,
             message: `${currentUser.full_name} replied to ticket: ${selectedTicket.title}`,
             type: 'ticket_reply',
             read: false,
-          })
-        ));
-      } else {
-        // Admin sent reply — notify ticket creator
-        await base44.entities.Notification.create({
-          user_id: selectedTicket.created_by_id,
-          title: `New Reply: ${selectedTicket.ticket_number}`,
-          message: `${currentUser.full_name} replied to ticket: ${selectedTicket.title}`,
-          type: 'ticket_reply',
-          read: false,
-        });
+          });
+        } catch (e) { console.error('Notification error (reply admin):', e); }
       }
     },
     onSuccess: () => {
@@ -230,20 +229,16 @@ export default function Tickets() {
         message: `Ticket closed by ${currentUser.full_name}.`,
         message_type: 'system_message',
       });
-      // Notification 5: closed — notify assigned admin + super admins
-      const closedTargets = allUsers.filter(u =>
-        (selectedTicket.assigned_to_id ? u.id === selectedTicket.assigned_to_id : u.app_role === selectedTicket.assigned_to_role) ||
-        u.app_role === 'super_admin'
-      );
-      await Promise.all(closedTargets.map(u =>
-        base44.entities.Notification.create({
-          user_id: u.id,
+      // Notification 5: closed — notify assigned admin + super admins via backend
+      try {
+        await base44.functions.invoke('sendTicketNotification', {
           title: `Ticket ${selectedTicket.ticket_number} Closed`,
           message: `${selectedTicket.created_by_name} confirmed and closed the ticket.`,
           type: 'ticket_closed',
-          read: false,
-        })
-      ));
+          assignedToRole: selectedTicket.assigned_to_role,
+          assignedToId: selectedTicket.assigned_to_id || null,
+        });
+      } catch (e) { console.error('Notification error (closed):', e); }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tickets']);

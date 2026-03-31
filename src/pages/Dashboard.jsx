@@ -109,22 +109,22 @@ export default function Dashboard() {
   const myFundingTransactions = filterFundingTransactionsByRole(currentUser, fundingTransactions, students, allUsers);
   const pendingFundingRequests = myFundingTransactions.filter(t => t.status === 'PENDING').length;
 
-  // Calculate net deposit from approved funding transactions
+  // Admin net deposit (all approved transactions visible to them)
   const approvedFundingTransactions = myFundingTransactions.filter(t => t.status === 'APPROVED');
-  const totalDeposits = approvedFundingTransactions
-    .filter(t => t.type === 'DEPOSIT')
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-  const totalWithdrawals = approvedFundingTransactions
-    .filter(t => t.type === 'WITHDRAWAL')
-    .reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-  const totalNetDeposit = totalDeposits - totalWithdrawals;
+  const totalNetDeposit = approvedFundingTransactions.filter(t => t.type === 'DEPOSIT').reduce((sum, t) => sum + (t.amount_usd || 0), 0)
+    - approvedFundingTransactions.filter(t => t.type === 'WITHDRAWAL').reduce((sum, t) => sum + (t.amount_usd || 0), 0);
 
-  const myCommissions = commissions.filter(c => c.mentor_id === currentUser.id);
-  const totalCommission = myCommissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
+  // For mentors: use same filter as Funding Activities page (initiating_mentor_id or primary_mentor_id)
+  const mentorOwnTransactions = isMentorRole(currentUser.app_role)
+    ? fundingTransactions.filter(t =>
+        t.initiating_mentor_id === currentUser.id ||
+        t.primary_mentor_id === currentUser.id
+      )
+    : [];
 
-  // Calculate commission for mentors
-  const quarterCommission = isMentorRole(currentUser.app_role) 
-    ? calculateQuarterlyNetDepositAndCommission(myFundingTransactions, currentUser)
+  // Quarter commission — sourced from mentor's own transactions (matches Funding Activities)
+  const quarterCommission = isMentorRole(currentUser.app_role)
+    ? calculateQuarterlyNetDepositAndCommission(mentorOwnTransactions, currentUser)
     : null;
 
   // Prepare chart data - Last 6 months transaction trend
@@ -204,7 +204,7 @@ export default function Dashboard() {
                 trendUp={quarterCommission?.netDepositUsd > 0}
               />
               <StatsCard
-                title="Quarter Commission"
+                title="Quarter Gross Commission"
                 value={`$${quarterCommission?.grossCommissionUsd?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`}
                 icon={Award}
                 color="purple"

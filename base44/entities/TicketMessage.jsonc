@@ -32,6 +32,10 @@
       ],
       "default": "user_message",
       "description": "Type of message"
+    },
+    "attachment_url": {
+      "type": "string",
+      "description": "Optional image attachment URL for this message"
     }
   },
   "required": [

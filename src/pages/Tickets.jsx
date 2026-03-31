@@ -124,7 +124,7 @@ export default function Tickets() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (messageText) => {
+    mutationFn: async ({ messageText, attachmentUrl }) => {
       const isFirstAdminResponse = canRespondToTicket(currentUser.app_role) && selectedTicket.status === 'open';
 
       await base44.entities.TicketMessage.create({
@@ -132,8 +132,9 @@ export default function Tickets() {
         sender_id: currentUser.id,
         sender_name: currentUser.full_name,
         sender_role: currentUser.app_role,
-        message: messageText,
+        message: messageText || '',
         message_type: 'user_message',
+        ...(attachmentUrl ? { attachment_url: attachmentUrl } : {}),
       });
 
       if (isFirstAdminResponse) {
@@ -267,7 +268,7 @@ export default function Tickets() {
               ticket={selectedTicket}
               messages={rawMessages}
               currentUser={currentUser}
-              onSendMessage={(msg) => sendMessageMutation.mutate(msg)}
+              onSendMessage={(msg, attachmentUrl) => sendMessageMutation.mutate({ messageText: msg, attachmentUrl })}
               onResolve={() => resolveMutation.mutate()}
               onClose={() => closeMutation.mutate()}
               isSending={sendMessageMutation.isPending}

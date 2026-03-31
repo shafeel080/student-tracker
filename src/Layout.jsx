@@ -17,6 +17,7 @@ import {
         UserPlus
       } from 'lucide-react';
 import ImpersonationBanner from './components/utils/ImpersonationBanner';
+import NotificationBell from './components/utils/NotificationBell';
 import { getEffectiveUser, isImpersonating } from './components/utils/ImpersonationContext';
 import { Button } from '@/components/ui/button';
 
@@ -164,7 +165,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Sidebar - Desktop */}
       <aside className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/30 border-r border-gray-200 shadow-lg">
         <div className="flex flex-col flex-grow pt-6 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-6 mb-10">
+          <div className="flex items-center justify-between flex-shrink-0 px-6 mb-10">
             <Link to={createPageUrl('Dashboard')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
               <div className="w-11 h-11 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
                 <Award className="h-6 w-6 text-white" />
@@ -173,6 +174,7 @@ export default function Layout({ children, currentPageName }) {
                 <h1 className="text-xl font-bold text-gray-900 tracking-tight">Commission Portal</h1>
               </div>
             </Link>
+            <NotificationBell currentUser={currentUser} />
           </div>
 
           <div className="px-4 mb-6">

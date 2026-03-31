@@ -1,183 +1,139 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import SearchableStudentSelect from '../common/SearchableStudentSelect';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { base44 } from '@/api/base44Client';
+import { Info } from 'lucide-react';
 
-export default function TicketForm({ ticket, onSubmit, onCancel, isSubmitting, students, users }) {
-  const [formData, setFormData] = useState({
+const CATEGORY_ROLE_LABEL = {
+  academic: 'Academic Head',
+  financial: 'Finance Admin',
+  technical: 'Broker Admin',
+  general: 'Academic Head',
+};
+
+export default function TicketForm({ onSubmit, onCancel, isSubmitting, students = [], currentUser }) {
+  const [form, setForm] = useState({
+    category: '',
     title: '',
-    description: '',
-    category: 'general',
     priority: 'medium',
-    status: 'open',
     student_id: '',
-    assigned_to: '',
-    screenshot_url: ''
+    description: '',
+    screenshot_url: '',
   });
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    if (ticket) {
-      setFormData(ticket);
-    }
-  }, [ticket]);
-
   const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploading(true);
-      try {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        setFormData({ ...formData, screenshot_url: file_url });
-        toast.success('Screenshot uploaded');
-      } catch (error) {
-        toast.error('Failed to upload screenshot');
-      } finally {
-        setUploading(false);
-      }
-    }
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setForm(f => ({ ...f, screenshot_url: file_url }));
+    setUploading(false);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    const selectedStudent = students.find(s => s.id === formData.student_id);
-    const assignedUser = users.find(u => u.id === formData.assigned_to);
-    
-    const dataToSubmit = {
-      ...formData,
-      student_name: selectedStudent?.full_name || '',
-      assigned_to_name: assignedUser?.full_name || ''
-    };
-    
-    onSubmit(dataToSubmit);
+    const student = students.find(s => s.id === form.student_id);
+    onSubmit({
+      ...form,
+      student_name: student?.full_name || '',
+    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title *</Label>
+      {/* Category */}
+      <div className="space-y-1">
+        <Label>Category *</Label>
+        <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
+          <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="academic">Academic Issue</SelectItem>
+            <SelectItem value="financial">Financial Issue</SelectItem>
+            <SelectItem value="technical">Technical Issue</SelectItem>
+            <SelectItem value="general">General Query</SelectItem>
+          </SelectContent>
+        </Select>
+        {form.category && (
+          <p className="flex items-center gap-1 text-xs text-blue-600 mt-1">
+            <Info className="h-3 w-3" />
+            This ticket will be assigned to <strong>{CATEGORY_ROLE_LABEL[form.category]}</strong>
+          </p>
+        )}
+      </div>
+
+      {/* Title */}
+      <div className="space-y-1">
+        <Label>Title *</Label>
         <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Brief description of the issue"
           required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="description">Description *</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={4}
-          placeholder="Detailed description of the issue..."
-          required
+          value={form.title}
+          onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+          placeholder="Short summary of the issue"
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="category">Category *</Label>
-          <Select
-            value={formData.category}
-            onValueChange={(value) => setFormData({ ...formData, category: value })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="technical">Technical</SelectItem>
-              <SelectItem value="financial">Financial</SelectItem>
-              <SelectItem value="account">Account</SelectItem>
-              <SelectItem value="general">General</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Priority */}
+      <div className="space-y-1">
+        <Label>Priority *</Label>
+        <Select value={form.priority} onValueChange={v => setForm(f => ({ ...f, priority: v }))}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="urgent">Urgent</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="priority">Priority</Label>
-          <Select
-            value={formData.priority}
-            onValueChange={(value) => setFormData({ ...formData, priority: value })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+      {/* Student (optional) */}
+      {students.length > 0 && (
+        <div className="space-y-1">
+          <Label>Student (Optional)</Label>
+          <Select value={form.student_id} onValueChange={v => setForm(f => ({ ...f, student_id: v }))}>
+            <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <SearchableStudentSelect
-          students={students}
-          value={formData.student_id}
-          onValueChange={(value) => setFormData({ ...formData, student_id: value })}
-          label="Related Student"
-          placeholder="Select student (optional)"
-          allowNone
-        />
-
-        <div className="space-y-2">
-          <Label htmlFor="assigned">Assign To</Label>
-          <Select
-            value={formData.assigned_to}
-            onValueChange={(value) => setFormData({ ...formData, assigned_to: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Assign to user (optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>Unassigned</SelectItem>
-              {users.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.full_name} ({user.app_role})
-                </SelectItem>
+              <SelectItem value={null}>None</SelectItem>
+              {students.map(s => (
+                <SelectItem key={s.id} value={s.id}>{s.student_code} — {s.full_name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+      )}
+
+      {/* Description */}
+      <div className="space-y-1">
+        <Label>Description *</Label>
+        <Textarea
+          required
+          rows={5}
+          value={form.description}
+          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          placeholder="Detailed description of your issue..."
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="screenshot">Screenshot (Optional)</Label>
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={handleFileUpload}
-          disabled={uploading}
-        />
-        {uploading && <p className="text-xs text-gray-600">Uploading...</p>}
-        {formData.screenshot_url && (
-          <p className="text-xs text-green-600">✓ Screenshot uploaded</p>
-        )}
+      {/* Screenshot */}
+      <div className="space-y-1">
+        <Label>Screenshot (Optional)</Label>
+        <Input type="file" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
+        {uploading && <p className="text-xs text-gray-500">Uploading...</p>}
+        {form.screenshot_url && <p className="text-xs text-green-600">Screenshot uploaded ✓</p>}
       </div>
-      
-      <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting || uploading} className="bg-blue-600 hover:bg-blue-700">
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            ticket ? 'Update Ticket' : 'Create Ticket'
-          )}
+
+      <div className="flex justify-end gap-3 pt-2 border-t">
+        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button
+          type="submit"
+          disabled={isSubmitting || uploading || !form.category || !form.title || !form.description}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit Ticket'}
         </Button>
       </div>
     </form>

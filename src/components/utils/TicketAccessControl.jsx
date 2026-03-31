@@ -1,34 +1,46 @@
-// Utility functions for ticket access control
+// Ticket Access Control Utility
 
-export const canCreateTicket = (role) => {
-  return ['junior_mentor', 'senior_mentor', 'academic_head', 'academic_admin'].includes(role);
-};
+export function canCreateTicket(role) {
+  return ['junior_mentor', 'senior_mentor', 'co_mentor', 'academic_head', 'finance_admin', 'broker_admin', 'super_admin', 'admin', 'subjunior_mentor', 'assistance'].includes(role);
+}
 
-export const canReviewTicket = (role) => {
-  return ['super_admin', 'broker_admin'].includes(role);
-};
+export function canRespondToTicket(role) {
+  return ['academic_head', 'finance_admin', 'broker_admin', 'super_admin', 'admin'].includes(role);
+}
 
-export const canViewAllTickets = (role) => {
-  return ['super_admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(role);
-};
+export function canResolveTicket(role) {
+  return ['academic_head', 'finance_admin', 'broker_admin', 'super_admin', 'admin'].includes(role);
+}
 
-export const filterTicketsByRole = (currentUser, allTickets) => {
-  if (!currentUser || !allTickets) return [];
-  
-  const { app_role: role, id } = currentUser;
-  
-  // Super Admin, Broker Admin, Academic Head and Academic Admin see all
-  if (canViewAllTickets(role)) {
-    return allTickets;
-  }
-  
-  // Mentors see tickets they created or are assigned to
-  if (['junior_mentor', 'senior_mentor'].includes(role)) {
-    return allTickets.filter(t => 
-      t.created_by === currentUser.email || 
-      t.assigned_to === id
-    );
-  }
-  
-  return [];
-};
+export function canCloseTicket(userRole, userId, ticket) {
+  if (['super_admin', 'admin'].includes(userRole)) return true;
+  return userId === ticket.created_by_id;
+}
+
+export function canViewTicket(user, ticket) {
+  const role = user.app_role;
+  if (['super_admin', 'admin'].includes(role)) return true;
+  if (role === 'academic_head') return ticket.assigned_to_role === 'academic_head';
+  if (role === 'finance_admin') return ticket.assigned_to_role === 'finance_admin';
+  if (role === 'broker_admin') return ticket.assigned_to_role === 'broker_admin';
+  // Mentors and others see only their own
+  return ticket.created_by_id === user.id;
+}
+
+export function filterTicketsByRole(user, tickets) {
+  return tickets.filter(t => canViewTicket(user, t));
+}
+
+export function getAutoAssignRole(category) {
+  const map = {
+    academic: 'academic_head',
+    financial: 'finance_admin',
+    technical: 'broker_admin',
+    general: 'academic_head',
+  };
+  return map[category] || 'academic_head';
+}
+
+export function canReviewTicket(role) {
+  return canRespondToTicket(role);
+}

@@ -3,197 +3,290 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Eye, AlertCircle, CheckCircle2, Clock, XCircle, Ticket as TicketIcon } from "lucide-react";
+import { Plus, Search, ArrowLeft, Clock, AlertCircle, CheckCircle2, XCircle, Ticket as TicketIcon } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import TicketForm from "../components/tickets/TicketForm";
-import { canCreateTicket, canReviewTicket, filterTicketsByRole } from "../components/utils/TicketAccessControl";
+import TicketChat from "../components/tickets/TicketChat";
+import { canCreateTicket, canRespondToTicket, filterTicketsByRole, getAutoAssignRole } from "../components/utils/TicketAccessControl";
+import generateTicketNumber from "../components/utils/TicketNumberGenerator";
 import { logAction } from "../components/utils/AuditLogger";
+import { getEffectiveUser } from "../components/utils/ImpersonationContext";
 
 export default function Tickets() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
-  const [filterStudent, setFilterStudent] = useState('all');
-  const [filterMentor, setFilterMentor] = useState('all');
-  const [reviewData, setReviewData] = useState({
-    status: '',
-    assigned_to: '',
-    resolution: ''
-  });
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
-    };
-    fetchUser();
+    base44.auth.me().then(u => setCurrentUser(getEffectiveUser(u)));
   }, []);
 
   const { data: tickets = [] } = useQuery({
     queryKey: ['tickets'],
     queryFn: () => base44.entities.Ticket.list('-created_date'),
-    enabled: !!currentUser
+    enabled: !!currentUser,
   });
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list(),
-    enabled: !!currentUser
+    enabled: !!currentUser,
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['all-users-tickets'],
     queryFn: async () => {
-      try {
-        return await base44.entities.User.list();
-      } catch (error) {
-        return [];
-      }
+      try { return await base44.entities.User.list(); } catch { return []; }
     },
     enabled: !!currentUser,
-    retry: false
+    retry: false,
   });
 
+  const { data: rawMessages = [] } = useQuery({
+    queryKey: ['ticket-messages', selectedTicket?.id],
+    queryFn: () => base44.entities.TicketMessage.filter({ ticket_id: selectedTicket.id }, 'created_date'),
+    enabled: !!selectedTicket,
+    refetchInterval: 5000,
+  });
+
+  // Keep selectedTicket in sync with latest ticket data
+  useEffect(() => {
+    if (selectedTicket && tickets.length > 0) {
+      const updated = tickets.find(t => t.id === selectedTicket.id);
+      if (updated) setSelectedTicket(updated);
+    }
+  }, [tickets]);
+
+  // Create ticket mutation
   const createMutation = useMutation({
-    mutationFn: async (data) => {
-      const result = await base44.entities.Ticket.create(data);
-      await logAction('create_ticket', 'Ticket', result.id, `Created ticket: ${data.title}`, null, data);
-      return result;
+    mutationFn: async (formData) => {
+      const ticketNumber = generateTicketNumber(tickets);
+      const assignedToRole = getAutoAssignRole(formData.category);
+      const assignedUser = allUsers.find(u => u.app_role === assignedToRole);
+
+      const newTicket = await base44.entities.Ticket.create({
+        ticket_number: ticketNumber,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        priority: formData.priority,
+        status: 'open',
+        created_by_id: currentUser.id,
+        created_by_name: currentUser.full_name,
+        assigned_to_role: assignedToRole,
+        assigned_to_id: assignedUser?.id || '',
+        assigned_to_name: assignedUser?.full_name || '',
+        student_id: formData.student_id || '',
+        student_name: formData.student_name || '',
+        screenshot_url: formData.screenshot_url || '',
+        created_date: new Date().toISOString(),
+        escalated: false,
+      });
+
+      // Initial message
+      await base44.entities.TicketMessage.create({
+        ticket_id: newTicket.id,
+        sender_id: currentUser.id,
+        sender_name: currentUser.full_name,
+        sender_role: currentUser.app_role,
+        message: formData.description,
+        message_type: 'user_message',
+        created_date: new Date().toISOString(),
+      });
+
+      // Notify assigned role users
+      const roleUsers = allUsers.filter(u => u.app_role === assignedToRole);
+      await Promise.all(roleUsers.map(u =>
+        base44.entities.Notification.create({
+          user_id: u.id,
+          title: `New Support Ticket: ${ticketNumber}`,
+          message: `A new ${formData.category} ticket has been raised by ${currentUser.full_name}: ${formData.title}`,
+          type: 'ticket_new',
+          read: false,
+          link: '/Tickets',
+          created_date: new Date().toISOString(),
+        })
+      ));
+
+      await logAction('create_ticket', 'Ticket', newTicket.id, `Created ticket: ${formData.title}`, null, newTicket);
+      return newTicket;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tickets']);
       setShowCreateDialog(false);
-      toast.success('Ticket created successfully');
-    }
+      toast.success('Ticket submitted successfully');
+    },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      const result = await base44.entities.Ticket.update(id, data);
-      await logAction('update_ticket', 'Ticket', id, `Updated ticket: ${data.title}`, null, data);
-      return result;
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageText) => {
+      const isFirstAdminResponse = canRespondToTicket(currentUser.app_role) && selectedTicket.status === 'open';
+
+      await base44.entities.TicketMessage.create({
+        ticket_id: selectedTicket.id,
+        sender_id: currentUser.id,
+        sender_name: currentUser.full_name,
+        sender_role: currentUser.app_role,
+        message: messageText,
+        message_type: 'user_message',
+        created_date: new Date().toISOString(),
+      });
+
+      if (isFirstAdminResponse) {
+        await base44.entities.Ticket.update(selectedTicket.id, {
+          status: 'in_progress',
+          first_response_date: new Date().toISOString(),
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ticket-messages', selectedTicket?.id]);
+      queryClient.invalidateQueries(['tickets']);
+    },
+  });
+
+  // Resolve mutation
+  const resolveMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Ticket.update(selectedTicket.id, {
+        status: 'resolved',
+        resolved_date: new Date().toISOString(),
+      });
+      await base44.entities.TicketMessage.create({
+        ticket_id: selectedTicket.id,
+        sender_id: 'system',
+        sender_name: 'System',
+        sender_role: 'system',
+        message: `Ticket has been marked as resolved by ${currentUser.full_name}. Waiting for confirmation from ${selectedTicket.created_by_name} to close.`,
+        message_type: 'system_message',
+        created_date: new Date().toISOString(),
+      });
+      // Notify ticket creator
+      await base44.entities.Notification.create({
+        user_id: selectedTicket.created_by_id,
+        title: `Ticket ${selectedTicket.ticket_number} Resolved`,
+        message: `Your ticket "${selectedTicket.title}" has been resolved. Please close it to confirm.`,
+        type: 'ticket_resolved',
+        read: false,
+        link: '/Tickets',
+        created_date: new Date().toISOString(),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tickets']);
-      setShowReviewDialog(false);
-      setSelectedTicket(null);
-      toast.success('Ticket updated successfully');
-    }
+      queryClient.invalidateQueries(['ticket-messages', selectedTicket?.id]);
+      toast.success('Ticket marked as resolved');
+    },
   });
 
-  const handleCreateSubmit = (formData) => {
-    createMutation.mutate(formData);
-  };
-
-  const handleReviewSubmit = (e) => {
-    e.preventDefault();
-    
-    const assignedUser = users.find(u => u.id === reviewData.assigned_to);
-    
-    const dataToUpdate = {
-      ...selectedTicket,
-      status: reviewData.status,
-      assigned_to: reviewData.assigned_to,
-      assigned_to_name: assignedUser?.full_name || '',
-      resolution: reviewData.resolution,
-      resolved_date: reviewData.status === 'resolved' || reviewData.status === 'closed' 
-        ? new Date().toISOString() 
-        : selectedTicket.resolved_date
-    };
-    
-    updateMutation.mutate({ id: selectedTicket.id, data: dataToUpdate });
-  };
-
-  const openReviewDialog = (ticket) => {
-    setSelectedTicket(ticket);
-    setReviewData({
-      status: ticket.status,
-      assigned_to: ticket.assigned_to || '',
-      resolution: ticket.resolution || ''
-    });
-    setShowReviewDialog(true);
-  };
+  // Close mutation
+  const closeMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Ticket.update(selectedTicket.id, {
+        status: 'closed',
+        closed_date: new Date().toISOString(),
+      });
+      await base44.entities.TicketMessage.create({
+        ticket_id: selectedTicket.id,
+        sender_id: 'system',
+        sender_name: 'System',
+        sender_role: 'system',
+        message: `Ticket closed by ${currentUser.full_name}.`,
+        message_type: 'system_message',
+        created_date: new Date().toISOString(),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['tickets']);
+      queryClient.invalidateQueries(['ticket-messages', selectedTicket?.id]);
+      toast.success('Ticket closed');
+    },
+  });
 
   if (!currentUser) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  const canCreate = canCreateTicket(currentUser.app_role);
-  const canReview = canReviewTicket(currentUser.app_role);
-
-  // Filter tickets
-  let filteredTickets = filterTicketsByRole(currentUser, tickets);
-
-  if (filterStatus !== 'all') {
-    filteredTickets = filteredTickets.filter(t => t.status === filterStatus);
-  }
-  if (filterPriority !== 'all') {
-    filteredTickets = filteredTickets.filter(t => t.priority === filterPriority);
-  }
-  if (filterCategory !== 'all') {
-    filteredTickets = filteredTickets.filter(t => t.category === filterCategory);
-  }
-  if (filterStudent !== 'all') {
-    filteredTickets = filteredTickets.filter(t => t.student_id === filterStudent);
-  }
-  if (filterMentor !== 'all') {
-    filteredTickets = filteredTickets.filter(t => t.assigned_to === filterMentor);
-  }
-  if (searchTerm) {
-    filteredTickets = filteredTickets.filter(t =>
-      t.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.student_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      </div>
     );
   }
+
+  // Filtered tickets
+  let visibleTickets = filterTicketsByRole(currentUser, tickets);
+  if (filterStatus !== 'all') visibleTickets = visibleTickets.filter(t => t.status === filterStatus);
+  if (filterPriority !== 'all') visibleTickets = visibleTickets.filter(t => t.priority === filterPriority);
+  if (filterCategory !== 'all') visibleTickets = visibleTickets.filter(t => t.category === filterCategory);
+  if (searchTerm) visibleTickets = visibleTickets.filter(t =>
+    t.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.ticket_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.created_by_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const statusCounts = {
+    open: tickets.filter(t => t.status === 'open').length,
+    in_progress: tickets.filter(t => t.status === 'in_progress').length,
+    resolved: tickets.filter(t => t.status === 'resolved').length,
+    closed: tickets.filter(t => t.status === 'closed').length,
+  };
 
   const getStatusBadge = (status) => {
     const config = {
-      open: { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Clock },
-      in_progress: { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: AlertCircle },
-      resolved: { color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2 },
-      closed: { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: XCircle }
+      open: { cls: 'bg-blue-100 text-blue-800 border-blue-200', icon: Clock },
+      in_progress: { cls: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: AlertCircle },
+      resolved: { cls: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2 },
+      closed: { cls: 'bg-gray-100 text-gray-800 border-gray-200', icon: XCircle },
     };
-    const { color, icon: Icon } = config[status] || config.open;
-    return (
-      <Badge variant="outline" className={color}>
-        <Icon className="h-3 w-3 mr-1" />
-        {status.replace('_', ' ')}
-      </Badge>
-    );
+    const { cls, icon: Icon } = config[status] || config.open;
+    return <Badge variant="outline" className={cls}><Icon className="h-3 w-3 mr-1" />{status.replace('_', ' ')}</Badge>;
   };
 
   const getPriorityBadge = (priority) => {
-    const colors = {
-      low: 'bg-gray-100 text-gray-800 border-gray-200',
-      medium: 'bg-blue-100 text-blue-800 border-blue-200',
-      high: 'bg-orange-100 text-orange-800 border-orange-200',
-      urgent: 'bg-red-100 text-red-800 border-red-200'
-    };
-    return (
-      <Badge variant="outline" className={colors[priority]}>
-        {priority}
-      </Badge>
-    );
+    const colors = { low: 'bg-gray-100 text-gray-700', medium: 'bg-blue-100 text-blue-700', high: 'bg-orange-100 text-orange-700', urgent: 'bg-red-100 text-red-700' };
+    return <Badge variant="outline" className={colors[priority] || ''}>{priority}</Badge>;
   };
 
-  const mentorsInTickets = [...new Set(tickets.map(t => t.assigned_to).filter(Boolean))];
+  const filteredStudents = ['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin', 'finance_admin'].includes(currentUser.app_role)
+    ? students
+    : students.filter(s => s.primary_mentor_id === currentUser.id || s.senior_mentor_id === currentUser.id);
 
+  // Detail view
+  if (selectedTicket) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <Button variant="outline" onClick={() => setSelectedTicket(null)} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Back to Tickets
+          </Button>
+          <div style={{ height: 'calc(100vh - 160px)' }}>
+            <TicketChat
+              ticket={selectedTicket}
+              messages={rawMessages}
+              currentUser={currentUser}
+              onSendMessage={(msg) => sendMessageMutation.mutate(msg)}
+              onResolve={() => resolveMutation.mutate()}
+              onClose={() => closeMutation.mutate()}
+              isSending={sendMessageMutation.isPending}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // List view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -203,37 +296,38 @@ export default function Tickets() {
             <TicketIcon className="h-9 w-9 text-blue-600" />
             Support Tickets
           </h1>
-          {canCreate && (
+          {canCreateTicket(currentUser.app_role) && (
             <Button onClick={() => setShowCreateDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Ticket
+              <Plus className="h-4 w-4 mr-2" /> Create Ticket
             </Button>
           )}
         </div>
 
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Open', key: 'open', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+            { label: 'In Progress', key: 'in_progress', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+            { label: 'Resolved', key: 'resolved', color: 'bg-green-50 border-green-200 text-green-700' },
+            { label: 'Closed', key: 'closed', color: 'bg-gray-50 border-gray-200 text-gray-700' },
+          ].map(s => (
+            <div key={s.key} className={`rounded-xl border p-4 text-center ${s.color}`}>
+              <p className="text-3xl font-bold">{statusCounts[s.key]}</p>
+              <p className="text-sm font-medium mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
         {/* Filters */}
         <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
-            <CardTitle className="text-lg font-semibold tracking-tight">Filters</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 space-y-4">
-            <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search tickets..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Status</Label>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-3 items-center">
+              <div className="relative flex-1 min-w-[180px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search tickets..." className="pl-9" />
+              </div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="open">Open</SelectItem>
@@ -242,14 +336,8 @@ export default function Tickets() {
                   <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Priority</Label>
               <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-36"><SelectValue placeholder="Priority" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Priority</SelectItem>
                   <SelectItem value="low">Low</SelectItem>
@@ -258,283 +346,83 @@ export default function Tickets() {
                   <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Category</Label>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-36"><SelectValue placeholder="Category" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="technical">Technical</SelectItem>
+                  <SelectItem value="academic">Academic</SelectItem>
                   <SelectItem value="financial">Financial</SelectItem>
-                  <SelectItem value="account">Account</SelectItem>
+                  <SelectItem value="technical">Technical</SelectItem>
                   <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Student</Label>
-              <Select value={filterStudent} onValueChange={setFilterStudent}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Students</SelectItem>
-                  {students.map((student) => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.student_code} - {student.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-700">Assigned To</Label>
-              <Select value={filterMentor} onValueChange={setFilterMentor}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Mentors</SelectItem>
-                  {users.filter(u => mentorsInTickets.includes(u.id)).map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
           </CardContent>
         </Card>
 
-        {/* Tickets Table */}
+        {/* Table */}
         <Card className="border-gray-200">
           <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
-            <CardTitle className="text-lg font-semibold tracking-tight">All Tickets</CardTitle>
+            <CardTitle className="text-lg font-semibold">Tickets ({visibleTickets.length})</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="font-semibold">Title</TableHead>
-                <TableHead className="font-semibold">Category</TableHead>
-                <TableHead className="font-semibold">Priority</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold">Student</TableHead>
-                <TableHead className="font-semibold">Created By</TableHead>
-                <TableHead className="font-semibold">Assigned To</TableHead>
-                <TableHead className="font-semibold">Created</TableHead>
-                <TableHead className="font-semibold text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTickets.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                    No tickets found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredTickets.map((ticket) => (
-                  <TableRow key={ticket.id} className="hover:bg-gray-50 transition-colors">
-                    <TableCell className="font-medium max-w-xs truncate">
-                      {ticket.title}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {ticket.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
-                    <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                    <TableCell className="text-sm">
-                      {ticket.student_name || '-'}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {ticket.created_by || '-'}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {ticket.assigned_to_name || 'Unassigned'}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {ticket.created_date ? format(new Date(ticket.created_date), 'MMM d, yyyy') : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => openReviewDialog(ticket)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead>Ticket #</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created By</TableHead>
+                    <TableHead>Assigned To</TableHead>
+                    <TableHead>Created</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {visibleTickets.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-10 text-gray-400">No tickets found</TableCell>
+                    </TableRow>
+                  ) : visibleTickets.map(ticket => (
+                    <TableRow
+                      key={ticket.id}
+                      className="hover:bg-blue-50 cursor-pointer transition-colors"
+                      onClick={() => setSelectedTicket(ticket)}
+                    >
+                      <TableCell className="font-mono text-xs font-semibold text-blue-700">{ticket.ticket_number || '—'}</TableCell>
+                      <TableCell className="font-medium max-w-xs truncate">{ticket.title}</TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{ticket.category}</Badge></TableCell>
+                      <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                      <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                      <TableCell className="text-sm">{ticket.created_by_name}</TableCell>
+                      <TableCell className="text-sm capitalize">{ticket.assigned_to_name || ticket.assigned_to_role?.replace(/_/g, ' ')}</TableCell>
+                      <TableCell className="text-sm">{ticket.created_date ? format(new Date(ticket.created_date), 'MMM d, yyyy') : '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
-
-        {/* Create Ticket Dialog */}
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Ticket</DialogTitle>
-            </DialogHeader>
-            <TicketForm
-              onSubmit={handleCreateSubmit}
-              onCancel={() => setShowCreateDialog(false)}
-              isSubmitting={createMutation.isPending}
-              students={['super_admin', 'admin', 'broker_admin', 'academic_head', 'academic_admin'].includes(currentUser?.app_role)
-                ? students
-                : students.filter(s => 
-                    s.primary_mentor_id === currentUser?.id ||
-                    s.senior_mentor_id === currentUser?.id
-                  )
-              }
-              users={users}
-              currentUser={currentUser}
-            />
-          </DialogContent>
-        </Dialog>
-
-        {/* Review/Edit Ticket Dialog */}
-        <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Ticket Details</DialogTitle>
-            </DialogHeader>
-            
-            {selectedTicket && (
-              <form onSubmit={handleReviewSubmit} className="space-y-4">
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                  <div>
-                    <Label className="text-xs text-gray-600">Title</Label>
-                    <p className="font-medium">{selectedTicket.title}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-600">Description</Label>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedTicket.description}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-gray-600">Category</Label>
-                      <p className="text-sm capitalize">{selectedTicket.category}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-600">Priority</Label>
-                      <p className="text-sm capitalize">{selectedTicket.priority}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-600">Student</Label>
-                      <p className="text-sm">{selectedTicket.student_name || 'None'}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-600">Created By</Label>
-                      <p className="text-sm">{selectedTicket.created_by}</p>
-                    </div>
-                  </div>
-                  {selectedTicket.screenshot_url && (
-                    <div>
-                      <Label className="text-xs text-gray-600">Screenshot</Label>
-                      <img 
-                        src={selectedTicket.screenshot_url} 
-                        alt="Ticket screenshot" 
-                        className="mt-2 max-w-full h-auto rounded border"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {canReview && (
-                  <div className="space-y-4 border-t pt-4">
-                    <h3 className="font-semibold">Update Ticket</h3>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Status</Label>
-                        <Select
-                          value={reviewData.status}
-                          onValueChange={(value) => setReviewData({ ...reviewData, status: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="open">Open</SelectItem>
-                            <SelectItem value="in_progress">In Progress</SelectItem>
-                            <SelectItem value="resolved">Resolved</SelectItem>
-                            <SelectItem value="closed">Closed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Assign To</Label>
-                        <Select
-                          value={reviewData.assigned_to}
-                          onValueChange={(value) => setReviewData({ ...reviewData, assigned_to: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select user" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={null}>Unassigned</SelectItem>
-                            {users.map((user) => (
-                              <SelectItem key={user.id} value={user.id}>
-                                {user.full_name} ({user.app_role})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Resolution Notes</Label>
-                      <Textarea
-                        value={reviewData.resolution}
-                        onChange={(e) => setReviewData({ ...reviewData, resolution: e.target.value })}
-                        rows={4}
-                        placeholder="Add resolution notes..."
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-3 pt-4 border-t">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowReviewDialog(false)}
-                  >
-                    Close
-                  </Button>
-                  {canReview && (
-                    <Button 
-                      type="submit" 
-                      disabled={updateMutation.isPending}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      {updateMutation.isPending ? 'Updating...' : 'Update Ticket'}
-                    </Button>
-                  )}
-                </div>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Ticket</DialogTitle>
+          </DialogHeader>
+          <TicketForm
+            onSubmit={(data) => createMutation.mutate(data)}
+            onCancel={() => setShowCreateDialog(false)}
+            isSubmitting={createMutation.isPending}
+            students={filteredStudents}
+            currentUser={currentUser}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

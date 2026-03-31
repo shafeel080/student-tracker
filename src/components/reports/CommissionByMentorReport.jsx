@@ -114,7 +114,7 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Total Withdrawal</th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Net Deposit</th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Commissionable Net<br/><span className="text-xs font-normal text-gray-400">($25K cap/student)</span></th>
-                                <th className="text-right px-4 py-3 font-semibold text-gray-600">Gross Commission<br/><span className="text-xs font-normal text-gray-400">(4%)</span></th>
+                                <th className="text-right px-4 py-3 font-semibold text-gray-600">Gross Commission<br/><span className="text-xs font-normal text-gray-400">(by rate)</span></th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Manual Adj.</th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Adjusted Gross</th>
                                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Release (75%)</th>
@@ -132,7 +132,7 @@ export default function CommissionByMentorReport({ startDate, endDate, dateLabel
                                     <td className="px-4 py-3 text-right font-medium text-red-600">${row.total_withdrawal?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                     <td className={`px-4 py-3 text-right font-medium ${row.net_deposit >= 0 ? 'text-gray-700' : 'text-orange-600'}`}>${row.net_deposit?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                     <td className="px-4 py-3 text-right font-medium text-green-700">${row.commissionable_net?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                                    <td className="px-4 py-3 text-right font-medium text-blue-700">${row.gross_commission?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                    <td className="px-4 py-3 text-right font-medium text-blue-700">${row.gross_commission?.toLocaleString('en-US', { minimumFractionDigits: 2 })}<br/><span className="text-xs text-gray-400">{row.commission_rate}%</span></td>
                                     <td className={`px-4 py-3 text-right font-medium ${(row.manual_adjustment || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                         {row.adjustment_count > 0 ? `${row.manual_adjustment >= 0 ? '+' : ''}$${row.manual_adjustment?.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
                                     </td>

@@ -20,6 +20,22 @@ Deno.serve(async (req) => {
         const BATCH = 100;
         const MAX_CAP = 25000;
 
+        // Fetch all users to get individual commission rates
+        let allUsers = [];
+        let userSkip = 0;
+        while (true) {
+            const batch = await base44.asServiceRole.entities.User.list('-created_date', BATCH, userSkip);
+            if (!Array.isArray(batch) || !batch.length) break;
+            allUsers = allUsers.concat(batch);
+            if (batch.length < BATCH) break;
+            userSkip += BATCH;
+        }
+        // Build a map of user_id -> commission_rate
+        const commissionRateMap = {};
+        for (const u of allUsers) {
+            commissionRateMap[u.id] = parseFloat(u.commission_rate) || 4;
+        }
+
         // Fetch all approved transactions
         let allTxs = [];
         let skip = 0;
@@ -131,7 +147,8 @@ Deno.serve(async (req) => {
                 commissionableNet += Math.max(capped, 0);
             }
 
-            const grossCommission = commissionableNet * 0.04;
+            const mentorCommissionRate = (commissionRateMap[mentorId] ?? 4) / 100;
+            const grossCommission = commissionableNet * mentorCommissionRate;
 
             // Manual adjustments total
             const manualAdjTotal = adjs.reduce((sum, a) => sum + (a.amount_usd || 0), 0);
@@ -143,6 +160,7 @@ Deno.serve(async (req) => {
             result.push({
                 mentor_id: mentorId,
                 mentor_name: mentor.mentor_name,
+                commission_rate: (commissionRateMap[mentorId] ?? 4),
                 total_deposit: totalDeposit,
                 total_withdrawal: totalWithdrawal,
                 net_deposit: totalDeposit - totalWithdrawal,

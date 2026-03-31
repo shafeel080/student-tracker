@@ -65,15 +65,11 @@ export default function FundingRequests() {
     enabled: !!currentUser
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
+  const { data: users = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['all-users-funding'],
     queryFn: async () => {
-      try {
-        const res = await base44.functions.invoke('getAllUsers', {});
-        return res.data?.users || [];
-      } catch {
-        return [];
-      }
+      const res = await base44.functions.invoke('getAllUsers', {});
+      return res.data?.users || [];
     },
     enabled: !!currentUser
   });

@@ -30,6 +30,7 @@ export default function CommissionTools() {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [proRataResults, setProRataResults] = useState(null);
+  const [studentSearch, setStudentSearch] = useState('');
 
   const { data: students = [] } = useQuery({
     queryKey: ['students-for-tools'],
@@ -204,12 +205,24 @@ export default function CommissionTools() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Co-Managed Student *</Label>
-                <Select value={selectedStudentId} onValueChange={v => { setSelectedStudentId(v); setProRataResults(null); }}>
+                <Select value={selectedStudentId} onValueChange={v => { setSelectedStudentId(v); setProRataResults(null); setStudentSearch(''); }}>
                   <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
                   <SelectContent>
-                    {coManagedStudents.map(s => (
-                      <SelectItem key={s.id} value={s.id}>{s.full_name} ({s.student_code})</SelectItem>
-                    ))}
+                    <div className="p-2">
+                      <Input
+                        placeholder="Search student..."
+                        value={studentSearch}
+                        onChange={e => setStudentSearch(e.target.value)}
+                        className="h-8 text-sm"
+                        onClick={e => e.stopPropagation()}
+                        onKeyDown={e => e.stopPropagation()}
+                      />
+                    </div>
+                    {coManagedStudents
+                      .filter(s => !studentSearch || s.full_name?.toLowerCase().includes(studentSearch.toLowerCase()) || s.student_code?.toLowerCase().includes(studentSearch.toLowerCase()))
+                      .map(s => (
+                        <SelectItem key={s.id} value={s.id}>{s.full_name} ({s.student_code})</SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>

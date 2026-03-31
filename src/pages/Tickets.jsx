@@ -101,17 +101,15 @@ export default function Tickets() {
         message_type: 'user_message',
       });
 
-      const roleUsers = allUsers.filter(u => u.app_role === assignedToRole);
-      await Promise.all(roleUsers.map(u =>
-        base44.entities.Notification.create({
-          user_id: u.id,
-          title: `New Support Ticket: ${ticketNumber}`,
-          message: `A new ${formData.category} ticket has been raised by ${currentUser.full_name}: ${formData.title}`,
-          type: 'ticket_new',
-          read: false,
-          link: '/Tickets',
-        })
-      ));
+      // Use backend function to notify role users (service role - works for all user roles)
+      await base44.functions.invoke('sendTicketNotification', {
+        ticketNumber,
+        ticketTitle: formData.title,
+        category: formData.category,
+        createdByName: currentUser.full_name,
+        ticketId: newTicket.id,
+        assignedToRole,
+      });
 
       await logAction('create_ticket', 'Ticket', newTicket.id, `Created ticket: ${formData.title}`, null, newTicket);
       return newTicket;

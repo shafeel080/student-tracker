@@ -65,7 +65,7 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
   return (
     <div className="flex flex-col h-full min-h-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 space-y-2">
+      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 space-y-2 overflow-y-auto flex-shrink-0" style={{ maxHeight: '220px' }}>
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono font-bold text-gray-800 text-sm bg-white border border-gray-200 rounded px-2 py-0.5">{ticket.ticket_number || 'TKT-?????'}</span>
           <Badge variant="outline" className={STATUS_COLORS[ticket.status]}>{ticket.status?.replace('_', ' ')}</Badge>
@@ -94,7 +94,7 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 min-h-0" style={{ maxHeight: '420px' }}>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 min-h-0">
         {/* Original description shown only when no messages yet */}
         {ticket.description && messages.length === 0 && (
           <div className="flex justify-center">

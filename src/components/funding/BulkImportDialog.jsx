@@ -28,10 +28,10 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
       const mentor = mentors.find(m => m.id === selectedMentor);
       const mentorStudents = students.filter(s => s.primary_mentor_id === selectedMentor);
       
-      csvContent = 'email,type,amount_usd,payment_method,mt5_login,transaction_id,notes\n';
-      csvContent += 'student@example.com,DEPOSIT,100.00,UPI,12345,TXN001,Sample deposit\n';
+      csvContent = 'email,type,amount_usd,payment_method,mt5_login,transaction_id,initiating_mentor_email,notes\n';
+      csvContent += `student@example.com,DEPOSIT,100.00,UPI,12345,TXN001,${mentor.email},Sample deposit\n`;
       mentorStudents.forEach(student => {
-        csvContent += `${student.email},DEPOSIT,0.00,,,,,\n`;
+        csvContent += `${student.email},DEPOSIT,0.00,,,${mentor.email},,\n`;
       });
       
       filename = `bulk_funding_${mentor.full_name.replace(/\s+/g, '_')}_${Date.now()}.csv`;
@@ -42,8 +42,8 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
       }
       const student = students.find(s => s.id === selectedStudent);
       
-      csvContent = 'email,type,amount_usd,payment_method,mt5_login,transaction_id,notes\n';
-      csvContent += 'student@example.com,DEPOSIT,100.00,UPI,12345,TXN001,Sample deposit\n';
+      csvContent = 'email,type,amount_usd,payment_method,mt5_login,transaction_id,initiating_mentor_email,notes\n';
+      csvContent += 'student@example.com,DEPOSIT,100.00,UPI,12345,TXN001,mentor@example.com,Sample deposit\n';
       csvContent += `${student.email},DEPOSIT,0.00,,,,,\n`;
       
       filename = `bulk_funding_${student.student_code}_${Date.now()}.csv`;
@@ -101,11 +101,23 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
       const rows = parseCSV(text);
       
       const transactions = rows
-        .filter(row => row.email && row.email !== 'student@example.com') // Skip example row
+        .filter(row => row.email && row.email !== 'student@example.com')
         .map(row => {
           const student = students.find(s => s.email?.toLowerCase() === row.email?.toLowerCase());
           if (!student) {
             throw new Error(`Student not found with email: ${row.email}`);
+          }
+
+          // Resolve initiating mentor from email column
+          let initiatingMentorId = student.primary_mentor_id;
+          let initiatingMentorName = student.primary_mentor_name;
+          if (row.initiating_mentor_email && row.initiating_mentor_email.trim()) {
+            const mentor = users.find(u => u.email?.toLowerCase() === row.initiating_mentor_email.trim().toLowerCase());
+            if (!mentor) {
+              throw new Error(`Mentor not found with email: ${row.initiating_mentor_email}`);
+            }
+            initiatingMentorId = mentor.id;
+            initiatingMentorName = mentor.full_name;
           }
 
           return {
@@ -118,6 +130,8 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
             primary_mentor_name: student.primary_mentor_name,
             senior_mentor_id: student.senior_mentor_id,
             senior_mentor_name: student.senior_mentor_name,
+            initiating_mentor_id: initiatingMentorId,
+            initiating_mentor_name: initiatingMentorName,
             amount_usd: parseFloat(row.amount_usd) || 0,
             payment_method: row.payment_method || '',
             mt5_login: row.mt5_login || '',
@@ -201,7 +215,7 @@ export default function BulkImportDialog({ open, onClose, onImport, students, us
             <div className="flex items-start gap-2 mb-3">
               <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
               <p className="text-sm text-gray-600">
-                Download the CSV template, fill in the transaction details, and upload it back.
+                Download the CSV template, fill in the transaction details, and upload it back. Use the <strong>initiating_mentor_email</strong> column to correctly attribute each transaction to the mentor who initiated it.
               </p>
             </div>
             <Button onClick={generateCSVTemplate} variant="outline" className="w-full">

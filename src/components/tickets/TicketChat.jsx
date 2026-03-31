@@ -65,32 +65,33 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
   return (
     <div className="flex flex-col h-full min-h-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 space-y-2 overflow-y-auto flex-shrink-0" style={{ maxHeight: '220px' }}>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono font-bold text-gray-800 text-sm bg-white border border-gray-200 rounded px-2 py-0.5">{ticket.ticket_number || 'TKT-?????'}</span>
-          <Badge variant="outline" className={STATUS_COLORS[ticket.status]}>{ticket.status?.replace('_', ' ')}</Badge>
-          <Badge variant="outline" className="capitalize">{ticket.category}</Badge>
-          <Badge variant="outline" className={PRIORITY_COLORS[ticket.priority]}>{ticket.priority}</Badge>
-        </div>
-        <h2 className="font-semibold text-gray-900 text-base">{ticket.title}</h2>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-          <span>By: <strong>{ticket.created_by_name}</strong></span>
-          <span>Assigned to: <strong className="capitalize">{ticket.assigned_to_name || ticket.assigned_to_role?.replace(/_/g, ' ')}</strong></span>
-          {ticket.student_name && <span>Student: <strong>{ticket.student_name}</strong></span>}
-          <span>Created: {ticket.created_date ? format(new Date(ticket.created_date), 'MMM d, yyyy') : '-'}</span>
-        </div>
-        {ticket.screenshot_url && (
-          <div className="pt-1">
-            <p className="text-xs text-gray-500 font-medium mb-1">Attachment:</p>
-            <a href={ticket.screenshot_url} target="_blank" rel="noopener noreferrer">
+      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 flex-shrink-0">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2 flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono font-bold text-gray-800 text-sm bg-white border border-gray-200 rounded px-2 py-0.5">{ticket.ticket_number || 'TKT-?????'}</span>
+              <Badge variant="outline" className={STATUS_COLORS[ticket.status]}>{ticket.status?.replace('_', ' ')}</Badge>
+              <Badge variant="outline" className="capitalize">{ticket.category}</Badge>
+              <Badge variant="outline" className={PRIORITY_COLORS[ticket.priority]}>{ticket.priority}</Badge>
+            </div>
+            <h2 className="font-semibold text-gray-900 text-base truncate">{ticket.title}</h2>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+              <span>By: <strong>{ticket.created_by_name}</strong></span>
+              <span>Assigned to: <strong className="capitalize">{ticket.assigned_to_name || ticket.assigned_to_role?.replace(/_/g, ' ')}</strong></span>
+              {ticket.student_name && <span>Student: <strong>{ticket.student_name}</strong></span>}
+              <span>Created: {ticket.created_date ? format(new Date(ticket.created_date), 'MMM d, yyyy') : '-'}</span>
+            </div>
+          </div>
+          {ticket.screenshot_url && (
+            <a href={ticket.screenshot_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
               <img
                 src={ticket.screenshot_url}
                 alt="ticket attachment"
-                className="max-w-[300px] rounded-lg border border-gray-200 hover:opacity-90 transition-opacity cursor-pointer"
+                className="h-16 w-16 object-cover rounded-lg border border-gray-200 hover:opacity-90 transition-opacity cursor-pointer"
               />
             </a>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Messages */}

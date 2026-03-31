@@ -101,15 +101,17 @@ export default function Tickets() {
         message_type: 'user_message',
       });
 
-      // Use backend function to notify role users (service role - works for all user roles)
-      await base44.functions.invoke('sendTicketNotification', {
-        ticketNumber,
-        ticketTitle: formData.title,
-        category: formData.category,
-        createdByName: currentUser.full_name,
-        ticketId: newTicket.id,
-        assignedToRole,
-      });
+      // Notify assigned role users + super admins
+      const notifyUsers = allUsers.filter(u => u.app_role === assignedToRole || u.app_role === 'super_admin');
+      await Promise.all(notifyUsers.map(u =>
+        base44.entities.Notification.create({
+          user_id: u.id,
+          title: `New Ticket: ${ticketNumber}`,
+          message: `${currentUser.full_name} raised a ${formData.category} ticket: ${formData.title}`,
+          type: 'ticket_new',
+          read: false,
+        })
+      ));
 
       await logAction('create_ticket', 'Ticket', newTicket.id, `Created ticket: ${formData.title}`, null, newTicket);
       return newTicket;
@@ -139,6 +141,42 @@ export default function Tickets() {
         await base44.entities.Ticket.update(selectedTicket.id, {
           status: 'in_progress',
           first_response_date: new Date().toISOString(),
+        });
+        // Notification 3: in_progress — notify ticket creator
+        await base44.entities.Notification.create({
+          user_id: selectedTicket.created_by_id,
+          title: `Ticket ${selectedTicket.ticket_number} In Progress`,
+          message: `Your ticket '${selectedTicket.title}' is now being handled.`,
+          type: 'ticket_status',
+          read: false,
+        });
+      }
+
+      // Notification 2: new reply
+      const isCreator = currentUser.id === selectedTicket.created_by_id;
+      if (isCreator) {
+        // Mentor sent reply — notify assigned admin + super admins
+        const replyTargets = allUsers.filter(u =>
+          (selectedTicket.assigned_to_id ? u.id === selectedTicket.assigned_to_id : u.app_role === selectedTicket.assigned_to_role) ||
+          u.app_role === 'super_admin'
+        );
+        await Promise.all(replyTargets.map(u =>
+          base44.entities.Notification.create({
+            user_id: u.id,
+            title: `New Reply: ${selectedTicket.ticket_number}`,
+            message: `${currentUser.full_name} replied to ticket: ${selectedTicket.title}`,
+            type: 'ticket_reply',
+            read: false,
+          })
+        ));
+      } else {
+        // Admin sent reply — notify ticket creator
+        await base44.entities.Notification.create({
+          user_id: selectedTicket.created_by_id,
+          title: `New Reply: ${selectedTicket.ticket_number}`,
+          message: `${currentUser.full_name} replied to ticket: ${selectedTicket.title}`,
+          type: 'ticket_reply',
+          read: false,
         });
       }
     },
@@ -192,6 +230,20 @@ export default function Tickets() {
         message: `Ticket closed by ${currentUser.full_name}.`,
         message_type: 'system_message',
       });
+      // Notification 5: closed — notify assigned admin + super admins
+      const closedTargets = allUsers.filter(u =>
+        (selectedTicket.assigned_to_id ? u.id === selectedTicket.assigned_to_id : u.app_role === selectedTicket.assigned_to_role) ||
+        u.app_role === 'super_admin'
+      );
+      await Promise.all(closedTargets.map(u =>
+        base44.entities.Notification.create({
+          user_id: u.id,
+          title: `Ticket ${selectedTicket.ticket_number} Closed`,
+          message: `${selectedTicket.created_by_name} confirmed and closed the ticket.`,
+          type: 'ticket_closed',
+          read: false,
+        })
+      ));
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tickets']);

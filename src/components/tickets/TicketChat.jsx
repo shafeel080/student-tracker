@@ -61,7 +61,6 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
   const isResolved = ticket.status === 'resolved';
   const userCanResolve = canResolveTicket(currentUser.app_role) && ticket.status === 'in_progress';
   const isCreator = currentUser.id === ticket.created_by_id;
-  const userCanClose = canCloseTicket(currentUser.app_role, currentUser.id, ticket) && isResolved;
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -96,28 +95,18 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 min-h-0" style={{ maxHeight: '420px' }}>
-        {/* Original description as first message if no messages yet */}
+        {/* Original description shown only when no messages yet */}
         {ticket.description && messages.length === 0 && (
           <div className="flex justify-center">
-            <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 max-w-lg text-xs text-gray-500 italic text-center space-y-2">
+            <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 max-w-lg text-xs text-gray-500 italic text-center">
               <p>Original Description: {ticket.description}</p>
-              {ticket.screenshot_url && (
-                <a href={ticket.screenshot_url} target="_blank" rel="noopener noreferrer">
-                  <img
-                    src={ticket.screenshot_url}
-                    alt="attachment"
-                    className="max-w-[250px] mx-auto rounded border border-gray-200 hover:opacity-90 transition-opacity cursor-pointer"
-                  />
-                </a>
-              )}
             </div>
           </div>
         )}
 
-        {messages.map((msg, idx) => {
+        {messages.map((msg) => {
           const isSystem = ['system_message', 'auto_close_warning', 'auto_closed'].includes(msg.message_type);
           const isMe = msg.sender_id === currentUser.id;
-          const isFirstMessage = idx === 0;
 
           if (isSystem) {
             return (
@@ -131,7 +120,7 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
 
           return (
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-xs md:max-w-md lg:max-w-lg space-y-1`}>
+              <div className="max-w-xs md:max-w-md lg:max-w-lg space-y-1">
                 {!isMe && (
                   <div className="flex items-center gap-1.5 px-1">
                     <span className="text-xs font-semibold text-gray-700">{msg.sender_name}</span>
@@ -144,17 +133,6 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
                     : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
                 }`}>
                   {msg.message && <p>{msg.message}</p>}
-                  {/* Show ticket screenshot on first message */}
-                  {isFirstMessage && ticket.screenshot_url && (
-                    <a href={ticket.screenshot_url} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={ticket.screenshot_url}
-                        alt="attachment"
-                        className="max-w-[250px] rounded-lg border border-gray-200 hover:opacity-90 transition-opacity cursor-pointer mt-1"
-                      />
-                    </a>
-                  )}
-                  {/* Message attachment */}
                   {msg.attachment_url && (
                     <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
                       <img
@@ -200,7 +178,6 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
           <p className="text-center text-sm text-gray-400 italic py-1">This ticket has been closed.</p>
         ) : (
           <div className="space-y-2">
-            {/* Attachment preview */}
             {attachmentPreview && (
               <div className="relative inline-block">
                 <img
@@ -222,7 +199,6 @@ export default function TicketChat({ ticket, messages = [], currentUser, onSendM
               </div>
             )}
 
-            {/* Input row */}
             <div className="flex gap-2 items-end">
               <Textarea
                 rows={2}

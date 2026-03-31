@@ -29,7 +29,11 @@ export default function NotificationBell({ currentUser }) {
     await base44.entities.Notification.update(notif.id, { read: true });
     setNotifications(prev => prev.filter(n => n.id !== notif.id));
     setOpen(false);
-    if (notif.link) navigate(notif.link);
+    if (notif.type?.startsWith('ticket_') && notif.reference_id) {
+      navigate(`/Tickets?open=${notif.reference_id}`);
+    } else if (notif.link) {
+      navigate(notif.link);
+    }
   };
 
   const markAllRead = async () => {

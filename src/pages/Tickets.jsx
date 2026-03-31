@@ -33,6 +33,17 @@ export default function Tickets() {
     base44.auth.me().then(u => setCurrentUser(getEffectiveUser(u)));
   }, []);
 
+  // Auto-open ticket from notification URL param
+  useEffect(() => {
+    if (!currentUser || tickets.length === 0) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const openTicketId = urlParams.get('open');
+    if (openTicketId && !selectedTicket) {
+      const ticket = tickets.find(t => t.id === openTicketId);
+      if (ticket) setSelectedTicket(ticket);
+    }
+  }, [currentUser, tickets]);
+
   const { data: tickets = [] } = useQuery({
     queryKey: ['tickets'],
     queryFn: () => base44.entities.Ticket.list('-created_date'),
@@ -109,6 +120,7 @@ export default function Tickets() {
           type: 'ticket_new',
           assignedToRole,
           assignedToId: assignedUser?.id || null,
+          referenceId: newTicket.id,
         });
       } catch (e) { console.error('Notification error (create):', e); }
 
@@ -149,6 +161,7 @@ export default function Tickets() {
             message: `Your ticket '${selectedTicket.title}' is now being handled.`,
             type: 'ticket_status',
             read: false,
+            reference_id: selectedTicket.id,
           });
         } catch (e) { console.error('Notification error (in_progress):', e); }
       }
@@ -164,6 +177,7 @@ export default function Tickets() {
             type: 'ticket_reply',
             assignedToRole: selectedTicket.assigned_to_role,
             assignedToId: selectedTicket.assigned_to_id || null,
+            referenceId: selectedTicket.id,
           });
         } catch (e) { console.error('Notification error (reply mentor):', e); }
       } else {
@@ -175,6 +189,7 @@ export default function Tickets() {
             message: `${currentUser.full_name} replied to ticket: ${selectedTicket.title}`,
             type: 'ticket_reply',
             read: false,
+            reference_id: selectedTicket.id,
           });
         } catch (e) { console.error('Notification error (reply admin):', e); }
       }
@@ -205,7 +220,7 @@ export default function Tickets() {
         message: `Your ticket "${selectedTicket.title}" has been resolved. Please close it to confirm.`,
         type: 'ticket_resolved',
         read: false,
-        link: '/Tickets',
+        reference_id: selectedTicket.id,
       });
     },
     onSuccess: () => {
@@ -237,6 +252,7 @@ export default function Tickets() {
           type: 'ticket_closed',
           assignedToRole: selectedTicket.assigned_to_role,
           assignedToId: selectedTicket.assigned_to_id || null,
+          referenceId: selectedTicket.id,
         });
       } catch (e) { console.error('Notification error (closed):', e); }
     },

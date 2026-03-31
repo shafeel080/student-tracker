@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { title, message, type, assignedToRole, assignedToId } = await req.json();
+    const { title, message, type, assignedToRole, assignedToId, referenceId } = await req.json();
 
     // Use service role to list all users
     const allUsers = await base44.asServiceRole.entities.User.list();
@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
         message,
         type,
         read: false,
+        ...(referenceId ? { reference_id: referenceId } : {}),
       })
     ));
 

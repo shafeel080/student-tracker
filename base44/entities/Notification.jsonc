@@ -37,6 +37,10 @@
     "link": {
       "type": "string",
       "description": "Optional link to navigate to"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "Reference ID (e.g. ticket ID) for deep-linking"
     }
   },
   "required": [

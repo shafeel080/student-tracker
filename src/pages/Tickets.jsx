@@ -33,17 +33,6 @@ export default function Tickets() {
     base44.auth.me().then(u => setCurrentUser(getEffectiveUser(u)));
   }, []);
 
-  // Auto-open ticket from notification URL param
-  useEffect(() => {
-    if (!currentUser || tickets.length === 0) return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const openTicketId = urlParams.get('open');
-    if (openTicketId && !selectedTicket) {
-      const ticket = tickets.find(t => t.id === openTicketId);
-      if (ticket) setSelectedTicket(ticket);
-    }
-  }, [currentUser, tickets]);
-
   const { data: tickets = [] } = useQuery({
     queryKey: ['tickets'],
     queryFn: () => base44.entities.Ticket.list('-created_date'),
@@ -78,6 +67,17 @@ export default function Tickets() {
       if (updated) setSelectedTicket(updated);
     }
   }, [tickets]);
+
+  // Auto-open ticket from notification URL param
+  useEffect(() => {
+    if (!currentUser || tickets.length === 0) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const openTicketId = urlParams.get('open');
+    if (openTicketId && !selectedTicket) {
+      const ticket = tickets.find(t => t.id === openTicketId);
+      if (ticket) setSelectedTicket(ticket);
+    }
+  }, [currentUser, tickets]);
 
   const createMutation = useMutation({
     mutationFn: async (formData) => {

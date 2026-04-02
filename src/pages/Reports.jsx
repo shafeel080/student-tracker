@@ -3,14 +3,21 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from 'date-fns';
 import { Calendar, RefreshCw } from 'lucide-react';
 
 import StudentWiseReport from '../components/reports/StudentWiseReport';
 import CommissionByMentorReport from '../components/reports/CommissionByMentorReport';
 import { getEffectiveUser } from '../components/utils/ImpersonationContext';
 
-const DATE_TABS = ['Daily', 'Weekly', 'Monthly', 'Custom'];
+const DATE_TABS = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Custom'];
+
+const QUARTERS = [
+    { label: 'Q1 (Jan–Mar)', value: 1 },
+    { label: 'Q2 (Apr–Jun)', value: 2 },
+    { label: 'Q3 (Jul–Sep)', value: 3 },
+    { label: 'Q4 (Oct–Dec)', value: 4 },
+];
 
 const MENTOR_ROLES = ['junior_mentor', 'senior_mentor'];
 
@@ -41,6 +48,10 @@ export default function Reports() {
     const [customStart, setCustomStart] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [customEnd, setCustomEnd] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [mentorFilter, setMentorFilter] = useState('');
+    const currentYear = new Date().getFullYear();
+    const currentQ = Math.ceil((new Date().getMonth() + 1) / 3);
+    const [selectedQuarter, setSelectedQuarter] = useState(currentQ);
+    const [selectedYear, setSelectedYear] = useState(currentYear);
 
     useEffect(() => {
         base44.auth.me().then(u => {
@@ -51,9 +62,16 @@ export default function Reports() {
         });
     }, []);
 
-    const dateRange = activeTab === 'Custom'
-        ? { start: new Date(customStart), end: new Date(customEnd) }
-        : getDateRange(activeTab);
+    const dateRange = useMemo(() => {
+        if (activeTab === 'Custom') return { start: new Date(customStart), end: new Date(customEnd) };
+        if (activeTab === 'Quarterly') {
+            const qStartMonth = (selectedQuarter - 1) * 3;
+            const start = new Date(selectedYear, qStartMonth, 1);
+            const end = endOfMonth(new Date(selectedYear, qStartMonth + 2, 1));
+            return { start, end };
+        }
+        return getDateRange(activeTab);
+    }, [activeTab, customStart, customEnd, selectedQuarter, selectedYear]);
 
     const safeEnd = (dateRange.end instanceof Date && !isNaN(dateRange.end)) ? dateRange.end : new Date();
     const safeStart = (dateRange.start instanceof Date && !isNaN(dateRange.start)) ? dateRange.start : new Date();
@@ -129,6 +147,29 @@ export default function Reports() {
                         </button>
                     ))}
                 </div>
+
+                {activeTab === 'Quarterly' && (
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={selectedQuarter}
+                            onChange={e => setSelectedQuarter(Number(e.target.value))}
+                            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        >
+                            {QUARTERS.map(q => (
+                                <option key={q.value} value={q.value}>{q.label}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={selectedYear}
+                            onChange={e => setSelectedYear(Number(e.target.value))}
+                            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        >
+                            {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 {activeTab === 'Custom' && (
                     <div className="flex items-center gap-2">

@@ -17,7 +17,8 @@ import {
 import { 
   calculateQuarterlyNetDepositAndCommission,
   getCurrentQuarterLabel,
-  isWithinCurrentQuarter
+  isWithinCurrentQuarter,
+  getQuarterDateRange
 } from "../components/utils/CommissionUtils";
 import { filterStudentsByRole } from "../components/utils/StudentAccessControl";
 import { getEffectiveUser } from "../components/utils/ImpersonationContext";
@@ -33,6 +34,10 @@ export default function MyFundingRequests() {
   const [filterType, setFilterType] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterSearch, setFilterSearch] = useState('');
+  const currentQ = Math.ceil((new Date().getMonth() + 1) / 3);
+  const currentYear = new Date().getFullYear();
+  const [selectedQuarter, setSelectedQuarter] = useState(currentQ);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
 
   const queryClient = useQueryClient();
 
@@ -153,22 +158,27 @@ export default function MyFundingRequests() {
   }
 
   // Calculate MY commission
-  const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser);
-  const quarterLabel = getCurrentQuarterLabel();
+  const selectedQuarterRange = getQuarterDateRange(selectedQuarter, selectedYear);
+  const isCurrentQuarter = selectedQuarter === Math.ceil((new Date().getMonth() + 1) / 3) && selectedYear === new Date().getFullYear();
+  const commission = calculateQuarterlyNetDepositAndCommission(myTransactions, currentUser, new Date(), selectedQuarterRange);
+  const quarterLabel = `Q${selectedQuarter} ${selectedYear}`;
 
-  // Apply manual adjustments for current quarter
-  const myAdjustments = manualAdjustments.filter(a =>
-    a.mentor_id === currentUser.id && isWithinCurrentQuarter(a.created_date)
-  );
+  const myAdjustments = manualAdjustments.filter(a => {
+    if (a.mentor_id !== currentUser.id) return false;
+    const d = new Date(a.created_date);
+    return d >= selectedQuarterRange.start && d <= selectedQuarterRange.end;
+  });
   const adjustmentTotal = myAdjustments.reduce((sum, a) => sum + (a.amount_usd || 0), 0);
   const adjustedGross = commission.grossCommissionUsd + adjustmentTotal;
   const adjustedRelease = adjustedGross * 0.75;
   const adjustedBuffer = adjustedGross * 0.25;
 
   // Calculate TEAM commission - each transaction uses its own stored percentage
-  const approvedTeamTransactions = teamTransactions.filter(t => 
-    t.status === 'APPROVED' && isWithinCurrentQuarter(t.requested_at)
-  );
+  const approvedTeamTransactions = teamTransactions.filter(t => {
+    if (t.status !== 'APPROVED') return false;
+    const d = new Date(t.requested_at || t.created_date);
+    return d >= selectedQuarterRange.start && d <= selectedQuarterRange.end;
+  });
 
   // Calculate commission per transaction
   const teamCommissionData = approvedTeamTransactions.map(t => {
@@ -277,10 +287,34 @@ export default function MyFundingRequests() {
             {/* Commission Summary - hidden for assistance role */}
             {!isAssistance && (<Card className="border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader className="border-b border-blue-100">
-                <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                  <Award className="h-5 w-5 text-blue-600" />
-                  Commission Summary - {quarterLabel}
-                </CardTitle>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                    <Award className="h-5 w-5 text-blue-600" />
+                    Commission Summary - {quarterLabel}
+                    {isCurrentQuarter && <span className="text-xs font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Current</span>}
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedQuarter}
+                      onChange={e => setSelectedQuarter(Number(e.target.value))}
+                      className="h-8 text-sm border border-input rounded-md px-2 bg-white focus:outline-none focus:ring-1 focus:ring-ring"
+                    >
+                      <option value={1}>Q1 (Jan–Mar)</option>
+                      <option value={2}>Q2 (Apr–Jun)</option>
+                      <option value={3}>Q3 (Jul–Sep)</option>
+                      <option value={4}>Q4 (Oct–Dec)</option>
+                    </select>
+                    <select
+                      value={selectedYear}
+                      onChange={e => setSelectedYear(Number(e.target.value))}
+                      className="h-8 text-sm border border-input rounded-md px-2 bg-white focus:outline-none focus:ring-1 focus:ring-ring"
+                    >
+                      {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -568,10 +602,13 @@ export default function MyFundingRequests() {
               {/* Team Commission Summary */}
               <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
                 <CardHeader className="border-b border-purple-100">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
                   <CardTitle className="text-xl font-semibold flex items-center gap-2">
                     <Users className="h-5 w-5 text-purple-600" />
                     Team Commission Summary - {quarterLabel}
+                    {isCurrentQuarter && <span className="text-xs font-normal bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Current</span>}
                   </CardTitle>
+                </div>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

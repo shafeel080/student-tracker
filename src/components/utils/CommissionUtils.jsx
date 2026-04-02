@@ -25,20 +25,32 @@ export const getCurrentQuarterLabel = (currentDate = new Date()) => {
   return `Q${quarter} ${year}`;
 };
 
-export const calculateQuarterlyNetDepositAndCommission = (transactions, currentUser, currentDate = new Date()) => {
+export const getQuarterDateRange = (quarter, year) => {
+  const startMonth = (quarter - 1) * 3;
+  const start = new Date(year, startMonth, 1);
+  const end = new Date(year, startMonth + 3, 0, 23, 59, 59, 999);
+  return { start, end };
+};
+
+export const calculateQuarterlyNetDepositAndCommission = (transactions, currentUser, currentDate = new Date(), dateRange = null) => {
   if (!transactions || !currentUser) {
     return {
       netDepositUsd: 0,
+      rawNetDepositUsd: 0,
       grossCommissionUsd: 0,
       release75Usd: 0,
       buffer25Usd: 0
     };
   }
-  
-  // Filter transactions for current quarter, APPROVED status, and current mentor
+
   const relevantTransactions = transactions.filter(t => {
     if (t.status !== 'APPROVED') return false;
-    if (!isWithinCurrentQuarter(t.requested_at, currentDate)) return false;
+    if (dateRange) {
+      const txDate = new Date(t.requested_at || t.created_date);
+      if (txDate < dateRange.start || txDate > dateRange.end) return false;
+    } else {
+      if (!isWithinCurrentQuarter(t.requested_at, currentDate)) return false;
+    }
     // If initiating_mentor_id is set, commission goes to that mentor
     if (t.initiating_mentor_id) return t.initiating_mentor_id === currentUser.id;
     // Otherwise, credit goes to the primary mentor (legacy behavior)

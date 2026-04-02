@@ -107,7 +107,7 @@ export default function Reports() {
             );
         } else if (mentorFilter) {
             filtered = filtered.filter(r =>
-                r.primary_mentor_name === mentorFilter || r.senior_mentor_name === mentorFilter
+                r.initiating_mentor_name === mentorFilter
             );
         }
         return filtered;

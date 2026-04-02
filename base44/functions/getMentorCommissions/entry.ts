@@ -7,12 +7,13 @@ Deno.serve(async (req) => {
 
         if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const allowedRoles = ['super_admin', 'broker_admin', 'academic_head', 'finance_admin', 'junior_mentor', 'senior_mentor'];
-        if (!allowedRoles.includes(user.app_role)) {
+        const allowedRoles = ['super_admin', 'broker_admin', 'academic_head', 'finance_admin', 'junior_mentor', 'senior_mentor', 'admin'];
+        const userRole = user.app_role || user.role;
+        if (!allowedRoles.includes(userRole)) {
             return Response.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const isMentor = ['junior_mentor', 'senior_mentor'].includes(user.app_role);
+        const isMentor = ['junior_mentor', 'senior_mentor'].includes(userRole);
 
         const body = await req.json();
         const { startDate, endDate } = body;

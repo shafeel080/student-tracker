@@ -102,12 +102,13 @@ export default function Reports() {
         // Mentors only see their own students' transactions
         if (isMentor && currentUser) {
             filtered = filtered.filter(t =>
-                t.primary_mentor_id === currentUser.id ||
                 t.initiating_mentor_id === currentUser.id
             );
         } else if (mentorFilter) {
             filtered = filtered.filter(r =>
-                r.initiating_mentor_name === mentorFilter
+                r.initiating_mentor_name === mentorFilter ||
+                r.primary_mentor_name === mentorFilter ||
+                r.senior_mentor_name === mentorFilter
             );
         }
         return filtered;

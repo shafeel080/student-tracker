@@ -53,7 +53,7 @@ export default function ReportTransactionDetails() {
           const effectiveId = t.initiating_mentor_id || t.primary_mentor_id;
           return effectiveId === filterId;
         }
-        return t.initiating_mentor_id === filterId;
+        return (t.initiating_mentor_id || t.primary_mentor_id) === filterId;
       }
       if (filterType === 'added_by') return (t.initiating_mentor_id || t.requested_by_id) === filterId;
       return true;

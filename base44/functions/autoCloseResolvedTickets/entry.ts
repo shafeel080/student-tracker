@@ -37,6 +37,13 @@ Deno.serve(async (req) => {
       });
 
       await base44.asServiceRole.entities.Ticket.update(ticket.id, {
+        title: ticket.title,
+        description: ticket.description,
+        category: ticket.category,
+        priority: ticket.priority,
+        created_by_id: ticket.created_by_id,
+        created_by_name: ticket.created_by_name,
+        assigned_to_role: ticket.assigned_to_role,
         status: 'closed',
         closed_date: now.toISOString(),
       });

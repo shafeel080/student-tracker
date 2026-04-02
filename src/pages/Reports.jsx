@@ -106,7 +106,11 @@ export default function Reports() {
                 t.initiating_mentor_id === currentUser.id
             );
         } else if (mentorFilter) {
-            filtered = filtered.filter(r => r.initiating_mentor_name === mentorFilter);
+            filtered = filtered.filter(r =>
+                r.primary_mentor_name === mentorFilter ||
+                r.senior_mentor_name === mentorFilter ||
+                r.initiating_mentor_name === mentorFilter
+            );
         }
         return filtered;
     }, [allTransactions, dateRange, mentorFilter, isMentor, currentUser]);

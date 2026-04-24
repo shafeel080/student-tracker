@@ -17,8 +17,8 @@ export const canEditMT5Account = (userRole) => {
 };
 
 export const shouldMaskStudentData = (userRole) => {
-  // Only Super Admin, Admin, Broker Admin, and Academic Admin see unmasked data
-  return !['super_admin', 'admin', 'broker_admin', 'academic_admin'].includes(userRole);
+  // Only Super Admin, Admin, Broker Admin, Academic Admin, and Assistance see unmasked data
+  return !['super_admin', 'admin', 'broker_admin', 'academic_admin', 'assistance'].includes(userRole);
 };
 
 export const maskEmail = (email) => {

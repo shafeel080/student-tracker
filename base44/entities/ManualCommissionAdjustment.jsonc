@@ -1,0 +1,51 @@
+{
+  "name": "ManualCommissionAdjustment",
+  "type": "object",
+  "properties": {
+    "mentor_id": {
+      "type": "string",
+      "description": "ID of the mentor for whom the adjustment is made"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Full name of the mentor"
+    },
+    "amount_usd": {
+      "type": "number",
+      "description": "Adjustment amount in USD (positive = addition, negative = deduction)"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for the manual adjustment"
+    },
+    "adjustment_type": {
+      "type": "string",
+      "enum": [
+        "ADDITION",
+        "DEDUCTION"
+      ],
+      "description": "Type of adjustment"
+    },
+    "created_by_id": {
+      "type": "string",
+      "description": "ID of the user who created this adjustment"
+    },
+    "created_by_name": {
+      "type": "string",
+      "description": "Name of the user who created this adjustment"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "mentor_id",
+    "mentor_name",
+    "amount_usd",
+    "reason",
+    "adjustment_type",
+    "created_by_id",
+    "created_by_name"
+  ]
+}

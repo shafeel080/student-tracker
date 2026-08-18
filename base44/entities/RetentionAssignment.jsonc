@@ -1,0 +1,76 @@
+{
+  "name": "RetentionAssignment",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Student ID who crossed 25K threshold"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "Student code"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student full name"
+    },
+    "primary_mentor_id": {
+      "type": "string",
+      "description": "Primary mentor who facilitated the deposit"
+    },
+    "primary_mentor_name": {
+      "type": "string",
+      "description": "Primary mentor name"
+    },
+    "net_deposit_usd": {
+      "type": "number",
+      "description": "Total net deposit amount when threshold was hit"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_assignment",
+        "assigned",
+        "completed"
+      ],
+      "default": "pending_assignment",
+      "description": "Status of retention assignment"
+    },
+    "assigned_draw_admin_id": {
+      "type": "string",
+      "description": "Draw Admin user ID assigned"
+    },
+    "assigned_draw_admin_name": {
+      "type": "string",
+      "description": "Draw Admin name assigned"
+    },
+    "assigned_by_id": {
+      "type": "string",
+      "description": "Academic head user ID who assigned"
+    },
+    "assigned_by_name": {
+      "type": "string",
+      "description": "Academic head name who assigned"
+    },
+    "assigned_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When assignment was made"
+    },
+    "threshold_crossed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When 25K threshold was crossed"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "student_id",
+    "student_name",
+    "primary_mentor_id",
+    "net_deposit_usd"
+  ]
+}

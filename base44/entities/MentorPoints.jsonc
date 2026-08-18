@@ -1,0 +1,74 @@
+{
+  "name": "MentorPoints",
+  "type": "object",
+  "properties": {
+    "mentor_id": {
+      "type": "string",
+      "description": "Mentor user ID"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor full name"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Total accumulated points"
+    },
+    "deposit_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Points from deposit amounts"
+    },
+    "student_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Points from number of depositing students"
+    },
+    "bonus_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Bonus points from streaks and achievements"
+    },
+    "total_net_deposit_usd": {
+      "type": "number",
+      "default": 0,
+      "description": "Total net deposits from students"
+    },
+    "unique_depositing_students": {
+      "type": "number",
+      "default": 0,
+      "description": "Count of unique students with deposits >= $500"
+    },
+    "current_streak_weeks": {
+      "type": "number",
+      "default": 0,
+      "description": "Current consecutive weeks with deposits"
+    },
+    "longest_streak_weeks": {
+      "type": "number",
+      "default": 0,
+      "description": "Longest streak ever achieved"
+    },
+    "rank": {
+      "type": "number",
+      "description": "Current leaderboard rank"
+    },
+    "badges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of earned badge IDs"
+    },
+    "last_calculated_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When points were last calculated"
+    }
+  },
+  "required": [
+    "mentor_id",
+    "mentor_name"
+  ]
+}

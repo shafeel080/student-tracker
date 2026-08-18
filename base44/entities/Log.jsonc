@@ -1,0 +1,98 @@
+{
+  "name": "Log",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event occurred"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User ID who performed the action"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Full name of the user"
+    },
+    "user_role": {
+      "type": "string",
+      "description": "Role of the user at the time of action"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "login",
+        "logout",
+        "create_student",
+        "update_student",
+        "delete_student",
+        "create_funding_transaction",
+        "approve_funding_transaction",
+        "reject_funding_transaction",
+        "create_commission_ledger",
+        "approve_commission_ledger",
+        "reject_commission_ledger",
+        "create_target",
+        "update_target",
+        "delete_target",
+        "create_ticket",
+        "update_ticket",
+        "update_user",
+        "create_mt5_account",
+        "update_mt5_account",
+        "delete_mt5_account",
+        "bulk_import_students",
+        "bulk_import_transactions",
+        "close_quarter",
+        "recalculate_leaderboard",
+        "update_gamification_settings",
+        "other"
+      ],
+      "description": "Type of action performed"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Type of entity affected (e.g., Student, Transaction, User)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the affected entity"
+    },
+    "details": {
+      "type": "string",
+      "description": "JSON string with additional context about the action"
+    },
+    "old_value": {
+      "type": "string",
+      "description": "Previous value (for update operations)"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "New value (for update operations)"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address from which action was performed"
+    },
+    "success": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the action was successful"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error message if action failed"
+    }
+  },
+  "required": [
+    "timestamp",
+    "user_id",
+    "user_email",
+    "action_type"
+  ]
+}

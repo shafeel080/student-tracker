@@ -1,0 +1,71 @@
+{
+  "name": "Commission",
+  "type": "object",
+  "properties": {
+    "mentor_id": {
+      "type": "string",
+      "description": "Mentor user ID"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor name"
+    },
+    "period": {
+      "type": "string",
+      "description": "Commission period (e.g., 2024-W01, 2024-01)"
+    },
+    "period_type": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "monthly",
+        "quarterly"
+      ],
+      "description": "Type of period"
+    },
+    "total_net_deposit": {
+      "type": "number",
+      "default": 0,
+      "description": "Total net deposits for the period"
+    },
+    "commission_rate": {
+      "type": "number",
+      "description": "Commission rate percentage"
+    },
+    "commission_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Calculated commission amount"
+    },
+    "buffer_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Buffer/holdback amount"
+    },
+    "payable_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount to be paid out"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "calculated",
+        "approved",
+        "paid"
+      ],
+      "default": "calculated",
+      "description": "Commission status"
+    },
+    "calculation_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date commission was calculated"
+    }
+  },
+  "required": [
+    "mentor_id",
+    "period",
+    "period_type"
+  ]
+}

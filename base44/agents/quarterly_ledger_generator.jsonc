@@ -1,0 +1,12 @@
+{
+  "description": "Automated agent that generates commission ledgers for all mentors at the beginning of each quarter",
+  "instructions": "This agent automatically runs at the start of each new quarter (January 1, April 1, July 1, October 1) to generate commission ledgers for all mentors based on the previous quarter's performance. It calculates net deposits, commissions, and buffer amounts, creating CommissionLedger records without manual intervention.",
+  "tool_configs": [],
+  "backend_function_configs": [
+    {
+      "function_name": "generateQuarterlyLedgers",
+      "cron_schedule": "0 0 1 1,4,7,10 *"
+    }
+  ],
+  "name": "quarterly_ledger_generator"
+}

@@ -1,0 +1,494 @@
+{
+  "name": "StudentLog",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "Student Code"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student Name"
+    },
+    "followup_priority": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "description": "Followup Priority"
+    },
+    "active_in_classes": {
+      "type": "boolean",
+      "default": true,
+      "description": "Active/Non Active in Classes"
+    },
+    "not_attending_reason": {
+      "type": "string",
+      "description": "If not attending - Reason"
+    },
+    "last_contact_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last Contact date"
+    },
+    "last_contact_person": {
+      "type": "string",
+      "description": "Last contact person"
+    },
+    "contact_history": {
+      "type": "string",
+      "description": "Contact History - Detailed Explanation"
+    },
+    "preferred_contact_mode": {
+      "type": "string",
+      "enum": [
+        "Phone",
+        "Email",
+        "WhatsApp",
+        "In-Person",
+        "Video Call"
+      ],
+      "description": "Preferred mode of Contact"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email ID"
+    },
+    "phone_number": {
+      "type": "string",
+      "description": "Phone Number"
+    },
+    "home_country_contact": {
+      "type": "string",
+      "description": "Home Country Contact number"
+    },
+    "emergency_contact": {
+      "type": "string",
+      "description": "Emergency Contact Number & Person"
+    },
+    "nationality": {
+      "type": "string",
+      "description": "Nationality"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ],
+      "description": "Gender"
+    },
+    "dob": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of Birth"
+    },
+    "occupation": {
+      "type": "string",
+      "description": "Occupation"
+    },
+    "permanent_address": {
+      "type": "string",
+      "description": "Permanent Address (Home Country)"
+    },
+    "residency_address": {
+      "type": "string",
+      "description": "Residency address"
+    },
+    "passport_number": {
+      "type": "string",
+      "description": "Passport number"
+    },
+    "emirates_id": {
+      "type": "string",
+      "description": "Emirates ID/Residence ID"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Professional Photo URL"
+    },
+    "passport_copy_url": {
+      "type": "string",
+      "description": "Passport Copy URL"
+    },
+    "date_of_joining": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of Joining"
+    },
+    "month_of_joining": {
+      "type": "string",
+      "description": "Month of Joining"
+    },
+    "course_enrolled": {
+      "type": "string",
+      "description": "Course Enrolled"
+    },
+    "preferred_language": {
+      "type": "string",
+      "description": "Preferred Language"
+    },
+    "academic_counselors": {
+      "type": "string",
+      "description": "Academic Counselors"
+    },
+    "mode_of_study": {
+      "type": "string",
+      "enum": [
+        "Online",
+        "Offline",
+        "Hybrid"
+      ],
+      "description": "Mode of study"
+    },
+    "country_of_attendance": {
+      "type": "string",
+      "description": "Country of Attendance"
+    },
+    "joined_dollar_club": {
+      "type": "boolean",
+      "default": false,
+      "description": "Joined for Dollar Club"
+    },
+    "course_amount": {
+      "type": "number",
+      "description": "Course amount"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "Paid",
+        "Pending",
+        "Partial",
+        "Overdue"
+      ],
+      "description": "Payment Status"
+    },
+    "payment_mode": {
+      "type": "string",
+      "description": "Payment Mode"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment Date"
+    },
+    "payment_due": {
+      "type": "number",
+      "description": "Payment Due"
+    },
+    "discount": {
+      "type": "number",
+      "description": "Discount"
+    },
+    "payment_history": {
+      "type": "string",
+      "description": "Payment History"
+    },
+    "amount_collected_by": {
+      "type": "string",
+      "description": "Amount collected by Whom"
+    },
+    "induction_status": {
+      "type": "string",
+      "enum": [
+        "Completed",
+        "Pending",
+        "Not Started"
+      ],
+      "description": "Induction Status"
+    },
+    "induction_done_by": {
+      "type": "string",
+      "description": "Induction Done by"
+    },
+    "onboarding_document_status": {
+      "type": "string",
+      "description": "Student onboarding document status"
+    },
+    "community_status": {
+      "type": "string",
+      "description": "Community Status"
+    },
+    "current_class_status": {
+      "type": "string",
+      "description": "Current Class Status"
+    },
+    "last_attended_class": {
+      "type": "string",
+      "format": "date",
+      "description": "Last attended Class"
+    },
+    "exam_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Exam Date"
+    },
+    "exam_status": {
+      "type": "string",
+      "enum": [
+        "Attended",
+        "Not Attended",
+        "Scheduled",
+        "Passed",
+        "Failed"
+      ],
+      "description": "Exam Status"
+    },
+    "exam_not_attended_reason": {
+      "type": "string",
+      "description": "If not attended, reason"
+    },
+    "exam_valuation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Exam valuation Date"
+    },
+    "exam_evaluator": {
+      "type": "string",
+      "description": "Exam Evaluator"
+    },
+    "exam_marks": {
+      "type": "number",
+      "description": "Exam Marks"
+    },
+    "exam_result": {
+      "type": "string",
+      "enum": [
+        "Pass",
+        "Fail",
+        "Pending"
+      ],
+      "description": "Exam Result"
+    },
+    "failed_assigned_mentor": {
+      "type": "string",
+      "description": "If failed assigned to which mentor"
+    },
+    "failure_reason": {
+      "type": "string",
+      "description": "Reason for failure"
+    },
+    "upgrade_response": {
+      "type": "string",
+      "enum": [
+        "Interested",
+        "Not Interested",
+        "Pending"
+      ],
+      "description": "Upgrade Response"
+    },
+    "upgrade_not_interested_reason": {
+      "type": "string",
+      "description": "If not Interested Why"
+    },
+    "course_to_upgrade": {
+      "type": "string",
+      "description": "Course to be Upgrade"
+    },
+    "upgrade_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of Upgrade"
+    },
+    "upgrade_month": {
+      "type": "string",
+      "description": "Month of Upgrade"
+    },
+    "convocation_status": {
+      "type": "string",
+      "description": "Convocation"
+    },
+    "certificate_status": {
+      "type": "string",
+      "description": "Certificate status (KHDA, Delta)"
+    },
+    "convocation_month": {
+      "type": "string",
+      "description": "Convocation month"
+    },
+    "invited_traders_dayout": {
+      "type": "boolean",
+      "default": false,
+      "description": "Invited for Traders day out"
+    },
+    "traders_dayout_invite_reason": {
+      "type": "string",
+      "description": "Reason for invite"
+    },
+    "traders_dayout_outcome": {
+      "type": "string",
+      "description": "Outcome for Traders Dayout"
+    },
+    "trading_journal_management": {
+      "type": "string",
+      "description": "Trading Journal Management"
+    },
+    "trading_journal_link": {
+      "type": "string",
+      "description": "Journal Link"
+    },
+    "live_trades_attended_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many live trades attended so far"
+    },
+    "last_attended_live_trade": {
+      "type": "string",
+      "format": "date",
+      "description": "Last Attended live trade"
+    },
+    "trading_status": {
+      "type": "string",
+      "description": "Trading Status"
+    },
+    "current_broker": {
+      "type": "string",
+      "description": "Current Broker"
+    },
+    "assets_traded": {
+      "type": "string",
+      "description": "Assets he trades"
+    },
+    "current_profit_loss": {
+      "type": "number",
+      "description": "Current P/L"
+    },
+    "potential_to_deposit": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is he potential to deposit"
+    },
+    "easy_to_convince": {
+      "type": "boolean",
+      "default": false,
+      "description": "Easy to convince"
+    },
+    "total_loss_from_trading": {
+      "type": "number",
+      "description": "Total Loss from Trading"
+    },
+    "rejoining_response": {
+      "type": "string",
+      "enum": [
+        "Interested",
+        "Not Interested",
+        "Pending"
+      ],
+      "description": "Rejoining Response"
+    },
+    "rejoining_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of rejoining"
+    },
+    "rejoining_measures": {
+      "type": "string",
+      "description": "Measures taken for rejoining"
+    },
+    "rejoined_class": {
+      "type": "string",
+      "description": "Rejoined Class"
+    },
+    "rejoining_sales_person": {
+      "type": "string",
+      "description": "Sales person"
+    },
+    "rejoinees_feedback": {
+      "type": "string",
+      "description": "Rejoinees Feedback"
+    },
+    "mentor_assigned": {
+      "type": "string",
+      "description": "Mentor Assigned (last)"
+    },
+    "attended_senior_mentor_class": {
+      "type": "boolean",
+      "default": false,
+      "description": "Did the student attended senior mentor class"
+    },
+    "discussion_with_senior_mentor": {
+      "type": "boolean",
+      "default": false,
+      "description": "Did the client had the discussion session"
+    },
+    "practice_sessions_attended": {
+      "type": "number",
+      "default": 0,
+      "description": "How many Practice Sessions Attended"
+    },
+    "seminars_attended_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of Seminars attended"
+    },
+    "online_seminars_list": {
+      "type": "string",
+      "description": "List of Online Seminars Attended"
+    },
+    "offline_seminars_list": {
+      "type": "string",
+      "description": "List of Offline Seminars Attended"
+    },
+    "seminars_not_attended_reason": {
+      "type": "string",
+      "description": "If not attended, reason"
+    },
+    "feedback": {
+      "type": "string",
+      "description": "Feedback"
+    },
+    "testimonial_done": {
+      "type": "boolean",
+      "default": false,
+      "description": "Testimonial Done"
+    },
+    "google_review": {
+      "type": "boolean",
+      "default": false,
+      "description": "Google review"
+    },
+    "subscribed_for_pipscraft": {
+      "type": "boolean",
+      "default": false,
+      "description": "Subscribed for pips craft"
+    },
+    "pipscraft_subscription_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When subscribed for pipscraft"
+    },
+    "still_using_pipscraft": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is the client still using the service"
+    },
+    "pipscraft_satisfaction": {
+      "type": "string",
+      "enum": [
+        "Satisfied",
+        "Not Satisfied"
+      ],
+      "description": "Is the client satisfied with service"
+    },
+    "pipscraft_not_satisfied_reason": {
+      "type": "string",
+      "description": "If not satisfied, why"
+    },
+    "pipscraft_subscribed_agent": {
+      "type": "string",
+      "description": "Pipscraft subscribed agent"
+    }
+  },
+  "required": [
+    "student_id",
+    "student_name"
+  ]
+}

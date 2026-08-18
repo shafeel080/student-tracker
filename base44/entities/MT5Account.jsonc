@@ -1,0 +1,49 @@
+{
+  "name": "MT5Account",
+  "type": "object",
+  "properties": {
+    "mt5_login": {
+      "type": "string",
+      "description": "MT5 login ID"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Related Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student full name"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "Student code for easy reference"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "MT5",
+        "MT4"
+      ],
+      "default": "MT5",
+      "description": "Trading platform"
+    },
+    "account_type": {
+      "type": "string",
+      "description": "Account type (LIVE, DEMO, etc.)"
+    },
+    "base_currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Base currency (all calculations in USD)"
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this the primary account for the student"
+    }
+  },
+  "required": [
+    "mt5_login",
+    "student_id"
+  ]
+}

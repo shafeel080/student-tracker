@@ -1,0 +1,30 @@
+{
+  "name": "AcademicCounselor",
+  "type": "object",
+  "properties": {
+    "counselor_name": {
+      "type": "string",
+      "description": "Academic Counselor Name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Counselor Email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Counselor Phone"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive"
+      ],
+      "default": "Active",
+      "description": "Counselor Status"
+    }
+  },
+  "required": [
+    "counselor_name"
+  ]
+}

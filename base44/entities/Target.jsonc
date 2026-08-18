@@ -1,0 +1,69 @@
+{
+  "name": "Target",
+  "type": "object",
+  "properties": {
+    "mentor_id": {
+      "type": "string",
+      "description": "Mentor user ID"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor name"
+    },
+    "period": {
+      "type": "string",
+      "description": "Target period (e.g., 2024-W01, 2024-01, 2024-Q1)"
+    },
+    "period_type": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "monthly",
+        "quarterly"
+      ],
+      "description": "Type of period"
+    },
+    "target_amount": {
+      "type": "number",
+      "description": "Target net deposit amount"
+    },
+    "achieved_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Actual achieved amount"
+    },
+    "achievement_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Achievement percentage"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Target period start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Target period end date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "missed"
+      ],
+      "default": "active",
+      "description": "Target status"
+    }
+  },
+  "required": [
+    "mentor_id",
+    "period",
+    "period_type",
+    "target_amount",
+    "start_date",
+    "end_date"
+  ]
+}

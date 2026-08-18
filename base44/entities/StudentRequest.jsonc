@@ -1,0 +1,120 @@
+{
+  "name": "StudentRequest",
+  "type": "object",
+  "properties": {
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "NEW_ENROLLMENT",
+        "TRANSFER",
+        "OPEN_POOL_ASSIGNMENT",
+        "LEVEL_UPGRADE"
+      ],
+      "default": "NEW_ENROLLMENT",
+      "description": "Type of student request"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Student full name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Student email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Student phone"
+    },
+    "country": {
+      "type": "string",
+      "description": "Student country"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "requested_primary_mentor_id": {
+      "type": "string",
+      "description": "Requested primary mentor ID"
+    },
+    "requested_primary_mentor_name": {
+      "type": "string",
+      "description": "Requested primary mentor name"
+    },
+    "requested_senior_mentor_id": {
+      "type": "string",
+      "description": "Requested senior mentor ID"
+    },
+    "requested_senior_mentor_name": {
+      "type": "string",
+      "description": "Requested senior mentor name"
+    },
+    "requested_by_id": {
+      "type": "string",
+      "description": "User ID who submitted the request"
+    },
+    "requested_by_name": {
+      "type": "string",
+      "description": "Name of user who submitted"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When request was submitted"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "APPROVED",
+        "REJECTED",
+        "TRANSFERRED",
+        "PENDING_LEVEL_UPGRADE"
+      ],
+      "default": "APPROVED",
+      "description": "Request status - auto-approved for new enrollments, pending for level upgrades"
+    },
+    "level_upgrade_approved_by_id": {
+      "type": "string",
+      "description": "Broker admin who approved the level upgrade"
+    },
+    "level_upgrade_approved_by_name": {
+      "type": "string",
+      "description": "Name of broker admin who approved the level upgrade"
+    },
+    "level_upgrade_approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of level upgrade approval"
+    },
+    "level_upgrade_rejection_reason": {
+      "type": "string",
+      "description": "Reason for level upgrade rejection"
+    },
+    "is_transfer": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a transfer request"
+    },
+    "existing_student_id": {
+      "type": "string",
+      "description": "ID of existing student (for transfers, open pool assignments, or level upgrades)"
+    },
+    "previous_mentor_id": {
+      "type": "string",
+      "description": "Previous mentor ID for transfers"
+    },
+    "previous_mentor_name": {
+      "type": "string",
+      "description": "Previous mentor name for transfers"
+    },
+    "created_student_id": {
+      "type": "string",
+      "description": "ID of created student after approval"
+    }
+  },
+  "required": [
+    "request_type",
+    "requested_by_id",
+    "status"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "MentorDeduction",
+  "type": "object",
+  "properties": {
+    "mentor_id": {
+      "type": "string",
+      "description": "Mentor user ID"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor full name"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID related to the deduction"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "Student code"
+    },
+    "amount_usd": {
+      "type": "number",
+      "description": "Deduction amount in USD"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for deduction (e.g., Pro-rata withdrawal deduction)"
+    },
+    "created_by_id": {
+      "type": "string",
+      "description": "User ID who created the deduction"
+    },
+    "created_by_name": {
+      "type": "string",
+      "description": "Name of user who created the deduction"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "mentor_id",
+    "student_id",
+    "amount_usd",
+    "reason"
+  ]
+}

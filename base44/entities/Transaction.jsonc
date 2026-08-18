@@ -1,0 +1,88 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Student ID"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "mentor_id": {
+      "type": "string",
+      "description": "Mentor ID who created the request"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "deposit",
+        "withdrawal"
+      ],
+      "description": "Transaction type"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "Payment method used"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "External transaction ID"
+    },
+    "mt5_id": {
+      "type": "string",
+      "description": "MT5 account ID"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Platform user ID"
+    },
+    "screenshot_url": {
+      "type": "string",
+      "description": "Screenshot proof URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Transaction status"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "User ID who approved/rejected"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Approval/rejection date"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for rejection"
+    },
+    "request_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date request was created"
+    }
+  },
+  "required": [
+    "student_id",
+    "mentor_id",
+    "type",
+    "amount"
+  ]
+}

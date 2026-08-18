@@ -1,0 +1,92 @@
+{
+  "name": "MentorReferral",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "Student being referred"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student full name"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "Student code"
+    },
+    "initiating_mentor_id": {
+      "type": "string",
+      "description": "Mentor A who sent the referral"
+    },
+    "initiating_mentor_name": {
+      "type": "string",
+      "description": "Mentor A name"
+    },
+    "receiving_mentor_id": {
+      "type": "string",
+      "description": "Mentor B who owns the student"
+    },
+    "receiving_mentor_name": {
+      "type": "string",
+      "description": "Mentor B name"
+    },
+    "requested_deposit_amount": {
+      "type": "number",
+      "description": "Deposit amount Mentor A wants to raise"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "DEPOSIT",
+        "WITHDRAWAL"
+      ],
+      "default": "DEPOSIT",
+      "description": "Type of transaction"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "Payment method for the transaction"
+    },
+    "mt5_login": {
+      "type": "string",
+      "description": "MT5 login ID"
+    },
+    "screenshot_url": {
+      "type": "string",
+      "description": "Screenshot proof URL"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes from Mentor A"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Referral status"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for rejection by Mentor B"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When referral was created"
+    },
+    "responded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When Mentor B responded"
+    }
+  },
+  "required": [
+    "student_id",
+    "initiating_mentor_id",
+    "receiving_mentor_id"
+  ]
+}

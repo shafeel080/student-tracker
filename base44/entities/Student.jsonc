@@ -1,0 +1,114 @@
+{
+  "name": "Student",
+  "type": "object",
+  "properties": {
+    "student_code": {
+      "type": "string",
+      "description": "Unique human-readable ID like STU-0001"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Student full name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Student email (masked for most roles)"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Student phone (masked for most roles)"
+    },
+    "country": {
+      "type": "string",
+      "description": "Student country"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User ID from CRM or external system"
+    },
+    "primary_mentor_id": {
+      "type": "string",
+      "description": "Junior Mentor user ID"
+    },
+    "primary_mentor_name": {
+      "type": "string",
+      "description": "Junior Mentor name"
+    },
+    "senior_mentor_id": {
+      "type": "string",
+      "description": "Senior Mentor user ID"
+    },
+    "senior_mentor_name": {
+      "type": "string",
+      "description": "Senior Mentor name"
+    },
+    "co_mentors_details": {
+      "type": "string",
+      "description": "JSON string array of co-mentor objects [{mentor_id, mentor_name, net_deposit_contribution_usd, since}]. Max 1 co-mentor (2 mentors total)."
+    },
+    "assignment_status": {
+      "type": "string",
+      "enum": [
+        "assigned",
+        "open_pool"
+      ],
+      "default": "assigned",
+      "description": "Whether student is assigned to a mentor or in the open pool"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ],
+      "default": "ACTIVE",
+      "description": "Student account status"
+    },
+    "student_level": {
+      "type": "string",
+      "enum": [
+        "LEVEL_1",
+        "LEVEL_2"
+      ],
+      "default": "LEVEL_1",
+      "description": "Student level - Level 1: can only add logs, Level 2: can add deposits/withdrawals"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the student"
+    },
+    "net_deposit_usd": {
+      "type": "number",
+      "default": 0,
+      "description": "Total net deposits for the student"
+    },
+    "retention_status": {
+      "type": "string",
+      "enum": [
+        "pending_assignment",
+        "assigned_to_draw_admin",
+        "under_retention",
+        "retained",
+        "churned"
+      ],
+      "description": "Retention status after hitting 25K threshold"
+    },
+    "assigned_draw_admin_id": {
+      "type": "string",
+      "description": "Draw Admin user ID assigned for retention"
+    },
+    "assigned_draw_admin_name": {
+      "type": "string",
+      "description": "Draw Admin name assigned for retention"
+    },
+    "assigned_to_draw_admin_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When student was assigned to Draw Admin"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ]
+}

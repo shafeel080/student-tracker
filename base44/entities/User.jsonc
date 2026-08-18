@@ -1,0 +1,46 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "app_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user",
+        "super_admin",
+        "broker_admin",
+        "academic_head",
+        "academic_admin",
+        "admin_supervisor",
+        "junior_mentor",
+        "senior_mentor",
+        "subjunior_mentor",
+        "finance_admin",
+        "assistance",
+        "draw_admin"
+      ],
+      "default": "user"
+    },
+    "commission_rate": {
+      "type": "number",
+      "default": 4,
+      "description": "Commission rate percentage (e.g. 4 for 4%, 2 for 2%)"
+    },
+    "upline_commission_percentage": {
+      "type": "number",
+      "description": "Senior mentor upline commission percentage"
+    }
+  },
+  "security": {
+    "read": {
+      "rule": "auth.role === 'admin' || auth.app_role === 'super_admin' || auth.app_role === 'academic_head' || auth.app_role === 'broker_admin' || auth.app_role === 'academic_admin' || auth.app_role === 'admin_supervisor' || auth.id === resource.id"
+    },
+    "update": {
+      "rule": "auth.role === 'admin' || auth.app_role === 'super_admin' || auth.id === resource.id"
+    },
+    "delete": {
+      "rule": "auth.role === 'admin' || auth.app_role === 'super_admin'"
+    }
+  },
+  "required": []
+}

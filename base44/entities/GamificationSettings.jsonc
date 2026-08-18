@@ -1,0 +1,30 @@
+{
+  "name": "GamificationSettings",
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "Unique key for the setting (e.g., points_per_100_usd, points_per_student)"
+    },
+    "setting_value": {
+      "type": "number",
+      "description": "Numeric value of the setting"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    },
+    "updated_by_id": {
+      "type": "string",
+      "description": "User who last updated this setting"
+    },
+    "updated_by_name": {
+      "type": "string",
+      "description": "Name of user who last updated"
+    }
+  },
+  "required": [
+    "setting_key",
+    "setting_value"
+  ]
+}

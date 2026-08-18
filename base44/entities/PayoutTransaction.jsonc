@@ -1,0 +1,60 @@
+{
+  "name": "PayoutTransaction",
+  "type": "object",
+  "properties": {
+    "commission_ledger_id": {
+      "type": "string",
+      "description": "Related CommissionLedger ID"
+    },
+    "mentor_id": {
+      "type": "string",
+      "description": "Mentor user ID"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor full name"
+    },
+    "quarter": {
+      "type": "string",
+      "description": "Quarter label (e.g., 2025-Q1)"
+    },
+    "payout_amount_usd": {
+      "type": "number",
+      "description": "Amount paid out"
+    },
+    "payout_method": {
+      "type": "string",
+      "description": "Method of payout (e.g., Bank Transfer, PayPal)"
+    },
+    "payout_reference": {
+      "type": "string",
+      "description": "External payment reference/transaction ID"
+    },
+    "payout_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date of payout"
+    },
+    "processed_by_id": {
+      "type": "string",
+      "description": "Finance admin who processed the payout"
+    },
+    "processed_by_name": {
+      "type": "string",
+      "description": "Name of finance admin"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional payout notes"
+    }
+  },
+  "required": [
+    "commission_ledger_id",
+    "mentor_id",
+    "mentor_name",
+    "quarter",
+    "payout_amount_usd",
+    "payout_date",
+    "processed_by_id"
+  ]
+}

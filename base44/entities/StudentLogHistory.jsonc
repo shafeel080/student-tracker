@@ -1,0 +1,66 @@
+{
+  "name": "StudentLogHistory",
+  "type": "object",
+  "properties": {
+    "student_log_id": {
+      "type": "string",
+      "description": "Reference to StudentLog entity"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "Student Code"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student Name"
+    },
+    "updated_by_id": {
+      "type": "string",
+      "description": "User ID who made the update"
+    },
+    "updated_by_name": {
+      "type": "string",
+      "description": "Name of user who made the update"
+    },
+    "updated_by_role": {
+      "type": "string",
+      "description": "Role of user who made the update"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "created",
+        "updated"
+      ],
+      "description": "Whether this was a create or update"
+    },
+    "tab_section": {
+      "type": "string",
+      "description": "Tab/section that was updated (e.g., Contact, Payment)"
+    },
+    "fields_changed": {
+      "type": "string",
+      "description": "JSON string of changed fields with old and new values"
+    },
+    "contact_history_snapshot": {
+      "type": "string",
+      "description": "Contact history notes added in this session"
+    },
+    "entry_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this history entry was recorded"
+    }
+  },
+  "required": [
+    "student_log_id",
+    "student_id",
+    "student_name",
+    "updated_by_id",
+    "action_type"
+  ]
+}

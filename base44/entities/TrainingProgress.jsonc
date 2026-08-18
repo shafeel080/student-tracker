@@ -1,0 +1,63 @@
+{
+  "name": "TrainingProgress",
+  "type": "object",
+  "properties": {
+    "mentor_id": {
+      "type": "string",
+      "description": "User ID of the mentor"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor full name"
+    },
+    "topic_id": {
+      "type": "string",
+      "description": "Training topic ID"
+    },
+    "topic_title": {
+      "type": "string",
+      "description": "Training topic title"
+    },
+    "module_data": {
+      "type": "string",
+      "description": "JSON string of the generated module"
+    },
+    "quiz_data": {
+      "type": "string",
+      "description": "JSON string of the generated quiz"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the module is completed"
+    },
+    "quiz_score": {
+      "type": "number",
+      "description": "Quiz score achieved"
+    },
+    "quiz_total": {
+      "type": "number",
+      "description": "Total quiz questions"
+    },
+    "quiz_percentage": {
+      "type": "number",
+      "description": "Quiz score percentage"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the module was completed"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the module was generated"
+    }
+  },
+  "required": [
+    "mentor_id",
+    "mentor_name",
+    "topic_id",
+    "topic_title"
+  ]
+}

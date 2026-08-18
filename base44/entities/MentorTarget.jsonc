@@ -1,0 +1,80 @@
+{
+  "name": "MentorTarget",
+  "type": "object",
+  "properties": {
+    "mentor_id": {
+      "type": "string",
+      "description": "User ID of the mentor"
+    },
+    "mentor_name": {
+      "type": "string",
+      "description": "Mentor full name"
+    },
+    "period_type": {
+      "type": "string",
+      "enum": [
+        "WEEKLY",
+        "MONTHLY",
+        "QUARTERLY"
+      ],
+      "description": "Target period type"
+    },
+    "period_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Period start date"
+    },
+    "period_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Period end date"
+    },
+    "target_net_deposit_usd": {
+      "type": "number",
+      "description": "Target net deposit in USD"
+    },
+    "achievement_net_deposit_usd": {
+      "type": "number",
+      "default": 0,
+      "description": "Achieved net deposit (calculated)"
+    },
+    "achievement_percent": {
+      "type": "number",
+      "default": 0,
+      "description": "Achievement percentage"
+    },
+    "target_status": {
+      "type": "string",
+      "enum": [
+        "NOT_STARTED",
+        "IN_PROGRESS",
+        "ACHIEVED",
+        "MISSED"
+      ],
+      "description": "Current target status"
+    },
+    "assigned_by_id": {
+      "type": "string",
+      "description": "User ID who assigned the target"
+    },
+    "assigned_by_name": {
+      "type": "string",
+      "description": "Name of user who assigned the target"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "mentor_id",
+    "mentor_name",
+    "period_type",
+    "period_start_date",
+    "period_end_date",
+    "target_net_deposit_usd",
+    "target_status",
+    "assigned_by_id",
+    "assigned_by_name"
+  ]
+}
